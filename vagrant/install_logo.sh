@@ -23,7 +23,6 @@
 
 # Let's Go !! #################################################
 
-echo "
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -54,6 +53,7 @@ alias ksgp='kubectl get pods -n kube-system'
 alias kss='kubectl get services -n kube-system'
 alias kuc='kubectl config use-context'
 alias kx='kubectx'
+alias vu='vagrant up'
 
 
 
@@ -67,4 +67,3 @@ echo -e '\033[0;32m
 ╚══════╝░╚════╝░░╚═════╝░░╚════╝░
 '
 export KUBECONFIG=/home/vagrant/.k0s/kubeconfig
-" >> /home/vagrant/.bashrc

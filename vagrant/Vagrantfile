@@ -3,18 +3,63 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.ssh.insert_key = false
 
-  # Port SSH personnalisé
-  config.vm.network :forwarded_port, guest: 22, host: 50224, id: "ssh", auto_correct: false
+  # Réduction du bruit dans les logs
+  config.cache.auto_detect = true
 
-  # Configuration QEMU
-  config.vm.provider "qemu" do |qe|
-    qe.qemu_dir = "/usr/bin/"
-    qe.arch = "x86_64"
-    qe.memory = "1024"
-    qe.smp = "2"
-    qe.machine = "q35"
-    qe.cpu = "max"
-    qe.net_device = "virtio-net-pci"
+  # Script d’installation de base
+  common_provision = <<-SHELL
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq unzip iftop curl software-properties-common git vim tree net-tools telnet
+    sudo sed -i 's/^#\\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+  SHELL
+
+  # IPs et ports définis pour chaque VM
+  NODES = [
+    { hostname: "kubm1", ip: "192.168.26.10", cpus: 2, mem: 2048, ssh_port: 50210 },
+  # { hostname: "kubw1", ip: "192.168.26.13", cpus: 2, mem: 1024, ssh_port: 50211 },
+  # { hostname: "kubw2", ip: "192.168.26.14", cpus: 2, mem: 1024, ssh_port: 50212 }
+  ]
+
+  # Entrées /etc/hosts pour que les VMs se connaissent
+  hosts_entries = NODES.map { |n| "#{n[:ip]} #{n[:hostname]}" }.join("\n")
+
+  NODES.each do |node|
+    config.vm.define node[:hostname] do |vm|
+      vm.vm.hostname = node[:hostname]
+      vm.vm.network "private_network", ip: node[:ip]
+      vm.vm.network :forwarded_port, guest: 22, host: node[:ssh_port], id: "ssh", auto_correct: false
+
+      # Provider QEMU
+      vm.vm.provider "qemu" do |qemu|
+        qemu.qemu_dir = "/usr/bin/"
+        qemu.arch = "x86_64"
+        qemu.memory = node[:mem]
+        qemu.smp = node[:cpus]
+        qemu.machine = "q35"
+        qemu.cpu = "max"
+        qemu.net_device = "virtio-net-pci"
+      end
+
+      # Provision de base (packages utiles)
+      vm.vm.provision "shell", inline: common_provision
+
+      # Ajout de la clé SSH de l'utilisateur à root + vagrant
+      vm.vm.provision "shell" do |s|
+        ssh_pub_key = File.read("#{Dir.home}/.ssh/id_rsa.pub").strip
+        s.inline = <<-SHELL
+          mkdir -p /root/.ssh /home/vagrant/.ssh
+          echo "#{ssh_pub_key}" >> /root/.ssh/authorized_keys
+          echo "#{ssh_pub_key}" >> /home/vagrant/.ssh/authorized_keys
+          chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys
+        SHELL
+      end
+
+      # Ajout de toutes les entrées /etc/hosts pour la résolution entre nodes
+      vm.vm.provision "shell", inline: <<-SHELL
+        echo "#{hosts_entries}" | tee -a /etc/hosts > /dev/null
+      SHELL
+    end
   end
 
   # ─────────────────────────────────────────────
@@ -61,6 +106,4 @@ Vagrant.configure("2") do |config|
     echo -e "[defaults]\ninterpreter_python = /opt/ansible_venv/bin/python3\nhost_key_checking = False" | sudo tee /etc/ansible/ansible.cfg > /dev/null
     sudo ln -sf /opt/ansible_venv/bin/ansible* /usr/local/bin/
   SHELL
-
-
 end
