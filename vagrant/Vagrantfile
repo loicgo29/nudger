@@ -38,6 +38,7 @@ Vagrant.configure("2") do |config|
       ansible-core==2.15.3 \
       ansible-lint==6.22.1 \
       molecule==5.1.0
+      passlib
 
     # Lien symbolique global
     sudo ln -sf /opt/ansible_venv/bin/ansible* /usr/local/bin/
