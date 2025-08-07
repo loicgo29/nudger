@@ -1,6 +1,6 @@
-''' bash
+'''bash
 vagrant up
 '''
-''' bash
+'''bash
 vagrant ssh
-''''
+'''
