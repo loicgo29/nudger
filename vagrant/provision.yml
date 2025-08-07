@@ -1,0 +1,57 @@
+---
+- name: Provisionnement de base
+  hosts: all
+  become: true
+
+  tasks:
+    # Mise à jour du système
+    - name: Mettre à jour l'index des paquets
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    # Installation des paquets de base
+    - name: Installer les paquets essentiels
+      apt:
+        name:
+          - curl
+          - git
+          - htop
+          - net-tools
+          - ufw
+        state: present
+
+    # Création d'un utilisateur
+    - name: Créer un utilisateur dédié
+      user:
+        name: deploy
+        groups: sudo
+        shell: /bin/bash
+        password: "{{ 'motdepasse' | password_hash('sha512') }}"
+        append: yes
+
+    # Configuration du firewall
+    - name: Configurer UFW
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - 22   # SSH
+        - 80   # HTTP
+        - 443  # HTTPS
+
+    - name: Activer UFW
+      ufw:
+        state: enabled
+
+    # Message de bienvenue
+    - name: Configurer le MOTD
+      copy:
+        content: |
+          Bienvenue sur {{ ansible_hostname }}
+          Provisionné le {{ ansice_date_time.date }}
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: 0644◊
