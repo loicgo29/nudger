@@ -1,10 +1,10 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
-  config.vm.synced_folder ".", "/vagrant"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
   config.ssh.insert_key = false
 
   # Port SSH personnalisé
-  config.vm.network :forwarded_port, guest: 22, host: 50222, id: "ssh", auto_correct: false
+  config.vm.network :forwarded_port, guest: 22, host: 50224, id: "ssh", auto_correct: false
 
   # Configuration QEMU
   config.vm.provider "qemu" do |qe|
@@ -65,6 +65,7 @@ Vagrant.configure("2") do |config|
   # 🧱 Brique 6 : Exécution du playbook (si présent)
   config.vm.provision "shell", name: "run_ansible_playbook", inline: <<~SHELL
     echo "[6/6] Exécution du playbook Ansible"
+
     if [ -f /vagrant/provision.yml ]; then
       sudo /opt/ansible_venv/bin/ansible-playbook -i /vagrant/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory -v /vagrant/provision.yml
     else
