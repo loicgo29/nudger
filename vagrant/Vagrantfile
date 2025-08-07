@@ -1,11 +1,7 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
   config.vm.synced_folder ".", "/vagrant", disabled: true
-
-  # ✅ On empêche toute génération de clé SSH auto
   config.ssh.insert_key = false
-
-  # ✅ On évite les ports par défaut du box
   config.vm.network :forwarded_port, guest: 22, host: 50222, id: "ssh", auto_correct: false
 
   config.vm.provider "qemu" do |qe|
@@ -17,5 +13,47 @@ Vagrant.configure("2") do |config|
     qe.cpu = "max"
     qe.net_device = "virtio-net-pci"
   end
-end
 
+  # Provisionnement Ansible industriel
+  config.vm.provision "shell", inline: <<~SHELL
+    # Mise à jour du système
+    sudo apt-get update -qq
+    sudo apt-get upgrade -yq
+
+    # Installation des dépendances
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      python3-pip \
+      python3-venv \
+      git \
+      sshpass \
+      libssl-dev \
+      libffi-dev
+
+    # Création d'un environnement virtuel dédié
+    sudo python3 -m venv /opt/ansible_venv
+    sudo /opt/ansible_venv/bin/pip install --upgrade pip wheel
+
+    # Installation d'Ansible et outils associés
+    sudo /opt/ansible_venv/bin/pip install \
+      ansible-core==2.15.3 \
+      ansible-lint==6.22.1 \
+      molecule==5.1.0
+
+    # Lien symbolique global
+    sudo ln -sf /opt/ansible_venv/bin/ansible* /usr/local/bin/
+
+    # Configuration minimale d'Ansible
+    sudo mkdir -p /etc/ansible
+    echo -e "[defaults]\ninterpreter_python = /opt/ansible_venv/bin/python3\nhost_key_checking = False" | sudo tee /etc/ansible/ansible.cfg > /dev/null
+
+    # Vérification de l'installation
+    /opt/ansible_venv/bin/ansible --version
+  SHELL
+
+  # Provisionnement additionnel via Ansible (optionnel)
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "provision.yml" if File.exist?("provision.yml")
+    ansible.verbose = "v"
+    ansible.host_key_checking = false
+  end
+end
