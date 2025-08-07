@@ -2,8 +2,11 @@ Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.ssh.insert_key = false
+
+  # Port SSH personnalisé
   config.vm.network :forwarded_port, guest: 22, host: 50222, id: "ssh", auto_correct: false
 
+  # Configuration QEMU
   config.vm.provider "qemu" do |qe|
     qe.qemu_dir = "/usr/bin/"
     qe.arch = "x86_64"
@@ -14,13 +17,17 @@ Vagrant.configure("2") do |config|
     qe.net_device = "virtio-net-pci"
   end
 
-  # Provisionnement Ansible industriel
-  config.vm.provision "shell", inline: <<~SHELL
-    # Mise à jour du système
+  # ─────────────────────────────────────────────
+  # 🧱 Brique 1 : Mise à jour système
+  config.vm.provision "shell", name: "update_system", inline: <<~SHELL
+    echo "[1/6] Mise à jour du système"
     sudo apt-get update -qq
     sudo apt-get upgrade -yq
+  SHELL
 
-    # Installation des dépendances
+  # 🧱 Brique 2 : Installation des dépendances système
+  config.vm.provision "shell", name: "install_base_dependencies", inline: <<~SHELL
+    echo "[2/6] Installation des paquets de base"
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq \
       python3-pip \
       python3-venv \
@@ -28,33 +35,40 @@ Vagrant.configure("2") do |config|
       sshpass \
       libssl-dev \
       libffi-dev
+  SHELL
 
-    # Création d'un environnement virtuel dédié
+  # 🧱 Brique 3 : Création de l’environnement Python dédié à Ansible
+  config.vm.provision "shell", name: "create_ansible_venv", inline: <<~SHELL
+    echo "[3/6] Création de l'environnement virtuel Ansible"
     sudo python3 -m venv /opt/ansible_venv
     sudo /opt/ansible_venv/bin/pip install --upgrade pip wheel
+  SHELL
 
-    # Installation d'Ansible et outils associés
+  # 🧱 Brique 4 : Installation d'Ansible et outils
+  config.vm.provision "shell", name: "install_ansible_stack", inline: <<~SHELL
+    echo "[4/6] Installation d'Ansible et des outils"
     sudo /opt/ansible_venv/bin/pip install \
       ansible-core==2.15.3 \
       ansible-lint==6.22.1 \
       molecule==5.1.0 \
       passlib
-
-    # Lien symbolique global
-    sudo ln -sf /opt/ansible_venv/bin/ansible* /usr/local/bin/
-
-    # Configuration minimale d'Ansible
-    sudo mkdir -p /etc/ansible
-    echo -e "[defaults]\ninterpreter_python = /opt/ansible_venv/bin/python3\nhost_key_checking = False" | sudo tee /etc/ansible/ansible.cfg > /dev/null
-
-    # Vérification de l'installation
-    /opt/ansible_venv/bin/ansible --version
   SHELL
 
-  # Provisionnement additionnel via Ansible (optionnel)
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "provision.yml" if File.exist?("provision.yml")
-    ansible.verbose = "v"
-    ansible.host_key_checking = false
-  end
+  # 🧱 Brique 5 : Configuration globale Ansible
+  config.vm.provision "shell", name: "setup_ansible_cfg", inline: <<~SHELL
+    echo "[5/6] Configuration Ansible"
+    sudo mkdir -p /etc/ansible
+    echo -e "[defaults]\ninterpreter_python = /opt/ansible_venv/bin/python3\nhost_key_checking = False" | sudo tee /etc/ansible/ansible.cfg > /dev/null
+    sudo ln -sf /opt/ansible_venv/bin/ansible* /usr/local/bin/
+  SHELL
+
+  # 🧱 Brique 6 : Exécution du playbook (si présent)
+  config.vm.provision "shell", name: "run_ansible_playbook", inline: <<~SHELL
+    echo "[6/6] Exécution du playbook Ansible"
+    if [ -f /vagrant/provision.yml ]; then
+      sudo /opt/ansible_venv/bin/ansible-playbook -i /vagrant/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory -v /vagrant/provision.yml
+    else
+      echo "Aucun playbook 'provision.yml' trouvé, étape ignorée."
+    fi
+  SHELL
 end
