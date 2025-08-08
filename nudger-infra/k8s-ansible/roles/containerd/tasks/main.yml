@@ -8,15 +8,19 @@
       - gnupg
       - software-properties-common
     state: present
+    update_cache: yes
+
+- name: Create directory for APT keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
 
 - name: Add Kubernetes GPG key (modern method)
-  get_url:
-    url: "{{ k8s_gpg_key }}"
-    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
     mode: '0644'
-  register: key_download
-  until: key_download is succeeded
-  retries: 3
 
 - name: Add Kubernetes repository
   apt_repository:
