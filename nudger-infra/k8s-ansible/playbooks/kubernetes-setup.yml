@@ -6,6 +6,7 @@
     - roles/common/vars/main.yml
     - roles/docker/vars/main.yml
     - roles/kubernetes/vars/main.yml
+    - meta/main.yml
 
   pre_tasks:
     - name: Disable swap (for all nodes)
@@ -17,6 +18,8 @@
       tags: docker
     - role: kubernetes
       tags: kubernetes
+    - role: containerd
+      tags: containerd
 
 - name: Additional Master Node Configuration
   hosts: k8s_masters
