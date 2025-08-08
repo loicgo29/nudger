@@ -17,6 +17,6 @@ docker_packages:
 kubernetes_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
 kubernetes_gpg_key: "https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key"
 kubernetes_packages:
-  - kubelet=1.28.*
-  - kubeadm=1.28.*
-  - kubectl=1.28.*
+  - kubelet
+  - kubeadm
+  - kubectl
