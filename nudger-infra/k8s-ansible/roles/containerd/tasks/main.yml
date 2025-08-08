@@ -47,6 +47,21 @@
     dest: /etc/containerd/config.toml
   notify: restart containerd
 
+- name: Load br_netfilter module
+  modprobe:
+    name: br_netfilter
+    state: present
+  become: yes
+
+- name: Ensure br_netfilter module loads on boot
+  copy:
+    dest: /etc/modules-load.d/br_netfilter.conf
+    content: "br_netfilter\n"
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
 - name: Apply sysctl parameters
   sysctl:
     name: "{{ item.key }}"
