@@ -31,9 +31,11 @@
 
 - name: Install Kubernetes packages
   apt:
-    name: "{{ k8s_packages }}={{ k8s_version }}"
+    name: "{{ item }}"
     state: present
     update_cache: yes
+  loop: "{{ k8s_packages }}"
+
 
 - name: Hold Kubernetes packages
   command: apt-mark hold {{ item }}
