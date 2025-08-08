@@ -31,7 +31,7 @@
 
 - name: Install Kubernetes packages
   apt:
-    name: "{{ k8s_packages }}={{ k8s_version }}-00"
+    name: "{{ k8s_packages }}={{ k8s_version }}"
     state: present
     update_cache: yes
 
