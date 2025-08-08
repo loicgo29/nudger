@@ -1,4 +1,9 @@
 ---
+- name: Include common vars
+  include_vars:
+    file: ../../common/vars/main.yml
+
+
 - name: Install common dependencies
   apt:
     name: "{{ common_dependencies }}"
