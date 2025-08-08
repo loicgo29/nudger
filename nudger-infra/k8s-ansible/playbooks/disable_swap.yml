@@ -1,0 +1,21 @@
+---
+# disable_swap.yml - Fichier de tâches uniquement
+- name: Désactiver le swap immédiatement
+  ansible.builtin.command:
+    cmd: swapoff -a
+
+- name: Commenter les lignes swap dans /etc/fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].* swap .*)$'
+    replace: '#\1'
+    backup: yes
+
+- name: Vérifier que le swap est désactivé
+  ansible.builtin.shell: swapon --show
+  register: swap_status
+  changed_when: false
+
+- name: Afficher le statut du swap
+  ansible.builtin.debug:
+    msg: "Swap activé ? {{ swap_status.stdout != '' }}"

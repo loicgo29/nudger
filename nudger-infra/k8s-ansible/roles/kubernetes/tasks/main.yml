@@ -1,0 +1,27 @@
+---
+- name: Add Kubernetes GPG key
+  apt_key:
+    url: "{{ kubernetes_gpg_key }}"
+    state: present
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: "{{ kubernetes_repo }}"
+    state: present
+    filename: kubernetes
+
+- name: Install Kubernetes packages
+  apt:
+    name: "{{ kubernetes_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Hold packages at specific version
+  command: apt-mark hold "{{ item }}"
+  loop: "{{ kubernetes_packages }}"
+
+- name: Ensure kubelet is running
+  service:
+    name: kubelet
+    state: started
+    enabled: yes
