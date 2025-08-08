@@ -6,24 +6,38 @@
     mode: '0755'
   become: yes
 
-- name: Add Kubernetes GPG key
+- name: Download Kubernetes GPG key (ASCII format)
   ansible.builtin.get_url:
     url: "{{ kubernetes_gpg_key }}"
-    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    dest: /tmp/kubernetes-archive-keyring.asc
     mode: '0644'
-    validate_certs: no  # Important pour contourner les problèmes SSL temporaires
+    force: yes
+    validate_certs: no
   become: yes
   register: key_download
   until: key_download is succeeded
   retries: 3
   delay: 10
 
+- name: Convert Kubernetes key to GPG binary format
+  command: gpg --dearmor /tmp/kubernetes-archive-keyring.asc
+  args:
+    creates: /tmp/kubernetes-archive-keyring.gpg
+  become: yes
+
+- name: Move GPG binary to keyring
+  copy:
+    src: /tmp/kubernetes-archive-keyring.gpg
+    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    mode: '0644'
+  become: yes
+
 - name: Add Kubernetes repository
   ansible.builtin.apt_repository:
     repo: "{{ kubernetes_repo }}"
     state: present
     filename: kubernetes
-    update_cache: no  # Nous mettrons à jour manuellement après
+    update_cache: no
   become: yes
 
 - name: Force APT update
@@ -38,13 +52,17 @@
     name: "{{ kubernetes_packages }}"
     state: present
     update_cache: yes
+  become: yes
 
 - name: Hold packages at specific version
   command: apt-mark hold "{{ item }}"
   loop: "{{ kubernetes_packages }}"
+  become: yes
 
 - name: Ensure kubelet is running
   service:
     name: kubelet
     state: started
     enabled: yes
+  become: yes
+
