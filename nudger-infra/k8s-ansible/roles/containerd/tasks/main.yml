@@ -1,0 +1,67 @@
+---
+- name: Install prerequisites
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - software-properties-common
+    state: present
+
+- name: Add Kubernetes GPG key (modern method)
+  get_url:
+    url: "{{ k8s_gpg_key }}"
+    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    mode: '0644'
+  register: key_download
+  until: key_download is succeeded
+  retries: 3
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: "{{ k8s_repo }}"
+    state: present
+    filename: kubernetes
+    update_cache: yes
+
+- name: Install Kubernetes packages
+  apt:
+    name: "{{ k8s_packages }}={{ k8s_version }}-00"
+    state: present
+    update_cache: yes
+
+- name: Hold Kubernetes packages
+  command: apt-mark hold {{ item }}
+  loop: "{{ k8s_packages }}"
+
+- name: Configure containerd
+  copy:
+    content: "{{ containerd_config }}"
+    dest: /etc/containerd/config.toml
+  notify: restart containerd
+
+- name: Apply sysctl parameters
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop: "{{ sysctl_params | dict2items }}"
+
+- name: Initialize Kubernetes cluster (master only)
+  command: >
+    kubeadm init
+    --pod-network-cidr={{ pod_network_cidr }}
+    --control-plane-endpoint={{ groups['k8s_masters'][0] }}
+    --upload-certs
+  when: inventory_hostname == groups['k8s_masters'][0]
+  register: kubeadm_init
+  notify:
+    - save kubeconfig
+    - configure kubectl
+
+- name: Deploy Flannel network (master only)
+  command: kubectl apply -f {{ flannel_manifest }}
+  when: inventory_hostname == groups['k8s_masters'][0]
