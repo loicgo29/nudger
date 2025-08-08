@@ -1,35 +1,42 @@
 ---
+- name: Install common dependencies
+  apt:
+    name: "{{ common_dependencies }}"
+    state: present
+    update_cache: yes
+  become: yes
+
 - name: Ensure keyring directory exists
   file:
-    path: /usr/share/keyrings
+    path: /etc/apt/keyrings
     state: directory
     mode: '0755'
   become: yes
 
-- name: Download Kubernetes GPG key (ASCII format)
-  ansible.builtin.get_url:
+
+- name: Download Kubernetes GPG key (ASCII)
+  get_url:
     url: "{{ kubernetes_gpg_key }}"
     dest: /tmp/kubernetes-archive-keyring.asc
     mode: '0644'
-    force: yes
-    validate_certs: no
   become: yes
-  register: key_download
-  until: key_download is succeeded
-  retries: 3
-  delay: 10
 
-- name: Convert Kubernetes key to GPG binary format
-  command: gpg --dearmor /tmp/kubernetes-archive-keyring.asc
+- name: Convert GPG key to binary keyring format
+  command: "gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg /tmp/kubernetes-archive-keyring.asc"
   args:
-    creates: /tmp/kubernetes-archive-keyring.gpg
+    creates: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
   become: yes
 
-- name: Move GPG binary to keyring
-  copy:
-    src: /tmp/kubernetes-archive-keyring.gpg
-    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
-    mode: '0644'
+- name: Remove temporary ASCII GPG key
+  file:
+    path: /tmp/kubernetes-archive-keyring.asc
+    state: absent
+  become: yes
+
+- name: Remove old Kubernetes repo file if exists
+  file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    state: absent
   become: yes
 
 - name: Add Kubernetes repository
@@ -37,15 +44,13 @@
     repo: "{{ kubernetes_repo }}"
     state: present
     filename: kubernetes
-    update_cache: no
+    update_cache: yes
   become: yes
 
 - name: Force APT update
   apt:
     update_cache: yes
-    cache_valid_time: 3600
   become: yes
-  when: key_download is changed
 
 - name: Install Kubernetes packages
   apt:

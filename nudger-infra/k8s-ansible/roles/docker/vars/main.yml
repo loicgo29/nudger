@@ -12,10 +12,11 @@ docker_packages:
   - docker-ce
   - docker-ce-cli
   - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
 
 # Kubernetes
 kubernetes_gpg_key: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-kubernetes_repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
 kubernetes_packages:
   - kubelet
   - kubeadm
