@@ -48,7 +48,7 @@
   notify: restart containerd
 
 - name: Load br_netfilter module
-  modprobe:
+  ansible.posix.modprobe:
     name: br_netfilter
     state: present
   become: yes

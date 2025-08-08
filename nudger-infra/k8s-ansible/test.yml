@@ -1,0 +1,8 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Load br_netfilter module
+      community.general.modprobe:
+        name: br_netfilter
+        state: present
+

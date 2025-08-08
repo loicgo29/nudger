@@ -20,8 +20,6 @@
       tags: kubernetes
     - role: containerd
       tags: containerd
-    - role: sysctl
-      tags: sysctl
 
 - name: Additional Master Node Configuration
   hosts: k8s_masters
