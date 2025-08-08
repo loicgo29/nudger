@@ -1,14 +1,17 @@
 ---
 - name: Add Kubernetes GPG key
-  apt_key:
+  ansible.builtin.get_url:
     url: "{{ kubernetes_gpg_key }}"
-    state: present
+    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+  become: yes
 
 - name: Add Kubernetes repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "{{ kubernetes_repo }}"
     state: present
     filename: kubernetes
+    update_cache: yes
+  become: yes
 
 - name: Install Kubernetes packages
   apt:
