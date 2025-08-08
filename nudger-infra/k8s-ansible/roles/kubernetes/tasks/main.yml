@@ -1,17 +1,37 @@
 ---
+- name: Ensure keyring directory exists
+  file:
+    path: /usr/share/keyrings
+    state: directory
+    mode: '0755'
+  become: yes
+
 - name: Add Kubernetes GPG key
   ansible.builtin.get_url:
     url: "{{ kubernetes_gpg_key }}"
     dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    mode: '0644'
+    validate_certs: no  # Important pour contourner les problèmes SSL temporaires
   become: yes
+  register: key_download
+  until: key_download is succeeded
+  retries: 3
+  delay: 10
 
 - name: Add Kubernetes repository
   ansible.builtin.apt_repository:
     repo: "{{ kubernetes_repo }}"
     state: present
     filename: kubernetes
-    update_cache: yes
+    update_cache: no  # Nous mettrons à jour manuellement après
   become: yes
+
+- name: Force APT update
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+  when: key_download is changed
 
 - name: Install Kubernetes packages
   apt:
