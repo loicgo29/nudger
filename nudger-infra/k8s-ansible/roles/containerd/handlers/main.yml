@@ -4,15 +4,19 @@
     name: containerd
     state: restarted
     enabled: yes
+  become: yes
 
-- name: save kubeconfig
+- name: Save kubeconfig file
+  become: yes
   copy:
-    content: "{{ kubeadm_init.stdout }}"
-    dest: /etc/kubernetes/admin.conf
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: yes
     owner: root
     group: root
-    mode: '0644'
+    mode: '0600'
 
 - name: Configure kubectl
+  become: yes
   command: kubectl config set-context --current --namespace=default
 
