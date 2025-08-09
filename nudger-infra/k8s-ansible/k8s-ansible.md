@@ -1,3 +1,12 @@
+1ere connexion au vagrant : 
+sudo apt-get install keychain
+en ajoutant dans ~/.bashrc
+
+if ! pgrep -u "$USER" ssh-agent > /dev/null; then
+    eval "$(ssh-agent -s)"
+    ssh-add ~/.ssh/id_rsa
+fi
+
 Installer le plugin YAML callback :
 echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
 source ~/.bashrc
