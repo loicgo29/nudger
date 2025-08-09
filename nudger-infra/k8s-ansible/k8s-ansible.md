@@ -8,3 +8,10 @@ ansible-galaxy collection install community.general
 
 ansible all -m file -a "path=/root/.ansible/tmp state=directory mode=0775 owner=root group=root" -b
 
+
+
+a faire sur ansible
+mkdir -p ~/.kube
+sudo cp /etc/kubernetes/admin.conf ~/.kube/config
+sudo chown $(id -u):$(id -g) ~/.kube/config
+
