@@ -1,0 +1,8 @@
+---
+flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+flannel_namespace: "kube-system"
+flannel_label_selector: "app=flannel"
+kubeconfig_path: "/etc/kubernetes/admin.conf"
+flannel_wait_retries: 10
+flannel_wait_delay: 15
+

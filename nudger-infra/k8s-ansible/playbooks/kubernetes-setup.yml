@@ -20,6 +20,8 @@
       tags: kubernetes
     - role: containerd
       tags: containerd
+    - role: flannel
+      tags: flannel
 
 - name: Additional Master Node Configuration
   hosts: k8s_masters
