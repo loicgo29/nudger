@@ -5,4 +5,18 @@
       community.general.modprobe:
         name: br_netfilter
         state: present
+---
+- hosts: kubm1
+  become: yes
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
 
+    - name: Check APT sources
+      shell: cat /etc/apt/sources.list /etc/apt/sources.list.d/*
+      register: apt_sources
+      changed_when: false
+
+    - debug:
+        var: apt_sources.stdout_lines

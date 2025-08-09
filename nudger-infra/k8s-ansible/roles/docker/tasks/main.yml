@@ -3,55 +3,80 @@
   include_vars: "{{ role_path }}/../common/vars/main.yml"
   tags: always
 
-- name: Install common dependencies
-  apt:
-    name: "{{ common_dependencies }}"
-    state: present
-    update_cache: yes
-  become: yes
-  tags: 
-    - common
-    - dependencies
-
 - name: Ensure keyrings directory exists
   file:
     path: /etc/apt/keyrings
     state: directory
     mode: '0755'
   become: yes
-  tags: 
-    - docker
-    - setup
+  tags: docker_setup
 
-- name: Download Docker GPG key
+- name: Download Kubernetes GPG key (ASCII)
   get_url:
-    url: "{{ docker_gpg_key }}"
-    dest: /etc/apt/keyrings/docker.gpg
+    url: "https://download.docker.com/linux/ubuntu/gpg"
+    dest: /tmp/kubernetes-archive-keyring.asc
     mode: '0644'
   become: yes
-  tags: 
-    - docker
-    - setup
-    - keys
+  tags: docker_repository
+
+- name: Convert GPG key to binary keyring format
+  command: "gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker-archive-keyring.asc"
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+  become: yes
+  tags: docker_repository
+
+- name: Remove temporary ASCII GPG key
+  file:
+    path: /tmp/docker-archive-keyring.asc
+    state: absent
+  become: yes
+  tags: docker_repository
+
+- name: Remove old Kubernetes repo file if exists
+  file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+  become: yes
+  tags: docker_repository
+
+- name: Ensure APT HTTPS support is installed
+  apt:
+    name: [apt-transport-https, ca-certificates, curl, gnupg]
+    state: present
+    update_cache: yes
+  become: yes
+  tags: docker_setup
 
 - name: Add Docker repository
-  apt_repository:
-    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+  ansible.builtin.apt_repository:
+    repo: "{{ kubernetes_repo }}"
     state: present
     filename: docker
+    update_cache: yes
   become: yes
-  tags: 
-    - docker
-    - setup
-    - repository
+  tags: docker_repository
+
+- name: Install common dependencies
+  apt:
+    name: "{{ common_dependencies }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 36000  # Durée en secondes pendant laquelle le cache est considéré comme valide
+  become: yes
+  tags: common_dependencies
+
+- name: Force APT update
+  apt:
+    update_cache: yes
+  become: yes
+  tags: docker_repository
 
 - name: Update apt cache
   apt:
     update_cache: yes
   become: yes
-  tags: 
-    - docker
-    - setup
+  tags: docker_repository
 
 - name: Install Docker packages
   apt:
@@ -59,19 +84,17 @@
     state: present
     update_cache: no
   become: yes
-  tags: 
-    - docker
-    - install
+  tags: docker_repository
 
 - name: Ensure Docker service is running and enabled
   service:
     name: docker
     state: started
     enabled: yes
+  retries: 3
+  delay: 5
   become: yes
-  tags: 
-    - docker
-    - service
+  tags: docker_service
 
 - name: Add user to docker group
   user:
@@ -79,6 +102,4 @@
     groups: docker
     append: yes
   become: yes
-  tags: 
-    - docker
-    - users
+  tags: docker_user
