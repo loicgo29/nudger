@@ -183,4 +183,3 @@
   when: inventory_hostname == groups['k8s_masters'][0]
   changed_when: false
   tags: kubernetes_init
-

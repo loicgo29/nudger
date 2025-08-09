@@ -5,7 +5,7 @@
     state: restarted
     enabled: yes
 
-- name: Save kubeconfig
+- name: save kubeconfig
   copy:
     content: "{{ kubeadm_init.stdout }}"
     dest: /etc/kubernetes/admin.conf
