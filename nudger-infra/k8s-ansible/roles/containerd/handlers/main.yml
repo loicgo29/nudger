@@ -1,8 +1,18 @@
 ---
-- name: restart containerd
-  systemd:
+- name: Restart containerd
+  service:
     name: containerd
     state: restarted
     enabled: yes
-  become: yes
+
+- name: Save kubeconfig
+  copy:
+    content: "{{ kubeadm_init.stdout }}"
+    dest: /etc/kubernetes/admin.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure kubectl
+  command: kubectl config set-context --current --namespace=default
 
