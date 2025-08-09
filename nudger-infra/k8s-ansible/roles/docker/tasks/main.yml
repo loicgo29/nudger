@@ -1,10 +1,17 @@
 ---
+- name: Include common variables
+  include_vars: "{{ role_path }}/../common/vars/main.yml"
+  tags: always
+
 - name: Install common dependencies
   apt:
     name: "{{ common_dependencies }}"
     state: present
     update_cache: yes
   become: yes
+  tags: 
+    - common
+    - dependencies
 
 - name: Ensure keyrings directory exists
   file:
@@ -12,6 +19,9 @@
     state: directory
     mode: '0755'
   become: yes
+  tags: 
+    - docker
+    - setup
 
 - name: Download Docker GPG key
   get_url:
@@ -19,6 +29,10 @@
     dest: /etc/apt/keyrings/docker.gpg
     mode: '0644'
   become: yes
+  tags: 
+    - docker
+    - setup
+    - keys
 
 - name: Add Docker repository
   apt_repository:
@@ -26,11 +40,18 @@
     state: present
     filename: docker
   become: yes
+  tags: 
+    - docker
+    - setup
+    - repository
 
 - name: Update apt cache
   apt:
     update_cache: yes
   become: yes
+  tags: 
+    - docker
+    - setup
 
 - name: Install Docker packages
   apt:
@@ -38,6 +59,9 @@
     state: present
     update_cache: no
   become: yes
+  tags: 
+    - docker
+    - install
 
 - name: Ensure Docker service is running and enabled
   service:
@@ -45,6 +69,9 @@
     state: started
     enabled: yes
   become: yes
+  tags: 
+    - docker
+    - service
 
 - name: Add user to docker group
   user:
@@ -52,4 +79,6 @@
     groups: docker
     append: yes
   become: yes
-
+  tags: 
+    - docker
+    - users
