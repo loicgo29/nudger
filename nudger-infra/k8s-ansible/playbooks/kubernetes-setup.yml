@@ -22,19 +22,3 @@
       tags: containerd
     - role: flannel
       tags: flannel
-
-- name: Additional Master Node Configuration
-  hosts: k8s_masters
-  become: yes
-  tasks:
-    - name: Initialize Kubernetes cluster (run only once)
-      command: kubeadm init --pod-network-cidr=10.244.0.0/16
-      when: inventory_hostname == groups['k8s_masters'][0]
-      register: kubeadm_init
-      notify: save_kubeconfig
-
-  handlers:
-    - name: save_kubeconfig
-      copy:
-        content: "{{ kubeadm_init.stdout }}"
-        dest: /etc/kubernetes/admin.conf
