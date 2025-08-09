@@ -20,3 +20,4 @@ kubernetes_packages:
   - kubelet
   - kubeadm
   - kubectl
+ansible_user: vagrant
