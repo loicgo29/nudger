@@ -4,13 +4,6 @@
     file: ../../common/vars/main.yml
 
 
-- name: Install common dependencies
-  apt:
-    name: "{{ common_dependencies }}"
-    state: present
-    update_cache: yes
-  become: yes
-
 - name: Ensure keyring directory exists
   file:
     path: /etc/apt/keyrings
@@ -24,6 +17,13 @@
     url: "{{ kubernetes_gpg_key }}"
     dest: /tmp/kubernetes-archive-keyring.asc
     mode: '0644'
+  become: yes
+
+- name: Install common dependencies
+  apt:
+    name: "{{ common_dependencies }}"
+    state: present
+    update_cache: yes
   become: yes
 
 - name: Convert GPG key to binary keyring format
@@ -52,11 +52,6 @@
     update_cache: yes
   become: yes
 
-- name: Force APT update
-  apt:
-    update_cache: yes
-  become: yes
-
 - name: Install Kubernetes packages
   apt:
     name: "{{ kubernetes_packages }}"
@@ -65,7 +60,9 @@
   become: yes
 
 - name: Hold packages at specific version
-  command: apt-mark hold "{{ item }}"
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
   loop: "{{ kubernetes_packages }}"
   become: yes
 
