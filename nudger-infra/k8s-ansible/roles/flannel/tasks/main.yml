@@ -10,7 +10,7 @@
 
 - name: Wait for Flannel pods to be Running
   ansible.builtin.shell: >
-    kubectl get pods -n {{ flannel_namespace }} -l {{ flannel_label_selector }} -o jsonpath='{.items[*].status.phase}' | grep -v Running
+    kubectl get pods -n {{ flannel_namespace }} -l {{ flannel_label_selector }} -o jsonpath='{.items[*].status.phase}' | grep -v Running || true
   register: flannel_status
   retries: "{{ flannel_wait_retries }}"
   delay: "{{ flannel_wait_delay }}"
@@ -18,5 +18,5 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   changed_when: false
+  failed_when: false
   tags: flannel
-
