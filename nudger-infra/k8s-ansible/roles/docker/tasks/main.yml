@@ -29,17 +29,6 @@
     state: absent
   become: yes
 
-- name: Ensure APT HTTPS support is installed
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-    state: present
-    update_cache: yes
-  become: yes
-
 - name: Add Docker repository
   apt_repository:
     repo: "{{ docker_repo }}"
@@ -48,9 +37,9 @@
     update_cache: yes
   become: yes
 
-- name: Install common dependencies
+- name: Install apt dependencies
   apt:
-    name: "{{ common_dependencies }}"
+    name: "{{ ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg'] + common_dependencies }}"
     state: present
     cache_valid_time: 36000
   become: yes

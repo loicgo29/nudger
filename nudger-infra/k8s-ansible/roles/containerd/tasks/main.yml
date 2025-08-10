@@ -1,15 +1,4 @@
 ---
-- name: Install prerequisites
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - software-properties-common
-    state: present
-    update_cache: yes
-  tags: prerequisites
 
 - name: Create directory for APT keyrings
   file:
@@ -33,19 +22,18 @@
     update_cache: yes
   tags: prerequisites
 
-- name: Install Kubernetes packages
+- name: Install prerequisites and Kubernetes packages
   apt:
-    name: "{{ item }}"
+    name: "{{ ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg', 'software-properties-common'] + k8s_packages }}"
     state: present
     update_cache: yes
-  loop: "{{ k8s_packages }}"
   tags: kubernetes_packages
 
 - name: Hold Kubernetes packages
-  command: apt-mark hold {{ item }}
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
   loop: "{{ k8s_packages }}"
-  register: apt_mark_result
-  changed_when: "'is already set on hold' not in apt_mark_result.stdout"
   tags: kubernetes_packages
 
 - name: Load br_netfilter module
@@ -179,10 +167,4 @@
   notify:
     - save kubeconfig
     - configure kubectl
-  tags: kubernetes_init
-
-- name: Deploy Flannel network (master only)
-  ansible.builtin.command: kubectl apply -f {{ flannel_manifest }}
-  when: inventory_hostname == groups['k8s_masters'][0]
-  changed_when: false
   tags: kubernetes_init
