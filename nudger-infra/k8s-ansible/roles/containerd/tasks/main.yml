@@ -80,6 +80,9 @@
     url: https://github.com/containerd/containerd/releases/download/v1.7.27/containerd-1.7.27-linux-amd64.tar.gz
     dest: /tmp/containerd-1.7.27-linux-amd64.tar.gz
     mode: '0644'
+    timeout: 300
+  retries: 3
+  delay: 10
   tags: containerd_install
 
 - name: Extraire containerd
