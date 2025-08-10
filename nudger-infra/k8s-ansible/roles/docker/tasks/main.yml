@@ -9,82 +9,57 @@
     state: directory
     mode: '0755'
   become: yes
-  tags: docker_setup
 
-- name: Download Kubernetes GPG key (ASCII)
+- name: Download Docker GPG key (ASCII)
   get_url:
     url: "https://download.docker.com/linux/ubuntu/gpg"
-    dest: /tmp/kubernetes-archive-keyring.asc
+    dest: /tmp/docker-archive-keyring.asc
     mode: '0644'
   become: yes
-  tags: docker_repository
 
-- name: Convert GPG key to binary keyring format
+- name: Convert GPG key to binary format
   command: "gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker-archive-keyring.asc"
   args:
     creates: /etc/apt/keyrings/docker.gpg
   become: yes
-  tags: docker_repository
 
 - name: Remove temporary ASCII GPG key
   file:
     path: /tmp/docker-archive-keyring.asc
     state: absent
   become: yes
-  tags: docker_repository
-
-- name: Remove old Kubernetes repo file if exists
-  file:
-    path: /etc/apt/sources.list.d/docker.list
-    state: absent
-  become: yes
-  tags: docker_repository
 
 - name: Ensure APT HTTPS support is installed
   apt:
-    name: [apt-transport-https, ca-certificates, curl, gnupg]
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
     state: present
     update_cache: yes
   become: yes
-  tags: docker_setup
 
 - name: Add Docker repository
-  ansible.builtin.apt_repository:
-    repo: "{{ kubernetes_repo }}"
+  apt_repository:
+    repo: "{{ docker_repo }}"
     state: present
     filename: docker
     update_cache: yes
   become: yes
-  tags: docker_repository
 
 - name: Install common dependencies
   apt:
     name: "{{ common_dependencies }}"
     state: present
-    update_cache: yes
-    cache_valid_time: 36000  # Durée en secondes pendant laquelle le cache est considéré comme valide
+    cache_valid_time: 36000
   become: yes
-  tags: common_dependencies
-
-- name: Force APT update
-  apt:
-    update_cache: yes
-  become: yes
-  tags: docker_repository
-
-- name: Update apt cache
-  apt:
-    update_cache: yes
-  become: yes
-  tags: docker_repository
 
 - name: Install Docker packages
   apt:
     name: "{{ docker_packages }}"
     state: present
-    update_cache: no
   become: yes
-  tags: docker_repository
 
 - name: Ensure Docker service is running and enabled
   service:
@@ -94,7 +69,6 @@
   retries: 3
   delay: 5
   become: yes
-  tags: docker_service
 
 - name: Add user to docker group
   user:
@@ -102,4 +76,4 @@
     groups: docker
     append: yes
   become: yes
-  tags: docker_user
+
