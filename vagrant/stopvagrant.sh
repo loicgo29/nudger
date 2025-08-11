@@ -3,7 +3,7 @@
 rm -rf .vagrant
 echo "lsof -i :50022"
 
-PORT=50022
+PORT=52222
 
 echo "Recherche des processus utilisant le port $PORT..."
 PID=$(lsof -ti :$PORT)
