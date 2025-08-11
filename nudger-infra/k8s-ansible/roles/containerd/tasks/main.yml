@@ -114,13 +114,6 @@
     daemon_reload: yes
   tags: containerd_install
 
-- name: Start and enable containerd
-  systemd:
-    name: containerd
-    state: started
-    enabled: yes
-  tags: containerd_install
-
 - name: Configurer containerd avec template
   template:
     src: config.toml.j2
@@ -130,6 +123,13 @@
     mode: '0644'
   notify: Restart containerd
   tags: containerd_config
+
+- name: Start and enable containerd
+  systemd:
+    name: containerd
+    state: started
+    enabled: yes
+  tags: containerd_install
 
 - name: Télécharger crictl binaire
   get_url:
@@ -165,6 +165,16 @@
   when: inventory_hostname == groups['k8s_masters'][0]
   register: kubeadm_init
   notify:
-    - save kubeconfig
+    - Save kubeconfig file
     - configure kubectl
   tags: kubernetes_init
+
+- name: Copy admin.conf to user's kube config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+    remote_src: yes
+  become: yes
