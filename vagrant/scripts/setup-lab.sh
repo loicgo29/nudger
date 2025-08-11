@@ -2,9 +2,9 @@
 set -e
 
 ### Variables ###
-PLAYBOOK_REPO="https://github.com/monuser/mon-playbook.git" # <-- à modifier
-PLAYBOOK_DIR="$HOME/k8s-ansible"
-PLAYBOOK_BRANCH="main"  # ou un tag: v1.2.0
+PLAYBOOK_REPO="https://github.com/loicgo29/nudger-infra.git"  # ton repo réel
+PLAYBOOK_DIR="$HOME/nudger-infra/k8s-ansible/playbooks"
+PLAYBOOK_BRANCH="master"  # ou un tag: v1.2.0
 
 if [[ "$1" == "--clean" ]]; then
   vagrant destroy -f
@@ -14,23 +14,30 @@ echo "🚀 [1/5] Mise à jour des paquets..."
 brew update
 
 echo "📦 [2/5] Installation dépendances..."
-brew install git ansible vagrant virtualbox
+brew install git ansible qemu
+
+# Vagrant à installer manuellement (pas via brew)
+
+PLAYBOOK_REPO="https://github.com/monuser/mon-playbook.git"
+PLAYBOOK_DIR="$HOME/nudger-infra/k8s-ansible/playbooks"
+PLAYBOOK_BRANCH="main"
 
 echo "📥 [3/5] Récupération du playbook..."
 if [ ! -d "$PLAYBOOK_DIR" ]; then
+    echo "📥 Clonage du repo playbook..."
     git clone --branch "$PLAYBOOK_BRANCH" --depth 1 "$PLAYBOOK_REPO" "$PLAYBOOK_DIR"
 else
     echo "🔄 Playbook déjà présent, mise à jour..."
-    git -C "$PLAYBOOK_DIR" fetch origin
-    git -C "$PLAYBOOK_DIR" reset --hard "origin/$PLAYBOOK_BRANCH"
+    git -C "$HOME/nudger-infra" fetch origin
+    git -C "$HOME/nudger-infra" reset --hard "origin/$PLAYBOOK_BRANCH"
 fi
 
 echo "💻 [4/5] Démarrage des VM Vagrant..."
-vagrant up --provision
+vagrant up --provider=qemu --provision
 
 echo "🛠 [5/5] Lancement du playbook Kubernetes..."
 cd "$PLAYBOOK_DIR"
-ansible-playbook -i inventory.ini setup.yml
+ansible-playbook -i inventory.ini kubernetes-setup.yml
 
 echo "✅ Lab Kubernetes prêt à l’emploi !"
 
