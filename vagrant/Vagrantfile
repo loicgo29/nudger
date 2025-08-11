@@ -23,9 +23,20 @@ Vagrant.configure("2") do |config|
       end
 
       vm.vm.provision "shell", inline: <<-SHELL
-        sudo ip addr add #{node[:ip]}/24 dev eth0
+        sudo tee /etc/netplan/01-netcfg.yaml > /dev/null <<EOF
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses:
+        - #{node[:ip]}/24
+      gateway4: 192.168.26.1
+      nameservers:
+        addresses: [8.8.8.8, 1.1.1.1]
+EOF
+        sudo netplan apply
       SHELL
     end
   end
 end
-
