@@ -6,6 +6,10 @@ PLAYBOOK_REPO="https://github.com/monuser/mon-playbook.git" # <-- à modifier
 PLAYBOOK_DIR="$HOME/k8s-ansible"
 PLAYBOOK_BRANCH="main"  # ou un tag: v1.2.0
 
+if [[ "$1" == "--clean" ]]; then
+  vagrant destroy -f
+fi
+
 echo "🚀 [1/5] Mise à jour des paquets..."
 sudo apt-get update -y
 
