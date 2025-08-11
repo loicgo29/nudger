@@ -1,0 +1,17 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "jacobbaek/ubuntu2204-arm64" # Box spéciale ARM
+  config.ssh.insert_key = false
+  config.vm.synced_folder ".", "/vagrant", type: "rsync"
+
+  config.vm.provider "parallels" do |prl|
+    prl.memory = 2048
+    prl.cpus = 2
+    prl.optimize_power_consumption = true # Pour MacBook
+    prl.functional_paravirt = true # Accélération M1
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "✅ VM ARM64 Ubuntu 22.04 prête sur Apple Silicon"
+    uname -a
+  SHELL
+end
