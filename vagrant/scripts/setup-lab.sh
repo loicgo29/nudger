@@ -23,8 +23,8 @@ if [ ! -d "$PLAYBOOK_DIR" ]; then
     git clone --branch "$PLAYBOOK_BRANCH" --depth 1 "$PLAYBOOK_REPO" "$PLAYBOOK_DIR"
 else
     echo "🔄 Playbook déjà présent, mise à jour..."
-    git -C "$HOME/nudger-infra" fetch origin
-    git -C "$HOME/nudger-infra" reset --hard "origin/$PLAYBOOK_BRANCH"
+    git -C "$REPO_DIR" fetch origin
+    git -C "$REPO_DIR" reset --hard "origin/$PLAYBOOK_BRANCH"
 fi
 
 echo "💻 [4/5] Démarrage des VM Vagrant..."
