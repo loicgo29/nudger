@@ -1,0 +1,52 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "perk/ubuntu-2204-arm64"
+  config.vm.provider "libvirt" do |v|
+    v.memory = 2048
+    v.cpus = 2
+  end
+
+  # --- Step 1: System update ---
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "[Step 1/6] Updating system packages..."
+    sudo apt-get update -y && sudo apt-get upgrade -y
+  SHELL
+
+  # --- Step 2: Install basic tools ---
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "[Step 2/6] Installing essential tools..."
+    sudo apt-get install -y curl vim git net-tools
+  SHELL
+
+  # --- Step 3: Configure SSH access ---
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "[Step 3/6] Configuring SSH access..."
+    mkdir -p ~/.ssh
+    cp /vagrant/id_rsa.pub ~/.ssh/authorized_keys
+    chmod 600 ~/.ssh/authorized_keys
+  SHELL
+
+  # --- Step 4: Prepare Kubernetes prerequisites ---
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "[Step 4/6] Installing Kubernetes prerequisites..."
+    sudo apt-get install -y apt-transport-https ca-certificates gnupg lsb-release
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    sudo apt-get update -y
+  SHELL
+
+  # --- Step 5: Install Kubernetes tools ---
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "[Step 5/6] Installing kubeadm, kubelet, kubectl..."
+    sudo apt-get install -y kubelet kubeadm kubectl
+    sudo apt-mark hold kubelet kubeadm kubectl
+  SHELL
+
+  # --- Step 6: Final check ---
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "[Step 6/6] Provisioning complete!"
+    kubeadm version
+    kubectl version --client
+  SHELL
+end
+
