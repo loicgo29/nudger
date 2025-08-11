@@ -16,21 +16,5 @@ fi
 echo "Processus trouvés :"
 ps -p $PID
 
-read -p "Voulez-vous tuer ces processus ? (y/n) " -n 1 -r
-echo
-
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  echo "Envoi de SIGTERM aux processus $PID..."
   kill -15 $PID
-  sleep 2
-
   # Vérification si les processus sont toujours actifs
-  if lsof -ti :$PORT > /dev/null; then
-    echo "Les processus résistent, envoi de SIGKILL..."
-    kill -9 $PID
-  fi
-
-  echo "Processus terminés."
-else
-  echo "Annulation."
-fi

@@ -1,41 +1,31 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
-
 Vagrant.configure("2") do |config|
-  # Configuration globale
   config.vm.box = "bento/ubuntu-22.04"
-  config.vm.box_check_update = false
   config.ssh.insert_key = false
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  # Configuration spécifique à la VM
-  config.vm.define "kubm1" do |vm|
-    vm.vm.hostname = "kubm1"
-    
-    # Configuration provider QEMU
-    vm.vm.provider "qemu" do |qemu|
-      qemu.qemu_dir = "/usr/local/bin/"
-      qemu.arch = "x86_64"
-      qemu.memory = 2048
-      qemu.smp = 2
-      qemu.machine = "q35"
-      qemu.cpu = "max"  # Changé de 'host' à 'max' pour compatibilité
-      qemu.gui = false
-      qemu.ssh_timeout = 600
+  NODES = [
+    { hostname: "kubm1", cpus: 2, mem: 2048, ssh_port: 50210 }
+  ]
 
-      # Configuration réseau simplifiée
-      qemu.qemuargs = [
-        ["-netdev", "user,id=n1,hostfwd=tcp::50022-:22"],
-        ["-device", "virtio-net-pci,netdev=n1"]
-      ]
+  NODES.each do |node|
+    config.vm.define node[:hostname] do |vm|
+      vm.vm.hostname = node[:hostname]
+      
+      vm.vm.provider "qemu" do |q|
+        q.memory = node[:mem]
+        q.smp = node[:cpus]
+        q.qemuargs = [
+          ["-netdev", "user,id=net0,hostfwd=tcp::#{node[:ssh_port]}-:22"],
+          ["-device", "virtio-net-pci,netdev=net0"]
+        ]
+      end
+
+      # Provisionnement minimal pour avoir une VM fonctionnelle
+      vm.vm.provision "shell", inline: <<-SHELL
+        echo "vagrant:vagrant" | sudo chpasswd
+        sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sudo systemctl restart sshd
+      SHELL
     end
-
-    # Provisionnement initial
-    vm.vm.provision "shell", inline: <<-SHELL
-      # Configure SSH pour éviter les timeouts
-      sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-      sudo systemctl restart sshd
-      echo "vagrant:vagrant" | sudo chpasswd
-    SHELL
   end
 end
