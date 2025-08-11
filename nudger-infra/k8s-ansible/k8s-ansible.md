@@ -17,4 +17,8 @@ ansible-galaxy collection install community.general
 
 ansible all -m file -a "path=/root/.ansible/tmp state=directory mode=0775 owner=root group=root" -b
 
+============
+git
+
+ansible-galaxy collection install community.general
 

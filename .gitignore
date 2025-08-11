@@ -1,3 +1,4 @@
 .vagrant/
 .vagrant/
 .DS_Store
+nudger-infra/k8s-ansible/collections/ansible_collections
