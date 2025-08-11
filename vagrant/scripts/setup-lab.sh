@@ -2,8 +2,8 @@
 set -e
 
 ### Variables ###
-PLAYBOOK_REPO="https://github.com/loicgo29/nudger-infra.git"  # ton repo réel
-PLAYBOOK_DIR="$HOME/nudger-infra/k8s-ansible/playbooks"
+PLAYBOOK_REPO="https://github.com/loicgo29/nudger.git"  # ton repo réel
+PLAYBOOK_DIR="$HOME/devops/nudger/nudger-infra/k8s-ansible/playbooks"
 PLAYBOOK_BRANCH="master"  # ou un tag: v1.2.0
 
 if [[ "$1" == "--clean" ]]; then
