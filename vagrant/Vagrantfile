@@ -1,36 +1,17 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folders.clear   # Désactive tout sync folder
   config.ssh.insert_key = false
 
-  # Réduction du bruit dans les logs
-  config.cache.auto_detect = true
-
-  # Script d’installation de base
-  common_provision = <<-SHELL
-    sudo apt-get update -qq
-    sudo apt-get install -y -qq unzip iftop curl software-properties-common git vim tree net-tools telnet
-    sudo sed -i 's/^#\\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
-    sudo systemctl restart sshd
-  SHELL
-
-  # IPs et ports définis pour chaque VM
   NODES = [
-    { hostname: "kubm1", ip: "192.168.26.10", cpus: 2, mem: 2048, ssh_port: 50210 },
-  # { hostname: "kubw1", ip: "192.168.26.13", cpus: 2, mem: 1024, ssh_port: 50211 },
-  # { hostname: "kubw2", ip: "192.168.26.14", cpus: 2, mem: 1024, ssh_port: 50212 }
+    { hostname: "kubm1", ip: "192.168.26.10", cpus: 2, mem: 2048 }
   ]
-
-  # Entrées /etc/hosts pour que les VMs se connaissent
-  hosts_entries = NODES.map { |n| "#{n[:ip]} #{n[:hostname]}" }.join("\n")
 
   NODES.each do |node|
     config.vm.define node[:hostname] do |vm|
       vm.vm.hostname = node[:hostname]
-      vm.vm.network "private_network", ip: node[:ip]
-      vm.vm.network :forwarded_port, guest: 22, host: node[:ssh_port], id: "ssh", auto_correct: false
+      vm.vm.synced_folder ".", "/vagrant", disabled: true, type: "none"
 
-      # Provider QEMU
       vm.vm.provider "qemu" do |qemu|
         qemu.qemu_dir = "/usr/bin/"
         qemu.arch = "x86_64"
@@ -40,9 +21,11 @@ Vagrant.configure("2") do |config|
         qemu.cpu = "max"
         qemu.net_device = "virtio-net-pci"
       end
-      # Passer les entrées /etc/hosts au script
-      vm.vm.provision "shell", env: { "HOSTS_ENTRIES" => hosts_entries }, path: "scripts/setup-ssh.sh"
-      vm.vm.provision "shell", path: "scripts/install-ansible.sh"
+
+      vm.vm.provision "shell", inline: <<-SHELL
+        sudo ip addr add #{node[:ip]}/24 dev eth0
+      SHELL
     end
   end
 end
+

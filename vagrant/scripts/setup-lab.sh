@@ -2,6 +2,7 @@
 set -e
 
 ### Variables ###
+ANSIBLE_ROLES_PATH=/Users/loicgourmelon/Devops/nudger/nudger-infra/k8s-ansible/roles
 PLAYBOOK_REPO="https://github.com/loicgo29/nudger.git"  # ton repo réel
 PLAYBOOK_DIR="$HOME/devops/nudger/nudger-infra/k8s-ansible/playbooks"
 PLAYBOOK_BRANCH="master"  # ou un tag: v1.2.0
@@ -32,7 +33,7 @@ vagrant up --provider=qemu --provision
 
 echo "🛠 [5/5] Lancement du playbook Kubernetes..."
 cd "$PLAYBOOK_DIR"
-ansible-playbook -i inventory.ini kubernetes-setup.yml
+ansible-playbook -i ../inventory.ini kubernetes-setup.yml
 
 echo "✅ Lab Kubernetes prêt à l’emploi !"
 
