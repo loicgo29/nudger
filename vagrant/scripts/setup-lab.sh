@@ -1,39 +1,57 @@
 #!/bin/bash
-set -e
+set -eo pipefail
 
-### Variables ###
-ANSIBLE_ROLES_PATH=/Users/loicgourmelon/Devops/nudger/nudger-infra/k8s-ansible/roles
-PLAYBOOK_REPO="https://github.com/loicgo29/nudger.git"  # ton repo réel
-PLAYBOOK_DIR="$HOME/devops/nudger/nudger-infra/k8s-ansible/playbooks"
-PLAYBOOK_BRANCH="master"  # ou un tag: v1.2.0
+# Configuration
+LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ANSIBLE_DIR="${LAB_DIR}/ansible"
+PLAYBOOK_REPO="https://github.com/loicgo29/nudger.git"
+PLAYBOOK_BRANCH="main"
 
-if [[ "$1" == "--clean" ]]; then
-  vagrant destroy -f
-fi
+# Fonction de nettoyage
+clean_environment() {
+  echo "🧹 Nettoyage de l'environnement..."
+  ./stopvagrant.sh
+}
 
-echo "🚀 [1/5] Mise à jour des paquets..."
-#brew update
+# Installation des dépendances
+install_dependencies() {
+  echo "📦 Installation des dépendances..."
+  if ! command -v vagrant >/dev/null; then
+    echo "➡️ Veuillez installer Vagrant manuellement : https://www.vagrantup.com/downloads"
+    exit 1
+  fi
+  
+  # Vérification QEMU
+  if ! command -v qemu-system-x86_64 >/dev/null; then
+    brew install qemu
+  fi
+}
 
-echo "📦 [2/5] Installation dépendances..."
-#brew install git ansible qemu
+# Récupération des playbooks
+setup_ansible_content() {
+  echo "📥 Configuration Ansible..."
+  if [ ! -d "${ANSIBLE_DIR}/playbooks" ]; then
+    git clone --branch "${PLAYBOOK_BRANCH}" --depth 1 \
+      "${PLAYBOOK_REPO}" "${ANSIBLE_DIR}/playbooks"
+  else
+    git -C "${ANSIBLE_DIR}/playbooks" pull origin "${PLAYBOOK_BRANCH}"
+  fi
+}
 
-# Vagrant à installer manuellement (pas via brew)
-echo "📥 [3/5] Récupération du playbook..."
-if [ ! -d "$PLAYBOOK_DIR" ]; then
-    echo "📥 Clonage du repo playbook..."
-    git clone --branch "$PLAYBOOK_BRANCH" --depth 1 "$PLAYBOOK_REPO" "$PLAYBOOK_DIR"
-else
-    echo "🔄 Playbook déjà présent, mise à jour..."
-    git -C "$REPO_DIR" fetch origin
-    git -C "$REPO_DIR" reset --hard "origin/$PLAYBOOK_BRANCH"
-fi
+# Exécution principale
+main() {
+  [[ "$*" =~ "--clean" ]] && clean_environment
+  
+  install_dependencies
+  setup_ansible_content
+  
+  echo "🚀 Démarrage des VMs..."
+  vagrant up --provider=qemu
+  
+  echo "🛠 Exécution des playbooks Ansible..."
+  cd "${ANSIBLE_DIR}"
+  ANSIBLE_CONFIG="${ANSIBLE_DIR}/ansible.cfg" \
+    ansible-playbook -i inventory.ini playbooks/setup-kubernetes.yml
+}
 
-echo "💻 [4/5] Démarrage des VM Vagrant..."
-vagrant up --provider=qemu --provision
-
-echo "🛠 [5/5] Lancement du playbook Kubernetes..."
-cd "$PLAYBOOK_DIR"
-ansible-playbook -i ../inventory.ini kubernetes-setup.yml
-
-echo "✅ Lab Kubernetes prêt à l’emploi !"
-
+main "$@"
