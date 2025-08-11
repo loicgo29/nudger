@@ -11,10 +11,10 @@ if [[ "$1" == "--clean" ]]; then
 fi
 
 echo "🚀 [1/5] Mise à jour des paquets..."
-sudo apt-get update -y
+brew update
 
 echo "📦 [2/5] Installation dépendances..."
-sudo apt-get install -y git ansible vagrant virtualbox
+brew install git ansible vagrant virtualbox
 
 echo "📥 [3/5] Récupération du playbook..."
 if [ ! -d "$PLAYBOOK_DIR" ]; then
