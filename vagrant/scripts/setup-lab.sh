@@ -11,17 +11,12 @@ if [[ "$1" == "--clean" ]]; then
 fi
 
 echo "🚀 [1/5] Mise à jour des paquets..."
-brew update
+#brew update
 
 echo "📦 [2/5] Installation dépendances..."
-brew install git ansible qemu
+#brew install git ansible qemu
 
 # Vagrant à installer manuellement (pas via brew)
-
-PLAYBOOK_REPO="https://github.com/monuser/mon-playbook.git"
-PLAYBOOK_DIR="$HOME/nudger-infra/k8s-ansible/playbooks"
-PLAYBOOK_BRANCH="main"
-
 echo "📥 [3/5] Récupération du playbook..."
 if [ ! -d "$PLAYBOOK_DIR" ]; then
     echo "📥 Clonage du repo playbook..."
