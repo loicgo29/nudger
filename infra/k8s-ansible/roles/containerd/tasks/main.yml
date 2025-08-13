@@ -153,8 +153,16 @@
     daemon_reload: yes
   tags: containerd_install
 
+  - name: Attendre que le socket containerd soit prêt
+  ansible.builtin.wait_for:
+    path: /run/containerd/containerd.sock
+    state: present
+    timeout: 15
+  become: yes
+  tags: crictl
+
 - name: Vérifier que le plugin CRI est bien chargé
-  ansible.builtin.command: ctr plugin ls
+  ansible.builtin.command: /usr/local/bin/ctr plugin ls
   register: ctr_plugins
   changed_when: false
   become: true
@@ -164,6 +172,7 @@
   ansible.builtin.fail:
     msg: "Le plugin CRI n'est pas chargé dans containerd"
   when: "'io.containerd.grpc.v1.cri' not in ctr_plugins.stdout"
+  tags: crictl
 
 # --------------------
 # crictl
@@ -207,6 +216,14 @@
 # --------------------
 # Kubernetes init
 # --------------------
+
+- name: Vérifier si le cluster Kubernetes est déjà initialisé
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_config
+  become: yes
+  tags: kubernetes_init
+
 - name: Initialize Kubernetes cluster (master only)
   ansible.builtin.command: >
     kubeadm init
@@ -215,7 +232,9 @@
     --upload-certs
   args:
     creates: /etc/kubernetes/admin.conf
-  when: inventory_hostname == groups['k8s_masters'][0]
+  when:
+    - inventory_hostname == groups['k8s_masters'][0]
+    - not kubeadm_config.stat.exists
   register: kubeadm_init
   notify:
     - Save kubeconfig file
