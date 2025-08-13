@@ -19,4 +19,6 @@ read -p "Appuie sur [Entrée] après avoir ajouté la clé sur GitHub..."
 
 # Cloner le repo via SSH
 git clone git@github.com:loicgo29/nudger.git
+git config user.name "Loïc Gourmelon"
+git config user.email "loicgourmelon@gmail.com"
 
