@@ -63,6 +63,13 @@
   loop: "{{ sysctl_params | dict2items }}"
   tags: sysctl
 
+- name: Supprimer ancienne config containerd si présente
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+  become: yes
+  tags: containerd_install
+
 - name: Télécharger containerd 2.6.9
   get_url:
     url: https://github.com/containerd/containerd/releases/download/v1.7.27/containerd-1.7.27-linux-amd64.tar.gz
@@ -122,6 +129,7 @@
     group: root
     mode: '0644'
   notify: Restart containerd
+  become: yes
   tags: containerd_config
 
 - name: Start and enable containerd
