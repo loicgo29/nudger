@@ -25,6 +25,22 @@ fi
 # Active le virtualenv
 source "$ANSIBLE_VENV/bin/activate"
 
+#  configure needrestart pour ne plus afficher
+CONF_FILE="/etc/needrestart/needrestart.conf"
+
+# Sauvegarde de l'ancien fichier si besoin
+if [ -f "$CONF_FILE" ]; then
+    sudo cp "$CONF_FILE" "${CONF_FILE}.bak"
+fi
+
+# Modifie ou ajoute la directive
+if grep -q '^\$nrconf{restart}' "$CONF_FILE" 2>/dev/null; then
+    sudo sed -i "s/^\$nrconf{restart}.*/\$nrconf{restart} = 'l';/" "$CONF_FILE"
+else
+    echo "\$nrconf{restart} = 'l';" | sudo tee -a "$CONF_FILE" > /dev/null
+fi
+
+
 # Met à jour pip et installe Ansible
 echo "🔹 Installation d'Ansible dans le venv"
 pip install --upgrade pip
