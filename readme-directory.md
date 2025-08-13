@@ -40,7 +40,7 @@ nudger/
 ###  Provisionnement avec Vagrant
 ```bash
 cd nudger/vagrant
-./stopXXXXX
+stopvagrant.sh
 vagrant up  # Démarre les machines virtuelles
 vagrant provision  # Applique la configuration
 ```
