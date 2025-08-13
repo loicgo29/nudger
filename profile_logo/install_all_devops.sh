@@ -29,6 +29,13 @@ source "$ANSIBLE_VENV/bin/activate"
 echo "🔹 Installation d'Ansible dans le venv"
 pip install --upgrade pip
 pip install "ansible-core>=2.16,<2.20" ansible-lint
+# Installe les collections indispensables
+ansible-galaxy collection install ansible.posix community.general --force
+# Installe toutes les collections du requirements.yml
+if [ -f "$HOME/nudger/nudger-infra/k8s-ansible/requirements.yml" ]; then
+    echo "🔹 Installation des collections Ansible depuis requirements.yml"
+    ansible-galaxy collection install -r requirements.yml --force
+fi
 
 # Vérifie la version
 echo "🔹 Versions installées :"
