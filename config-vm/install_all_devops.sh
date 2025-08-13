@@ -13,7 +13,7 @@ set -e
 
 echo "🔹 Mise à jour du système et installation des dépendances"
 sudo apt update && sudo apt install -y \
-    git curl wget jq tree unzip bash-completion make tar gzip python3-venv
+    zsh git curl wget jq tree unzip bash-completion make tar gzip python3-venv
 
 # Crée le virtualenv Ansible si nécessaire
 ANSIBLE_VENV="$HOME/ansible_venv"
