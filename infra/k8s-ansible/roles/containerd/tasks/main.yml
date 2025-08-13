@@ -242,7 +242,7 @@
   register: kubeadm_init
   notify:
     - Save kubeconfig file
-    - configure kubectl
+    - Configure kubectl
   tags: kubernetes_init
 
 - name: Copy admin.conf to user's kube config
@@ -254,4 +254,4 @@
     mode: '0600'
     remote_src: yes
   become: yes
-
+  tags: kubernetes_init
