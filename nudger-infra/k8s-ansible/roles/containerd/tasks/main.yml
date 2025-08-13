@@ -54,7 +54,7 @@
   tags: kernel_modules
 
 - name: Apply sysctl parameters
-  sysctl:
+  community.general.sysctl:
     name: "{{ item.key }}"
     value: "{{ item.value }}"
     sysctl_set: yes
