@@ -131,19 +131,18 @@
     daemon_reload: yes
   tags: containerd_install
 
-- name: Générer la configuration par défaut de containerd
-  ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
+
+- name: Générer config.toml avec CRI activé et SystemdCgroup
+  shell: |
+    containerd config default \
+      | sed 's/disabled_plugins = .*/disabled_plugins = []/' \
+      | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
+      | sed 's@sandbox_image = .*@sandbox_image = "registry.k8s.io/pause:3.9"@' \
+      > /etc/containerd/config.toml
   args:
     creates: /etc/containerd/config.toml
-  become: true
-  tags: containerd_config
-
-- name: S'assurer que le plugin CRI n'est pas désactivé
-  ansible.builtin.replace:
-    path: /etc/containerd/config.toml
-    regexp: '^disabled_plugins = \[.*\]$'
-    replace: 'disabled_plugins = []'
-  become: true
+  become: yes
+  notify: Restart containerd
   tags: containerd_config
 
 - name: Start and enable containerd
@@ -196,17 +195,6 @@
     owner: root
     group: root
     mode: '0644'
-  tags: crictl
-
-- name: Générer config.toml avec CRI activé
-  shell: |
-    containerd config default \
-      | sed 's/disabled_plugins = .*/disabled_plugins = []/' \
-      | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
-      | sed 's@sandbox_image = .*@sandbox_image = "registry.k8s.io/pause:3.9"@' \
-      > /etc/containerd/config.toml
-  become: yes
-  notify: Restart containerd
   tags: crictl
 
 - name: Vérifier que CRI répond
