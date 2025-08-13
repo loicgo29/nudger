@@ -1,4 +1,11 @@
 ---
+- name: Ensure kubm1 is in /etc/hosts
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "10.0.2.15 kubm1"
+    state: present
+
 - name: Apply Flannel CNI manifest
   ansible.builtin.command:
     cmd: "kubectl apply -f {{ flannel_manifest_url }}"
