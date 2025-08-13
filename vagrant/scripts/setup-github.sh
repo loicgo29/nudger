@@ -15,10 +15,12 @@ cat ~/.ssh/id_ed25519.pub
 echo "----------------------------------------------------------------------------"
 
 # Pause pour te laisser le temps de l'ajouter
-read -p "Appuie sur [Entrée] après avoir ajouté la clé sur GitHub..."
+echo  "Appuie sur [Entrée] après avoir ajouté la clé sur GitHub..."
+read
 
 # Cloner le repo via SSH
 git clone git@github.com:loicgo29/nudger.git
+# Se déplacer dans le repo cloné
+cd nudger || exit
 git config user.name "Loïc Gourmelon"
 git config user.email "loicgourmelon@gmail.com"
-
