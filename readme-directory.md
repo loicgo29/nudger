@@ -80,3 +80,4 @@ profile_logo.sh
 ### installation de l'infra
 cd nudger/infra/k8s-ansible
 ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml 
+
