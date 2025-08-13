@@ -1,62 +1,55 @@
 #!/bin/bash
-# ==============================================
-# SCRIPT D'INSTALLATION ENVIRONNEMENT DEVOPS
-# Auteur : Loic G.
-# ==============================================
+###############################################################
+#  TITRE: Installation complète outils DevOps et Ansible
+#  AUTEUR: Loic G.
+#  DESCRIPTION: 
+#    - Installe Git, curl, wget, jq, tree, unzip, bash-completion, make, tar, gzip
+#    - Crée un virtualenv Python pour Ansible
+#    - Installe ansible-core >=2.16 et ansible-lint
+#    - Installe fzf et lazygit
+###############################################################
 
-set -euo pipefail
+set -e
 
-# Configuration
-LOG_DIR="$HOME/log"
-mkdir -p "$LOG_DIR"                      # Crée le dossier si nécessaire
-LOG_FILE="$LOG_DIR/devops_setup.log"     # Fichier log utilisateur
+echo "🔹 Mise à jour du système et installation des dépendances"
+sudo apt update && sudo apt install -y \
+    git curl wget jq tree unzip bash-completion make tar gzip python3-venv
 
-ANSIBLE_VERSION="${1:-2.15.3}"
-PYTHON_VENV="/opt/ansible_venv"
-
-log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
-}
-
-log "Mise à jour des paquets et installation des dépendances de base..."
-apt-get update -qq >> "$LOG_FILE" 2>&1
-apt-get install -y -qq python3-dev libssl-dev libffi-dev python3-venv python3-pip >> "$LOG_FILE" 2>&1
-
-# Création du virtualenv si nécessaire
-if [ ! -d "$PYTHON_VENV" ]; then
-    log "Création de l'environnement virtuel dans $PYTHON_VENV..."
-    sudo python3 -m venv "$PYTHON_VENV" >> "$LOG_FILE" 2>&1
-else
-    log "Le virtualenv $PYTHON_VENV existe déjà, passage à l'installation d'Ansible..."
+# Crée le virtualenv Ansible si nécessaire
+ANSIBLE_VENV="$HOME/ansible_venv"
+if [ ! -d "$ANSIBLE_VENV" ]; then
+    echo "🔹 Création du virtualenv Ansible dans $ANSIBLE_VENV"
+    python3 -m venv "$ANSIBLE_VENV"
 fi
 
-# Mise à jour de pip et installation d'Ansible
-log "Mise à jour de pip et installation de wheel..."
-sudo "$PYTHON_VENV/bin/pip" install --upgrade pip wheel >> "$LOG_FILE" 2>&1
+# Active le virtualenv
+source "$ANSIBLE_VENV/bin/activate"
 
-log "Installation d'Ansible $ANSIBLE_VERSION et des dépendances..."
-sudo "$PYTHON_VENV/bin/pip" install \
-  "ansible-core==$ANSIBLE_VERSION" \
-  ansible-lint \
-  kubernetes.core >> "$LOG_FILE" 2>&1
+# Met à jour pip et installe Ansible
+echo "🔹 Installation d'Ansible dans le venv"
+pip install --upgrade pip
+pip install "ansible-core>=2.16,<2.20" ansible-lint
 
-# Configuration globale Ansible
-log "Configuration globale d'Ansible..."
-sudo mkdir -p /etc/ansible
-sudo tee /etc/ansible/ansible.cfg > /dev/null <<EOF
-[defaults]
-interpreter_python = $PYTHON_VENV/bin/python3
-host_key_checking = False
-EOF
+# Vérifie la version
+echo "🔹 Versions installées :"
+ansible --version
 
-# Ajout du venv au PATH utilisateur si nécessaire
-if ! grep -q "/opt/ansible_venv/bin" ~/.bashrc; then
-  echo 'export PATH="/opt/ansible_venv/bin:$PATH"' >> ~/.bashrc
-  log "Ajout de /opt/ansible_venv/bin au PATH dans ~/.bashrc"
+# Installation fzf
+if [ ! -d "$HOME/.fzf" ]; then
+    echo "🔹 Installation de fzf"
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --all
 fi
 
-# Activation du nouveau PATH dans la session en cours
-export PATH="/opt/ansible_venv/bin:$PATH"
+# Installation lazygit
+if ! command -v lazygit &> /dev/null; then
+    echo "🔹 Installation de lazygit"
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazygit.tar.gz lazygit
+    sudo install lazygit /usr/local/bin
+    rm -rf lazygit.tar.gz lazygit
+fi
 
-log "✅ Installation Ansible terminée"
+echo "✅ Installation terminée. Active le venv avec : source ~/ansible_venv/bin/activate"
 
