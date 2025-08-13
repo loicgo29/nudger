@@ -153,7 +153,7 @@
     daemon_reload: yes
   tags: containerd_install
 
-  - name: Attendre que le socket containerd soit prêt
+- name: Attendre que le socket containerd soit prêt
   ansible.builtin.wait_for:
     path: /run/containerd/containerd.sock
     state: present
