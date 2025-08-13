@@ -70,7 +70,7 @@ git config user.email "loicgourmelon@gmail.com"
 ```
 
 ### configuration de la VM
-cd nudget/vm-config
+cd nudger/config-vm
 install_all_devops.sh 
 
 ### install profile LOGO
@@ -78,5 +78,5 @@ source ~/ansible_venv/bin/activate
 profile_logo.sh
 
 ### installation de l'infra
-cd nudget/infra/k8s-ansible
-ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml --tags flannel
+cd nudger/infra/k8s-ansible
+ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml 
