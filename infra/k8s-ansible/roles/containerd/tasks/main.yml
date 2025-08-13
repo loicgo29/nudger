@@ -168,11 +168,15 @@
   become: true
   tags: crictl
 
+
+- name: Debug contenu plugins
+  debug:
+    var: ctr_plugins.stdout_lines
+
 - name: Échouer si le plugin CRI n'est pas présent
   ansible.builtin.fail:
     msg: "Le plugin CRI n'est pas chargé dans containerd"
-  when: "'io.containerd.grpc.v1.cri' not in ctr_plugins.stdout"
-  tags: crictl
+  when: "'cri' not in (ctr_plugins.stdout | regex_findall('io\\.containerd\\.grpc\\.v1\\s+cri') | join(' '))"
 
 # --------------------
 # crictl
