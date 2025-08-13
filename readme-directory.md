@@ -71,7 +71,8 @@ git config user.email "loicgourmelon@gmail.com"
 
 ### configuration de la VM
 cd nudger/config-vm
-install_all_devops.sh 
+./setup_ssh_ansible.sh
+./install_all_devops.sh 
 
 ### install profile LOGO
 source ~/ansible_venv/bin/activate
