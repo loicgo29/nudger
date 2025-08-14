@@ -40,7 +40,7 @@ nudger/
 ###  Provisionnement avec Vagrant
 ```bash
 cd nudger/vagrant
-./stopXXXXX
+stopvagrant.sh
 vagrant up  # Démarre les machines virtuelles
 vagrant provision  # Applique la configuration
 ```
@@ -70,13 +70,15 @@ git config user.email "loicgourmelon@gmail.com"
 ```
 
 ### configuration de la VM
-cd nudget/vm-config
-install_all_devops.sh 
+cd nudger/config-vm
+./setup_ssh_ansible.sh
+./install_all_devops.sh 
 
 ### install profile LOGO
 source ~/ansible_venv/bin/activate
 profile_logo.sh
 
 ### installation de l'infra
-cd nudget/infra/k8s-ansible
-ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml --tags flannel
+cd nudger/infra/k8s-ansible
+ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml 
+

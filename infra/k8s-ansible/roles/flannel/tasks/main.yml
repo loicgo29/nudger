@@ -1,10 +1,12 @@
 ---
-- name: Ensure kubm1 is in /etc/hosts
+- name: Ensure kubm1 points to the correct IP
   become: yes
   ansible.builtin.lineinfile:
     path: /etc/hosts
+    regexp: '\skubm1$'
     line: "10.0.2.15 kubm1"
     state: present
+    backup: yes
 
 - name: Apply Flannel CNI manifest
   ansible.builtin.command:
@@ -21,7 +23,7 @@
   register: flannel_status
   retries: "{{ flannel_wait_retries }}"
   delay: "{{ flannel_wait_delay }}"
-  until: flannel_status.stdout == ""
+  until: "'Pending' not in flannel_status.stdout and 'CrashLoopBackOff' not in flannel_status.stdout"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   changed_when: false

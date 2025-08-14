@@ -1,5 +1,8 @@
 ---
 
+# --------------------
+# Prérequis Kubernetes
+# --------------------
 - name: Create directory for APT keyrings
   file:
     path: /etc/apt/keyrings
@@ -36,6 +39,9 @@
   loop: "{{ k8s_packages }}"
   tags: kubernetes_packages
 
+# --------------------
+# Kernel et sysctl
+# --------------------
 - name: Load br_netfilter module
   community.general.modprobe:
     name: br_netfilter
@@ -63,6 +69,9 @@
   loop: "{{ sysctl_params | dict2items }}"
   tags: sysctl
 
+# --------------------
+# Containerd
+# --------------------
 - name: Supprimer ancienne config containerd si présente
   file:
     path: /etc/containerd/config.toml
@@ -70,7 +79,7 @@
   become: yes
   tags: containerd_install
 
-- name: Télécharger containerd 2.6.9
+- name: Télécharger containerd 1.7.27
   get_url:
     url: https://github.com/containerd/containerd/releases/download/v1.7.27/containerd-1.7.27-linux-amd64.tar.gz
     dest: /tmp/containerd-1.7.27-linux-amd64.tar.gz
@@ -88,7 +97,7 @@
     creates: /usr/local/bin/containerd
   tags: containerd_install
 
-- name: Installer le service systemd containerd
+- name: Installer le service systemd containerd (forcer config.toml)
   copy:
     dest: /etc/systemd/system/containerd.service
     content: |
@@ -99,7 +108,8 @@
       Wants=network.target
 
       [Service]
-      ExecStart=/usr/local/bin/containerd
+      ExecStart=
+      ExecStart=/usr/local/bin/containerd --config /etc/containerd/config.toml
       Restart=always
       RestartSec=5
       Delegate=yes
@@ -117,28 +127,53 @@
   tags: containerd_install
 
 - name: Reload systemd daemon
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: yes
   tags: containerd_install
 
-- name: Configurer containerd avec template
-  template:
-    src: config.toml.j2
-    dest: /etc/containerd/config.toml
-    owner: root
-    group: root
-    mode: '0644'
-  notify: Restart containerd
+
+- name: Générer config.toml avec CRI activé et SystemdCgroup
+  shell: |
+    containerd config default \
+      | sed 's/disabled_plugins = .*/disabled_plugins = []/' \
+      | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
+      | sed 's@sandbox_image = .*@sandbox_image = "registry.k8s.io/pause:3.9"@' \
+      > /etc/containerd/config.toml
+  args:
+    creates: /etc/containerd/config.toml
   become: yes
   tags: containerd_config
 
 - name: Start and enable containerd
-  systemd:
+  ansible.builtin.systemd:
     name: containerd
     state: started
     enabled: yes
   tags: containerd_install
 
+- name: Attendre que le socket containerd soit prêt
+  ansible.builtin.wait_for:
+    path: /run/containerd/containerd.sock
+    state: present
+    timeout: 15
+  become: yes
+  tags: crictl
+
+- name: Vérifier que le plugin CRI est bien chargé
+  ansible.builtin.command: /usr/local/bin/ctr plugin ls
+  register: ctr_plugins
+  changed_when: false
+  become: true
+  tags: crictl
+
+- name: Échouer si le plugin CRI n'est pas présent
+  ansible.builtin.fail:
+    msg: "Le plugin CRI n'est pas chargé dans containerd"
+  when: "'cri' not in (ctr_plugins.stdout | regex_findall('io\\.containerd\\.grpc\\.v1\\s+cri') | join(' '))"
+
+# --------------------
+# crictl
+# --------------------
 - name: Télécharger crictl binaire
   get_url:
     url: https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.28.0/crictl-v1.28.0-linux-amd64.tar.gz
@@ -155,6 +190,19 @@
     creates: /usr/local/bin/crictl
   tags: crictl
 
+- name: Configurer crictl pour containerd
+  copy:
+    dest: /etc/crictl.yaml
+    content: |
+      runtime-endpoint: unix:///run/containerd/containerd.sock
+      image-endpoint: unix:///run/containerd/containerd.sock
+      timeout: 10
+      debug: false
+    owner: root
+    group: root
+    mode: '0644'
+  tags: crictl
+
 - name: Vérifier que CRI répond
   ansible.builtin.command: crictl info
   register: crictl_check
@@ -162,19 +210,58 @@
   failed_when: crictl_check.rc != 0
   tags: crictl
 
+# --------------------
+# Kubernetes init
+# --------------------
+
+- name: Vérifier si le cluster Kubernetes est déjà initialisé
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_config
+  become: yes
+  tags: kubernetes_init
+
 - name: Initialize Kubernetes cluster (master only)
   ansible.builtin.command: >
     kubeadm init
     --pod-network-cidr={{ pod_network_cidr }}
-    --control-plane-endpoint={{ groups['k8s_masters'][0] }}
+    --control-plane-endpoint={{ hostvars[groups['k8s_masters'][0]].ansible_host }}
     --upload-certs
   args:
     creates: /etc/kubernetes/admin.conf
-  when: inventory_hostname == groups['k8s_masters'][0]
+  when:
+    - inventory_hostname == groups['k8s_masters'][0]
+    - not kubeadm_config.stat.exists
   register: kubeadm_init
   notify:
     - Save kubeconfig file
-    - configure kubectl
+    - Configure kubectl
+  tags: kubernetes_init
+
+- name: Wait for kube-proxy secret to be created
+  ansible.builtin.command: >
+    kubectl get secret kube-proxy -n kube-system
+  register: kube_proxy_secret
+  retries: 10
+  delay: 6
+  until: kube_proxy_secret.rc == 0
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: kubernetes_init
+
+- name: Wait for kube-proxy pods to be running
+  ansible.builtin.command: >
+    kubectl get pods -n kube-system -l k8s-app=kube-proxy
+    -o jsonpath='{.items[*].status.phase}'
+  register: kube_proxy_pods
+  retries: 15
+  delay: 8
+  until: kube_proxy_pods.stdout and
+         kube_proxy_pods.stdout.split() | unique == ['Running']
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: inventory_hostname == groups['k8s_masters'][0]
   tags: kubernetes_init
 
 - name: Copy admin.conf to user's kube config
@@ -186,3 +273,4 @@
     mode: '0600'
     remote_src: yes
   become: yes
+  tags: kubernetes_init
