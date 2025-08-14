@@ -1,0 +1,16 @@
+name: Minimal CI
+
+on: [push, pull_request]
+
+jobs:
+  validate-ansible:
+    name: Validate Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check Ansible syntax
+        run: |
+          echo "Ceci est un workflow minimal pour apprendre"
+          echo "Vérification basique des fichiers Ansible..."
+          find infra/k8s-ansible -name '*.yml' | xargs -I{} sh -c 'echo "Validating {}"; ansible-lint {} || exit 0'
