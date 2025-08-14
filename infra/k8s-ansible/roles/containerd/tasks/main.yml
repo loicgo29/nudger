@@ -264,6 +264,60 @@
   when: inventory_hostname == groups['k8s_masters'][0]
   tags: kubernetes_init
 
+- name: Ensure kube-proxy RBAC is configured
+  become: yes
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: system:node-proxier
+      rules:
+        - apiGroups: [""]
+          resources:
+            - endpoints
+            - services
+            - nodes
+          verbs: ["get", "list", "watch"]
+        - apiGroups: ["discovery.k8s.io"]
+          resources:
+            - endpointslices
+          verbs: ["get", "list", "watch"]
+        - apiGroups: ["events.k8s.io"]
+          resources:
+            - events
+          verbs: ["create", "patch", "update"]
+
+- name: Ensure kube-proxy ClusterRoleBinding exists
+  become: yes
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: system:kube-proxy
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: system:node-proxier
+      subjects:
+        - kind: ServiceAccount
+          name: kube-proxy
+          namespace: kube-system
+
+- name: Restart kube-proxy DaemonSet
+  become: yes
+  kubernetes.core.k8s:
+    state: patched
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: kube-proxy
+        namespace: kube-system
+
 - name: Copy admin.conf to user's kube config
   copy:
     src: /etc/kubernetes/admin.conf
