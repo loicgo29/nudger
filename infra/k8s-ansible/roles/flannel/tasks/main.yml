@@ -23,7 +23,7 @@
   register: flannel_status
   retries: "{{ flannel_wait_retries }}"
   delay: "{{ flannel_wait_delay }}"
-  until: flannel_status.stdout == ""
+  until: "'Pending' not in flannel_status.stdout and 'CrashLoopBackOff' not in flannel_status.stdout"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   changed_when: false
