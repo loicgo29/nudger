@@ -69,9 +69,8 @@ version = 2
     selinux_category_range = 1024
     stats_collect_period = 10
     stream_idle_timeout = "4h0m0s"
-    stream_server_address = "127.0.0.1"
+    stream_server_address = ""
     stream_server_port = "0"
-    systemd_cgroup = true
     tolerate_missing_hugetlb_controller = true
     unset_seccomp_profile = ""
 
@@ -127,6 +126,7 @@ version = 2
           snapshotter = ""
 
           [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+            systemd_cgroup = true
             BinaryName = ""
             CriuImagePath = ""
             CriuPath = ""

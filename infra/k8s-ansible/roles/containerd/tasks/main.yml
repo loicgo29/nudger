@@ -2,6 +2,24 @@
 # Containerd + Kubernetes + Flannel
 # --------------------
 
+# 0️⃣ Préparer le système pour kubeadm
+- name: Charger le module br_netfilter
+  modprobe:
+    name: br_netfilter
+    state: present
+  become: yes
+  tags: kube_prep
+
+- name: Activer bridge-nf-call-iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  become: yes
+  tags: kube_prep
+
 # 1️⃣ Installer containerd et CRI
 - name: Supprimer ancienne config containerd si présente
   file:
@@ -10,10 +28,41 @@
   become: yes
   tags: containerd_install
 
-# ... toutes les tâches containerd/crictl existantes ici ...
-# Télécharger, extraire, configurer containerd
-# Vérifier que CRI répond
+- name: Installer containerd et dépendances
+  apt:
+    name: containerd
+    state: present
+    update_cache: yes
+  become: yes
+  tags: containerd_install
 
+- name: Générer config containerd
+  template:
+    src: config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  tags: containerd_install
+
+- name: Redémarrer containerd
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+  become: yes
+  tags: containerd_install
+
+
+- name: Vérifier que CRI répond
+  command: ctr plugins ls
+  register: cri_plugins
+  changed_when: false
+  failed_when: "'io.containerd.grpc.v1.cri' in cri_plugins.stdout and 'error' in cri_plugins.stdout"
+  become: yes
+  tags: containerd_install
+  
 # 2️⃣ Initialiser Kubernetes
 - name: Vérifier si le cluster Kubernetes est déjà initialisé
   stat:
@@ -63,7 +112,7 @@
   tags: flannel
 
 # 4️⃣ Configurer kube-proxy RBAC après Flannel
-- name: Ensure kube-proxy RBAC is configured
+- name: Ensure kube-proxy ClusterRole exists
   become: yes
   kubernetes.core.k8s:
     state: present
