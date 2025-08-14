@@ -142,15 +142,13 @@
   args:
     creates: /etc/containerd/config.toml
   become: yes
-  notify: Restart containerd
   tags: containerd_config
 
 - name: Start and enable containerd
   ansible.builtin.systemd:
     name: containerd
-    state: restarted
+    state: started
     enabled: yes
-    daemon_reload: yes
   tags: containerd_install
 
 - name: Attendre que le socket containerd soit prêt
@@ -238,6 +236,32 @@
   notify:
     - Save kubeconfig file
     - Configure kubectl
+  tags: kubernetes_init
+
+- name: Wait for kube-proxy secret to be created
+  ansible.builtin.command: >
+    kubectl get secret kube-proxy -n kube-system
+  register: kube_proxy_secret
+  retries: 10
+  delay: 6
+  until: kube_proxy_secret.rc == 0
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: kubernetes_init
+
+- name: Wait for kube-proxy pods to be running
+  ansible.builtin.command: >
+    kubectl get pods -n kube-system -l k8s-app=kube-proxy
+    -o jsonpath='{.items[*].status.phase}'
+  register: kube_proxy_pods
+  retries: 15
+  delay: 8
+  until: kube_proxy_pods.stdout and
+         kube_proxy_pods.stdout.split() | unique == ['Running']
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: inventory_hostname == groups['k8s_masters'][0]
   tags: kubernetes_init
 
 - name: Copy admin.conf to user's kube config
