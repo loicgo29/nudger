@@ -29,3 +29,12 @@ sysctl_params:
   net.bridge.bridge-nf-call-iptables: 1
   net.ipv4.ip_forward: 1
   vm.swappiness: 0
+
+# === onfig Flannel
+flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+flannel_namespace: "kube-systeml"
+flannel_label_selector: "app=flannel"
+kubeconfig_path: "/etc/kubernetes/admin.conf"
+flannel_wait_retries: 10
+flannel_wait_delay: 15
+

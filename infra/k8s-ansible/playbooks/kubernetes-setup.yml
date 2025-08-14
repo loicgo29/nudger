@@ -7,7 +7,6 @@
     - roles/docker/vars/main.yml
     - roles/kubernetes/vars/main.yml
     - roles/containerd/vars/main.yml
-    - roles/flannel/vars/main.yml
     - meta/main.yml
 
   pre_tasks:
@@ -22,5 +21,3 @@
       tags: kubernetes
     - role: containerd
       tags: containerd
-    - role: flannel
-      tags: flannel
