@@ -44,13 +44,16 @@ fi
 # Met à jour pip et installe Ansible
 echo "🔹 Installation d'Ansible dans le venv"
 pip install --upgrade pip
-pip install "ansible-core>=2.16,<2.20" ansible-lint
+pip install "ansible-core>=2.16,<2.20" ansible-lint openshift kubernetes pyyaml ansible-doc 
+
 # Installe les collections indispensables
 ansible-galaxy collection install ansible.posix community.general --force
 # Installe toutes les collections du requirements.yml
+REQUIREMENTS_FILE="$HOME/nudger/infra/k8s-ansible/requirements.yml"
+
 if [ -f "$HOME/nudger/nudger-infra/k8s-ansible/requirements.yml" ]; then
     echo "🔹 Installation des collections Ansible depuis requirements.yml"
-    ansible-galaxy collection install -r requirements.yml --force
+    ansible-galaxy collection install -r $REQUIREMENTS_FILE" --force
 fi
 
 # Vérifie la version
