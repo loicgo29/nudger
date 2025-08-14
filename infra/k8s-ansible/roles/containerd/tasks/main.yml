@@ -232,7 +232,7 @@
   ansible.builtin.command: >
     kubeadm init
     --pod-network-cidr={{ pod_network_cidr }}
-    --control-plane-endpoint={{ groups['k8s_masters'][0] }}
+    --control-plane-endpoint={{ hostvars[groups['k8s_masters'][0]].ansible_host }}
     --upload-certs
   args:
     creates: /etc/kubernetes/admin.conf
