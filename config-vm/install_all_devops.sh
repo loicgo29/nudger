@@ -14,6 +14,9 @@ set -e
 
 # Désactive needrestart pour les mises à jour APT
 export NEEDRESTART_MODE=a
+# Modifiez la config de needrestart pour désactiver les vérifications de noyau :
+sudo sed -i 's|^#\$nrconf{kernelhints} = -1;|\$nrconf{kernelhints} = -1;|' /etc/needrestart/needrestart.conf
+
 sudo apt update && sudo apt upgrade -y
 
 echo "🔹 Mise à jour du système et installation des dépendances"
@@ -38,6 +41,8 @@ fi
 
 # Active le virtualenv
 source "$ANSIBLE_VENV/bin/activate"
+ansible-galaxy collection install kubernetes.core --force
+
 
 #  configure needrestart pour ne plus afficher
 CONF_FILE="/etc/needrestart/needrestart.conf"
@@ -58,7 +63,7 @@ fi
 # Met à jour pip et installe Ansible
 echo "🔹 Installation d'Ansible dans le venv"
 pip install --upgrade pip
-pip install "ansible-core>=2.16,<2.18" ansible-lint openshift kubernetes pyyaml ansible-doc 
+pip install "ansible-core>=2.16,<2.18" ansible-lint openshift kubernetes pyyaml 
 
 # Installe les collections indispensables
 ansible-galaxy collection install ansible.posix community.general --force
@@ -67,7 +72,7 @@ REQUIREMENTS_FILE="$HOME/nudger/infra/k8s-ansible/requirements.yml"
 
 if [ -f "$HOME/nudger/nudger-infra/k8s-ansible/requirements.yml" ]; then
     echo "🔹 Installation des collections Ansible depuis requirements.yml"
-    ansible-galaxy collection install -r $REQUIREMENTS_FILE" --force
+    ansible-galaxy collection install -r "$REQUIREMENTS_FILE" --force
 fi
 
 # Vérifie la version
@@ -92,4 +97,5 @@ if ! command -v lazygit &> /dev/null; then
 fi
 
 echo "✅ Installation terminée. Active le venv avec : source ~/ansible_venv/bin/activate"
-
+cd ~/nudger/infra/k8s-ansible/
+echo "ansible-playbook playbooks/kubernetes-setup.yml"
