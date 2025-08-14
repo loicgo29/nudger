@@ -168,11 +168,6 @@
   become: true
   tags: crictl
 
-
-- name: Debug contenu plugins
-  debug:
-    var: ctr_plugins.stdout_lines
-
 - name: Échouer si le plugin CRI n'est pas présent
   ansible.builtin.fail:
     msg: "Le plugin CRI n'est pas chargé dans containerd"
