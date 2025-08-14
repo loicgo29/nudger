@@ -11,15 +11,29 @@
 
 set -e
 
+
+# Désactive needrestart pour les mises à jour APT
+export NEEDRESTART_MODE=a
+sudo apt update && sudo apt upgrade -y
+
 echo "🔹 Mise à jour du système et installation des dépendances"
 sudo apt update && sudo apt install -y \
     zsh git curl wget jq tree unzip bash-completion make tar gzip python3-venv
 
-# Crée le virtualenv Ansible si nécessaire
 ANSIBLE_VENV="$HOME/ansible_venv"
-if [ ! -d "$ANSIBLE_VENV" ]; then
+
+# Fonction pour créer le venv
+create_ansible_venv() {
     echo "🔹 Création du virtualenv Ansible dans $ANSIBLE_VENV"
     python3 -m venv "$ANSIBLE_VENV"
+}
+# Si le venv n'existe pas ou si le fichier activate manque, on le recrée
+if [ ! -d "$ANSIBLE_VENV" ] || [ ! -f "$ANSIBLE_VENV/bin/activate" ]; then
+    echo "⚠️  Virtualenv manquant ou incomplet. Reconstruction..."
+    rm -rf "$ANSIBLE_VENV"
+    create_ansible_venv
+else
+    echo "✅ Virtualenv Ansible déjà présent."
 fi
 
 # Active le virtualenv
@@ -44,7 +58,7 @@ fi
 # Met à jour pip et installe Ansible
 echo "🔹 Installation d'Ansible dans le venv"
 pip install --upgrade pip
-pip install "ansible-core>=2.16,<2.20" ansible-lint openshift kubernetes pyyaml ansible-doc 
+pip install "ansible-core>=2.16,<2.18" ansible-lint openshift kubernetes pyyaml ansible-doc 
 
 # Installe les collections indispensables
 ansible-galaxy collection install ansible.posix community.general --force
