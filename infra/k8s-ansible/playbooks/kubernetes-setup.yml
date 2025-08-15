@@ -21,3 +21,6 @@
       tags: kubernetes
     - role: containerd
       tags: containerd
+  environment:
+    K8S_AUTH_KUBECONFIG: /etc/kubernetes/admin.conf
+

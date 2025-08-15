@@ -88,6 +88,13 @@
     - Configure kubectl
   tags: kubernetes_init
 
+- name: Fetch kubeconfig from master
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: ~/.kube/config
+    flat: yes
+  when: inventory_hostname == groups['k8s_masters'][0]
+
 # 3️⃣ Appliquer Flannel CNI
 - name: Apply Flannel CNI manifest
   ansible.builtin.command:
