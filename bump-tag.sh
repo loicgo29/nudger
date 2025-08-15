@@ -11,7 +11,7 @@ IFS='.' read -r major minor patch <<< "$version"
 last_commit_msg=$(git log -1 --pretty=%B)
 
 # Détermine quel numéro incrémenter
-if [[ $last_commit_msg =~ BREAKING\ CHANGE ]]; then
+if [[ $last_commit_msg =~ BREAKING ]]; then
   major=$((major + 1))
   minor=0
   patch=0
@@ -30,5 +30,4 @@ git tag -a "$new_tag" -m "Release $new_tag"
 git push origin "$new_tag"
 
 echo "✅ Tag $new_tag créé et poussé automatiquement !"
-
 
