@@ -67,10 +67,12 @@ git clone git@github.com:loicgo29/nudger.git
 cd nudger || exit
 git config user.name "Loïc Gourmelon"
 git config user.email "loicgourmelon@gmail.com"
+git branch -a
+echo "git switch NOM DE LA BRANCHE"
 ```
 
 ### configuration de la VM
-cd nudger/config-vm
+cd config-vm
 ./setup_ssh_ansible.sh
 ./install_all_devops.sh 
 
