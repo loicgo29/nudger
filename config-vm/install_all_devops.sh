@@ -11,19 +11,38 @@
 
 set -e
 
+
+# Désactive needrestart pour les mises à jour APT
+export NEEDRESTART_MODE=a
+# Modifiez la config de needrestart pour désactiver les vérifications de noyau :
+sudo sed -i 's|^#\$nrconf{kernelhints} = -1;|\$nrconf{kernelhints} = -1;|' /etc/needrestart/needrestart.conf
+
+sudo apt update && sudo apt upgrade -y
+
 echo "🔹 Mise à jour du système et installation des dépendances"
 sudo apt update && sudo apt install -y \
     zsh git curl wget jq tree unzip bash-completion make tar gzip python3-venv
 
-# Crée le virtualenv Ansible si nécessaire
 ANSIBLE_VENV="$HOME/ansible_venv"
-if [ ! -d "$ANSIBLE_VENV" ]; then
+
+# Fonction pour créer le venv
+create_ansible_venv() {
     echo "🔹 Création du virtualenv Ansible dans $ANSIBLE_VENV"
     python3 -m venv "$ANSIBLE_VENV"
+}
+# Si le venv n'existe pas ou si le fichier activate manque, on le recrée
+if [ ! -d "$ANSIBLE_VENV" ] || [ ! -f "$ANSIBLE_VENV/bin/activate" ]; then
+    echo "⚠️  Virtualenv manquant ou incomplet. Reconstruction..."
+    rm -rf "$ANSIBLE_VENV"
+    create_ansible_venv
+else
+    echo "✅ Virtualenv Ansible déjà présent."
 fi
 
 # Active le virtualenv
 source "$ANSIBLE_VENV/bin/activate"
+ansible-galaxy collection install kubernetes.core --force
+
 
 #  configure needrestart pour ne plus afficher
 CONF_FILE="/etc/needrestart/needrestart.conf"
@@ -44,13 +63,16 @@ fi
 # Met à jour pip et installe Ansible
 echo "🔹 Installation d'Ansible dans le venv"
 pip install --upgrade pip
-pip install "ansible-core>=2.16,<2.20" ansible-lint
+pip install "ansible-core>=2.16,<2.18" ansible-lint openshift kubernetes pyyaml 
+
 # Installe les collections indispensables
 ansible-galaxy collection install ansible.posix community.general --force
 # Installe toutes les collections du requirements.yml
+REQUIREMENTS_FILE="$HOME/nudger/infra/k8s-ansible/requirements.yml"
+
 if [ -f "$HOME/nudger/nudger-infra/k8s-ansible/requirements.yml" ]; then
     echo "🔹 Installation des collections Ansible depuis requirements.yml"
-    ansible-galaxy collection install -r requirements.yml --force
+    ansible-galaxy collection install -r "$REQUIREMENTS_FILE" --force
 fi
 
 # Vérifie la version
@@ -75,4 +97,5 @@ if ! command -v lazygit &> /dev/null; then
 fi
 
 echo "✅ Installation terminée. Active le venv avec : source ~/ansible_venv/bin/activate"
-
+cd ~/nudger/infra/k8s-ansible/
+echo "ansible-playbook playbooks/kubernetes-setup.yml"
