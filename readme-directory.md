@@ -71,7 +71,6 @@ git branch -a
 echo "git checkout -b fix/15082025"
 echo "git push -u origin fix/15082025"
 echo "git pull origin fix/15082025-2OK"
-
 ```
 
 ### configuration de la VM
