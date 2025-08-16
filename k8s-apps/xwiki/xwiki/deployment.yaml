@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: xwiki
-        image: xwiki:17.3.0-mysql-tomcat
+        image: xwiki:17-mysql-tomcat
         env:
         - name: DB_USER
           valueFrom:
@@ -43,8 +43,8 @@ spec:
         - containerPort: 8080
         resources:
           limits:
-            cpu: "2"
-            memory: "2Gi"
+            cpu: "1"
+            memory: "1Gi"
         volumeMounts:
         - name: xwiki-data
           mountPath: /usr/local/xwiki
