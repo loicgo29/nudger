@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xwiki-config
+  namespace: open4goods
+data:
+  JAVA_OPTS: "-Xmx1g -Xms1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+

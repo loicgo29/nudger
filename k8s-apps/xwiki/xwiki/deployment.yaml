@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xwiki
+  namespace: open4goods
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xwiki
+  template:
+    metadata:
+      labels:
+        app: xwiki
+    spec:
+      containers:
+      - name: xwiki
+        image: xwiki:17.3.0-mysql-tomcat
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: xwiki-secret
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: xwiki-secret
+              key: db-password
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: xwiki-secret
+              key: db-name
+        - name: DB_HOST
+          value: mysql
+        - name: JAVA_OPTS
+          valueFrom:
+            configMapKeyRef:
+              name: xwiki-config
+              key: JAVA_OPTS
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        volumeMounts:
+        - name: xwiki-data
+          mountPath: /usr/local/xwiki
+      volumes:
+      - name: xwiki-data
+        persistentVolumeClaim:
+          claimName: xwiki-pvc
+
