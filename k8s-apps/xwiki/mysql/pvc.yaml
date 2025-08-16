@@ -4,6 +4,7 @@ metadata:
   name: mysql-pvc
   namespace: open4goods
 spec:
+  storageClassName: manual  # Doit correspondre au PV
   accessModes:
     - ReadWriteOnce
   resources:
