@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
     qe.arch = "x86_64"
     qe.memory = "3072"       # 3 Go RAM pour VM
     qe.smp = "2"             # 2 vCPU
-    qe.cpu = "host"
+    qe.cpu = "qemu64"
     qe.machine = "q35"
     qe.net_device = "virtio-net-pci"
     qe.disk_bus = "virtio"
