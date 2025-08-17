@@ -19,7 +19,7 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: mysql
-        image: mysql:8.4
+        image: mysql:5.7
         args: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
         env:
         - name: MYSQL_ROOT_PASSWORD
