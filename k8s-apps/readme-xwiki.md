@@ -1,9 +1,3 @@
-kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-kubectl apply -f namespace.yaml
-kubectl apply -f xwiki/mysql/
-kubectl apply -f xwiki/xwiki/
-kubectl apply -f xwiki/ingress/ 
-sudo mkdir /data/mysql-pv
-sudo chmod 777 /data/mysql-pv/
-sudo mkdir /data/xwiki
-chmod 777 /data/xwiki/
+### creer directory pour stockage des pv
+sudo mkdir -p /data/xwiki /data/mysql
+sudo chmod 777 /data/xwiki /data/mysql

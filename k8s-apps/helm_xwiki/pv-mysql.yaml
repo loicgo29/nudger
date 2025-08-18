@@ -4,10 +4,12 @@ metadata:
   name: mysql-pv
 spec:
   capacity:
-    storage: 1Gi
+    storage: 2Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/mysql-xwiki"
+    path: /data/mysql
   persistentVolumeReclaimPolicy: Retain
-
+  claimRef:
+    namespace: open4goods
+    name: data-my-xwiki-mysql-0
