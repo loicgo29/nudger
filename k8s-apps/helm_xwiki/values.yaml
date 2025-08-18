@@ -16,7 +16,6 @@ service:
   internalPort: 8080
   sessionAffinity: ClientIP
 
-
 resources:
   requests:
     memory: "512Mi"
@@ -80,6 +79,54 @@ mysql:
       limits:
         memory: "512Mi"
         cpu: "400m"
+    startupProbe:
+      exec:
+        command:
+          - /bin/bash
+          - -ec
+          - |
+            password_aux="${MYSQL_ROOT_PASSWORD:-}"
+            if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
+                password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
+            fi
+            mysqladmin --host=127.0.0.1 --port=3306 -uroot -p"${password_aux}" ping | grep "mysqld is alive"
+      failureThreshold: 10
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 2
+    livenessProbe:
+      exec:
+        command:
+          - /bin/bash
+          - -ec
+          - |
+            password_aux="${MYSQL_ROOT_PASSWORD:-}"
+            if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
+                password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
+            fi
+            mysqladmin --host=127.0.0.1 --port=3306 -uroot -p"${password_aux}" status
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
+    readinessProbe:
+      exec:
+        command:
+          - /bin/bash
+          - -ec
+          - |
+            password_aux="${MYSQL_ROOT_PASSWORD:-}"
+            if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
+                password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
+            fi
+            mysqladmin --host=127.0.0.1 --port=3306 -uroot -p"${password_aux}" ping | grep "mysqld is alive"
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
 
 ingress:
   enabled: false
@@ -87,7 +134,7 @@ ingress:
 istio:
   enabled: false
 
-# Simplified probes
+# Simplified probes for XWiki (HTTP)
 probes:
   startup:
     enabled: true
@@ -101,7 +148,7 @@ probes:
       enabled: true
       path: /rest
     initialDelaySeconds: 30
-    timeoutSeconds: 3
+    timeoutSeconds: 6
     periodSeconds: 30
     failureThreshold: 10
   readiness:
@@ -110,7 +157,6 @@ probes:
       enabled: true
       path: /rest/wikis/xwiki/spaces
     initialDelaySeconds: 30
-    timeoutSeconds: 3
+    timeoutSeconds: 5
     periodSeconds: 30
     failureThreshold: 10
-
