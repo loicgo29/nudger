@@ -89,7 +89,7 @@ mysql:
             if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
                 password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
             fi
-            mysqladmin --host=127.0.0.1 --port=3306 -uroot -p"${password_aux}" ping | grep "mysqld is alive"
+            mysqladmin --socket=/opt/bitnami/mysql/tmp/mysql.sock ping -uroot -p"${password_aux}" | grep "mysqld is alive"
       failureThreshold: 10
       initialDelaySeconds: 15
       periodSeconds: 10
