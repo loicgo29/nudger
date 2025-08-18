@@ -3,10 +3,13 @@ kind: PersistentVolume
 metadata:
   name: mysql-pv
 spec:
-  storageClassName: manual
   capacity:
     storage: 2Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/mysql-pv"
+    path: /data/mysql
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    namespace: open4goods
+    name: data-my-xwiki-mysql-0
