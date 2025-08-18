@@ -1,0 +1,32 @@
+{{- $fullName := include "xwiki.fullname" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "xwiki.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.commonAnnotations }}
+    {{ .Values.commonAnnotations | toYaml | indent 4 }}
+    {{- end }}
+data:
+  # Base URL Solr désactivée (Solr non déployé)
+  # SOLR_BASEURL: ""
+
+  # Configuration base de données
+{{- if .Values.mysql.enabled }}
+  DB_USER: {{ .Values.mysql.auth.username | quote }}
+  DB_HOST: "{{ .Release.Name }}-mysql"
+  DB_DATABASE: {{ .Values.mysql.auth.database | quote }}
+{{- else }}
+  # Option base externe si MySQL interne désactivé
+  DB_USER: {{ .Values.externalDB.user | quote }}
+  DB_HOST: {{ .Values.externalDB.host | quote }}
+  DB_DATABASE: {{ .Values.externalDB.database | quote }}
+{{- end }}
+
+  # Autres variables XWiki essentielles
+  XWIKI_ADMIN_USER: {{ .Values.xwikiAdminUser | default "admin" | quote }}
+  XWIKI_ADMIN_PASSWORD: {{ .Values.xwikiAdminPassword | default "admin" | quote }}
+  XWIKI_MAIL_FROM: {{ .Values.xwikiMailFrom | default "xwiki@example.com" | quote }}
+
