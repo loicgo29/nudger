@@ -54,6 +54,8 @@ persistence:
   enabled: true
   size: 2Gi
   storageClass: ""
+  accessModes:
+    - ReadWriteOnce
   selector:
     matchLabels:
       type: xwiki
@@ -118,7 +120,8 @@ autoscaling:
 postgresql:
   enabled: false
 
-
+mysql:
+  enabled: true
 mariadb:
   enabled: false
 logback:
