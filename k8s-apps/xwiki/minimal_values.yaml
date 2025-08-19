@@ -56,9 +56,6 @@ persistence:
   storageClass: ""
   accessModes:
     - ReadWriteOnce
-  selector:
-    matchLabels:
-      type: xwiki
 
 ##
 ## MySQL chart configuration
@@ -80,11 +77,8 @@ mysql:
       log-error=/opt/bitnami/mysql/logs/mysqld.log
     persistence:
       enabled: true
-      storageClass: ""
-      size: "2Gi"
-      selector:
-        matchLabels:
-          type: mysql
+      size: 5Gi
+      storageClass: local-path
     resources:
       requests:
         memory: "1Gi"
