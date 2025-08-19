@@ -31,7 +31,7 @@ javaOpts:
 
 extraEnvVars:
   - name: DB_HOST
-    value: my-xwiki-mysql
+    value: nudger-xwiki-mysql
 
 workloadStateful: true
 
@@ -52,7 +52,7 @@ podDisruptionBudget:
 
 persistence:
   enabled: true
-  size: 2Gi
+  size: 5Gi
   storageClass: ""
   accessModes:
     - ReadWriteOnce
@@ -154,13 +154,14 @@ initContainers:
   solr:
     enabled: false
 externalDB:
-  enabled: false
-  host: ""
+  enabled: true
+  host: nudger-xwiki-mysql  
   port: 3306
   database: ""
-  user: ""
-  password: ""
-  existingSecret: ""
+  user: xwiki
+  password: xwiki
+  database: xwiki
+  existingSecret: xwiki-mysql-auth
   customKeyRef: {}
 
 # Simplified probes for XWiki (HTTP)
