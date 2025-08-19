@@ -17,4 +17,5 @@ alias ksgp='kubectl get pods -n kube-system'
 alias kss='kubectl get services -n kube-system'
 alias kuc='kubectl config use-context'
 alias vu='vagrant up'
-
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'

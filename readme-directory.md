@@ -87,3 +87,9 @@ profile_logo.sh
 cd nudger/infra/k8s-ansible
 ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml 
 
+### patcher br si reboot
+./patch1.sh
+
+### creer directory pour stockage des pv
+sudo mkdir -p /data/xwiki /data/mysql
+sudo chmod 777 /data/xwiki /data/mysql

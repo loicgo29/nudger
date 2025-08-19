@@ -72,12 +72,15 @@ mysql:
       enabled: true
       storageClass: ""
       size: "2Gi"
+      selector:
+        matchLabels:
+          type: mysql
     resources:
       requests:
-        memory: "256Mi"
-        cpu: "200m"
+        memory: "1Gi"
+        cpu: "400m"
       limits:
-        memory: "512Mi"
+        memory: "2Gi"
         cpu: "400m"
     startupProbe:
       exec:
@@ -89,24 +92,23 @@ mysql:
             if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
                 password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
             fi
-            mysqladmin --socket=/opt/bitnami/mysql/tmp/mysql.sock ping -uroot -p"${password_aux}" | grep "mysqld is alive"
+            mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
       failureThreshold: 10
-      initialDelaySeconds: 15
+      initialDelaySeconds: 150
       periodSeconds: 10
       successThreshold: 1
-      timeoutSeconds: 2
+      timeoutSeconds: 10
     livenessProbe:
       exec:
         command:
           - /bin/bash
-          - -ec
           - |
             password_aux="${MYSQL_ROOT_PASSWORD:-}"
             if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
                 password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
             fi
-            mysqladmin --host=127.0.0.1 --port=3306 -uroot -p"${password_aux}" status
-      initialDelaySeconds: 10
+            mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
+      initialDelaySeconds: 80
       periodSeconds: 10
       timeoutSeconds: 2
       successThreshold: 1
@@ -121,7 +123,7 @@ mysql:
             if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
                 password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
             fi
-            mysqladmin --host=127.0.0.1 --port=3306 -uroot -p"${password_aux}" ping | grep "mysqld is alive"
+            mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
       initialDelaySeconds: 5
       periodSeconds: 10
       timeoutSeconds: 2
