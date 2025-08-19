@@ -15,6 +15,7 @@ service:
   externalPort: 80
   internalPort: 8080
   sessionAffinity: ClientIP
+  externalIPs: []
 
 resources:
   requests:
@@ -45,6 +46,18 @@ containerSecurityContext:
   seccompProfile:
     type: "RuntimeDefault"
 
+podDisruptionBudget:
+  enabled: false
+
+
+persistence:
+  enabled: true
+  size: 2Gi
+  storageClass: ""
+  selector:
+    matchLabels:
+      type: xwiki
+
 ##
 ## MySQL chart configuration
 ##
@@ -65,7 +78,7 @@ mysql:
       explicit_defaults_for_timestamp
       character-set-server=utf8mb4
       collation-server=utf8mb4_bin
-      bind-address=*
+      bind-address=0.0.0.0
       max_allowed_packet=16M
       log-error=/opt/bitnami/mysql/logs/mysqld.log
     persistence:
@@ -82,70 +95,81 @@ mysql:
       limits:
         memory: "2Gi"
         cpu: "400m"
-    startupProbe:
-      exec:
-        command:
-          - /bin/bash
-          - -ec
-          - |
-            password_aux="${MYSQL_ROOT_PASSWORD:-}"
-            if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-            fi
-            mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
-      failureThreshold: 10
-      initialDelaySeconds: 150
-      periodSeconds: 10
-      successThreshold: 1
-      timeoutSeconds: 10
-    livenessProbe:
-      exec:
-        command:
-          - /bin/bash
-          - |
-            password_aux="${MYSQL_ROOT_PASSWORD:-}"
-            if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-            fi
-            mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
-      initialDelaySeconds: 80
-      periodSeconds: 10
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 3
+    startupProbe: 
+      enabled: false
+    livenessProbe: 
+      enabled: false
     readinessProbe:
-      exec:
-        command:
-          - /bin/bash
-          - -ec
-          - |
-            password_aux="${MYSQL_ROOT_PASSWORD:-}"
-            if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-            fi
-            mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
-      initialDelaySeconds: 5
-      periodSeconds: 10
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 3
+      enabled: false
 
 ingress:
   enabled: false
 
 istio:
   enabled: false
+  gateway:
+    enabled: false
+  tls:
+    certificate:
+      enabled: false
+# --- Autoscaling ---
+autoscaling:
+  enabled: false
+postgresql:
+  enabled: false
+
+
+mariadb:
+  enabled: false
+logback:
+  enabled: false
+glowroot:
+  enabled: false
+  properties: {}
+prometheus:
+  enabled: false
+  javaagent:
+    enabled: false
+infinispan:
+  enabled: false
+
+customJdbc:
+  enabled: false
+solr:
+  enabled: false
+propertiesSecret:
+  enabled: false
+  name: ""
+volumePermissions:
+  enabled: false
+  containerSecurityContext: {}
+initContainers:
+  database:
+    enabled: false
+  extra:
+    enabled: false
+  solr:
+    enabled: false
+externalDB:
+  enabled: false
+  host: ""
+  port: 3306
+  database: ""
+  user: ""
+  password: ""
+  existingSecret: ""
+  customKeyRef: {}
 
 # Simplified probes for XWiki (HTTP)
 probes:
   startup:
-    enabled: true
+    enabled: false
     initialDelaySeconds: 120
     timeoutSeconds: 60
     periodSeconds: 30
     failureThreshold: 5
   liveness:
-    enabled: true
+    enabled: false
     httpGet:
       enabled: true
       path: /rest
@@ -154,7 +178,7 @@ probes:
     periodSeconds: 30
     failureThreshold: 10
   readiness:
-    enabled: true
+    enabled: false
     httpGet:
       enabled: true
       path: /rest/wikis/xwiki/spaces
