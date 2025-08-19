@@ -65,11 +65,6 @@ persistence:
 ##
 mysql:
   enabled: true
-  auth:
-    rootPassword: "xwiki"
-    username: "xwiki"
-    password: "xwiki"
-    database: "xwiki"
   initdbScripts:
     00-init.sql: |
       grant all privileges on *.* to xwiki@'%'
@@ -155,14 +150,11 @@ initContainers:
     enabled: false
 externalDB:
   enabled: true
-  host: nudger-xwiki-mysql  
-  port: 3306
-  database: ""
-  user: xwiki
-  password: xwiki
-  database: xwiki
   existingSecret: xwiki-mysql-auth
-  customKeyRef: {}
+  rootPassword: ""
+  user: ""
+  password: ""
+  database: ""
 
 # Simplified probes for XWiki (HTTP)
 probes:
