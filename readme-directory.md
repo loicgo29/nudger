@@ -71,6 +71,7 @@ git branch -a
 echo "git checkout -b fix/15082025"
 echo "git pull origin fix/15082025-2OK"
 echo "git push -u origin fix/15082025"
+echo "git branch --set-upstream-to=origin/fix/16082025 fix/16082025"
 
 ```
 
