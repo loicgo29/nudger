@@ -106,124 +106,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
 stringData:
-  entrypoint: |
-    #!/bin/bash
-    ##
-    # *Experimental* solution for custom properties.
-    # With time we are looking other alternatives to setup this custom values.
-    ##
-    # Always execute "first_start" in order to get all new values keys from future versions.
-    rm -f /usr/local/xwiki/data/xwiki.cfg
-    rm -f /usr/local/xwiki/data/xwiki.properties
-    rm -f /usr/local/xwiki/data/hibernate.cfg.xml
-
-    # Reuse commands/resources from default entrypoint.
-    source /usr/local/bin/docker-entrypoint.sh
-    file_env 'CONTEXT_PATH' 'ROOT'
-    if [ -d "/usr/local/tomcat" ]; then
-      export AS_PATH=/usr/local/tomcat
-    else
-      export AS_PATH=/var/lib/jetty
-    fi
-    echo "Path: ${AS_PATH}"
-
-    # Currently database preferences are replaced on hibernate (XML) file. 
-    # To prevent errors with special XML chars, replace all for respective encoded alternative. 
-    escapeXML() {
-      echo "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g' -e "s/'/\&apos;/g"
-    }
-    if [[ -n "$DB_PASSWORD" ]]; then
-      export DB_PASSWORD=$(escapeXML $DB_PASSWORD)
-    fi
-    if [[ -n "$JDBC_PARAMS" ]]; then
-      export JDBC_PARAMS=$(escapeXML $JDBC_PARAMS)
-    fi
-
-    # Setup all default actions from first start
-    first_start
-    ## 
-    # On future versions, when LTS start have this method we can remove this from this script. 
-    # This method was requested on: https://github.com/xwiki/xwiki-docker/pull/36
-    ## 
-    function xwiki_replace_or_add() {
-      local file_path="$1"
-      local setting="$2"
-      local new_value="$3"
-
-      # Check if the setting exists in the file
-      if grep -Eq "^ *#? *$setting=" "$file_path"; then
-        # If the setting exists, replace the occurrence with the new value
-        sed -i 's|^\( *#\? *\)'"$setting"'=.*$|'"$setting"'='"$new_value"'|g' "$file_path"
-      else
-        # If the setting doesn't exist, add it at the end of the file
-        echo "$setting=$new_value" >> "$file_path"
-      fi
-    }
-
-    # Add URL for Solr Remote instance
-    # Backward compatibility for old image
-
-    # Replace all values from keys defineded on customConfigs
-    # If we detect extension, we loop over the array and add them
-
-    # Replace all values from keys defined on customConfigsSecrets
-
-    # Set secret Java options from javaOptsSecrets
-
-    # Replace the platform provenance to keep track of the image
-    sed -i 's/<id>org.xwiki.platform:xwiki-platform-distribution-war/<id>org.xwiki.contrib:xwiki-platform-distribution-helm-docker/' \
-      $AS_PATH/webapps/${CONTEXT_PATH}/META-INF/extension.xed
-    sed -i 's/<id>org.xwiki.platform:xwiki-platform-distribution-docker/<id>org.xwiki.contrib:xwiki-platform-distribution-helm-docker/' \
-      $AS_PATH/webapps/${CONTEXT_PATH}/META-INF/extension.xed
-
-    # Append properties prefixed with "-D" from a secret that provides properties in a file.
-    # If no parameter is given append to the environment variable "JAVA_OPTS"
-    # otherwise append to the file given as a parameter.
-    publishProperties () {
-      properties="${1}"
-      outFile="${2}"
-
-      for key in "${!properties[@]}"; do
-        # skip element that either miss key OR value
-        if [[ -z "${key}" || -z "${properties[${key}]}" ]]; then
-          continue
-        fi
-        # If no output file is given we fill the environment variable
-        if [[ -z ${outFile} ]]; then
-          printf -v property -- '-D%s=%s' "${key}" "${properties[${key}]}"
-          export JAVA_OPTS=${JAVA_OPTS:+${JAVA_OPTS} }${property}
-        else
-          # If the output file doesn't exist, create it
-          if [[ ! -f ${outFile} ]]; then
-            echo "" > "${outFile}"
-          fi
-          printf -- '-D%s=%s\n' "${key}" "${properties[${key}]}" >> "${outFile}"
-        fi
-      done
-    }
-
-    # Utilise an associative array to set properties.
-    declare -A properties
-
-    if [ -d "/var/lib/jetty" ]; then
-      echo "" > start.d/xwiki.ini
-      publishProperties properties start.d/xwiki.ini
-      export JAVA_OPTIONS="${JAVA_OPTS}"
-    else 
-      if (/usr/local/tomcat/bin/version.sh | grep -q 'Tomcat/8'); then
-        echo "Old Tomcat don't support java_opts file... Using normal props."
-        publishProperties properties
-      else 
-        ## Clear contents of /tmp/java_opts.txt so that we don't add extra arguments at each pod restart.
-        echo "" > /tmp/java_opts.txt
-        publishProperties properties /tmp/java_opts.txt
-        export JAVA_OPTS="${JAVA_OPTS} @/tmp/java_opts.txt"
-      fi
-    fi
-
-    unset properties
-
-    exec /usr/local/bin/docker-entrypoint.sh xwiki
+  entrypoint: "#!/bin/bash\n##\n# *Experimental* solution for custom properties.\n# With time we are looking other alternatives to setup this custom values.\n##\n# Always execute \"first_start\" in order to get all new values keys from future versions.\nrm -f /usr/local/xwiki/data/xwiki.cfg\nrm -f /usr/local/xwiki/data/xwiki.properties\nrm -f /usr/local/xwiki/data/hibernate.cfg.xml\n\n# Reuse commands/resources from default entrypoint.\nsource /usr/local/bin/docker-entrypoint.sh\nfile_env 'CONTEXT_PATH' 'ROOT'\nif [ -d \"/usr/local/tomcat\" ]; then\n  export AS_PATH=/usr/local/tomcat\nelse\n  export AS_PATH=/var/lib/jetty\nfi\necho \"Path: ${AS_PATH}\"\n\n# Currently database preferences are replaced on hibernate (XML) file. \n# To prevent errors with special XML chars, replace all for respective encoded alternative. \nescapeXML() {\n  echo \"$1\" | sed -e 's/&/\\&amp;/g' -e 's/</\\&lt;/g' -e 's/>/\\&gt;/g' -e 's/\"/\\&quot;/g' -e \"s/'/\\&apos;/g\"\n}\nif [[ -n \"$DB_PASSWORD\" ]]; then\n  export DB_PASSWORD=$(escapeXML $DB_PASSWORD)\nfi\nif [[ -n \"$JDBC_PARAMS\" ]]; then\n  export JDBC_PARAMS=$(escapeXML $JDBC_PARAMS)\nfi\n\n# Setup all default actions from first start\nfirst_start\n## \n# On future versions, when LTS start have this method we can remove this from this script. \n# This method was requested on: https://github.com/xwiki/xwiki-docker/pull/36\n## \nfunction xwiki_replace_or_add() {\n  local file_path=\"$1\"\n  local setting=\"$2\"\n  local new_value=\"$3\"\n\n  # Check if the setting exists in the file\n  if grep -Eq \"^ *#? *$setting=\" \"$file_path\"; then\n    # If the setting exists, replace the occurrence with the new value\n    sed -i 's|^\\( *#\\? *\\)'\"$setting\"'=.*$|'\"$setting\"'='\"$new_value\"'|g' \"$file_path\"\n  else\n    # If the setting doesn't exist, add it at the end of the file\n    echo \"$setting=$new_value\" >> \"$file_path\"\n  fi\n}\n\n# Add URL for Solr Remote instance\n# Backward compatibility for old image\n\n# Replace all values from keys defineded on customConfigs\n# If we detect extension, we loop over the array and add them\n\n# Replace all values from keys defined on customConfigsSecrets\n\n# Set secret Java options from javaOptsSecrets\n\n# Replace the platform provenance to keep track of the image\nsed -i 's/<id>org.xwiki.platform:xwiki-platform-distribution-war/<id>org.xwiki.contrib:xwiki-platform-distribution-helm-docker/' \\\n  $AS_PATH/webapps/${CONTEXT_PATH}/META-INF/extension.xed\nsed -i 's/<id>org.xwiki.platform:xwiki-platform-distribution-docker/<id>org.xwiki.contrib:xwiki-platform-distribution-helm-docker/' \\\n  $AS_PATH/webapps/${CONTEXT_PATH}/META-INF/extension.xed\n\n# Append properties prefixed with \"-D\" from a secret that provides properties in a file.\n# If no parameter is given append to the environment variable \"JAVA_OPTS\"\n# otherwise append to the file given as a parameter.\npublishProperties () {\n  properties=\"${1}\"\n  outFile=\"${2}\"\n\n  for key in \"${!properties[@]}\"; do\n    # skip element that either miss key OR value\n    if [[ -z \"${key}\" || -z \"${properties[${key}]}\" ]]; then\n      continue\n    fi\n    # If no output file is given we fill the environment variable\n    if [[ -z ${outFile} ]]; then\n      printf -v property -- '-D%s=%s' \"${key}\" \"${properties[${key}]}\"\n      export JAVA_OPTS=${JAVA_OPTS:+${JAVA_OPTS} }${property}\n    else\n      # If the output file doesn't exist, create it\n      if [[ ! -f ${outFile} ]]; then\n        echo \"\" > \"${outFile}\"\n      fi\n      printf -- '-D%s=%s\\n' \"${key}\" \"${properties[${key}]}\" >> \"${outFile}\"\n    fi\n  done\n}\n\n# Utilise an associative array to set properties.\ndeclare -A properties\n\nif [ -d \"/var/lib/jetty\" ]; then\n  echo \"\" > start.d/xwiki.ini\n  publishProperties properties start.d/xwiki.ini\n  export JAVA_OPTIONS=\"${JAVA_OPTS}\"\nelse \n  if (/usr/local/tomcat/bin/version.sh | grep -q 'Tomcat/8'); then\n    echo \"Old Tomcat don't support java_opts file... Using normal props.\"\n    publishProperties properties\n  else \n    ## Clear contents of /tmp/java_opts.txt so that we don't add extra arguments at each pod restart.\n    echo \"\" > /tmp/java_opts.txt\n    publishProperties properties /tmp/java_opts.txt\n    export JAVA_OPTS=\"${JAVA_OPTS} @/tmp/java_opts.txt\"\n  fi\nfi\n\nunset properties\n\nexec /usr/local/bin/docker-entrypoint.sh xwiki\n"
 ---
 # Source: xwiki/templates/secrets.yaml
 apiVersion: v1
@@ -305,7 +188,6 @@ data:
   DB_USER: "xwiki"
   DB_HOST: "xwiki-mysql"
   DB_DATABASE: "xwiki"
-
   # Autres variables XWiki essentielles
   XWIKI_ADMIN_USER: "admin"
   XWIKI_ADMIN_PASSWORD: "admin"
@@ -323,8 +205,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
 data:
-
-  glowroot.properties: |
+  glowroot.properties: ""
 ---
 # Source: xwiki/charts/mysql/templates/primary/svc-headless.yaml
 apiVersion: v1
@@ -386,7 +267,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name:  xwiki
+  name: xwiki
   labels:
     app.kubernetes.io/name: xwiki
     helm.sh/chart: xwiki-1.5.5
@@ -399,7 +280,7 @@ spec:
     - port: 80
       targetPort: 8080
       protocol: TCP
-      name: 
+      name:
   sessionAffinity: ClientIP
   selector:
     app.kubernetes.io/name: xwiki
@@ -445,11 +326,9 @@ spec:
         app.kubernetes.io/component: primary
     spec:
       serviceAccountName: xwiki-mysql
-      
       automountServiceAccountToken: false
       affinity:
         podAffinity:
-          
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -460,7 +339,6 @@ spec:
                 topologyKey: kubernetes.io/hostname
               weight: 1
         nodeAffinity:
-          
       securityContext:
         fsGroup: 1001
         fsGroupChangePolicy: Always
@@ -474,7 +352,7 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsGroup: 1001
             runAsNonRoot: true
@@ -482,7 +360,7 @@ spec:
             seLinuxOptions: {}
             seccompProfile:
               type: RuntimeDefault
-          resources: 
+          resources:
             limits:
               cpu: 400m
               memory: 2Gi
@@ -512,7 +390,7 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsGroup: 1001
             runAsNonRoot: true
@@ -540,83 +418,24 @@ spec:
             - name: mysql
               containerPort: 3306
           livenessProbe:
-            exec:
-              command:
-              - /bin/bash
-              - |
-                password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                    password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                fi
-                mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
             failureThreshold: 3
             initialDelaySeconds: 80
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 2
-            exec:
-              command:
-                - /bin/bash
-                - -ec
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                  fi
-                  mysqladmin status -uroot -p"${password_aux}"
           readinessProbe:
-            exec:
-              command:
-              - /bin/bash
-              - -ec
-              - |
-                password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                    password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                fi
-                mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
             failureThreshold: 3
             initialDelaySeconds: 5
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 2
-            exec:
-              command:
-                - /bin/bash
-                - -ec
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                  fi
-                  mysqladmin ping -uroot -p"${password_aux}" | grep "mysqld is alive"
           startupProbe:
-            exec:
-              command:
-              - /bin/bash
-              - -ec
-              - |
-                password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                    password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                fi
-                mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p"${password_aux}"
             failureThreshold: 10
             initialDelaySeconds: 150
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 10
-            exec:
-              command:
-                - /bin/bash
-                - -ec
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                  fi
-                  mysqladmin ping -uroot -p"${password_aux}" | grep "mysqld is alive"
-          resources: 
+          resources:
             limits:
               cpu: 400m
               memory: 2Gi
@@ -675,7 +494,6 @@ spec:
         resources:
           requests:
             storage: "2Gi"
-        
         selector:
           matchLabels:
             type: mysql
@@ -719,10 +537,9 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-                cp /secrets/entrypoint /entrypoint/start.sh
-                chmod 0550 /entrypoint/start.sh
-          securityContext:
-            {}
+              cp /secrets/entrypoint /entrypoint/start.sh
+              chmod 0550 /entrypoint/start.sh
+          securityContext: {}
           resources:
             limits:
               cpu: 500m
@@ -748,7 +565,6 @@ spec:
               value: "-Xmx1024m -Xmx1g"
             - name: DB_HOST
               value: "nudger-xwiki-mysql"
-                      
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:

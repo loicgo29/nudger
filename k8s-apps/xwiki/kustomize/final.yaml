@@ -1,0 +1,653 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+secrets:
+- name: xwiki-mysql
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: xwiki-sa
+---
+apiVersion: v1
+data:
+  my.cnf: |-
+    [mysqld]
+    skip-name-resolve
+    explicit_defaults_for_timestamp
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_bin
+    bind-address=*
+    max_allowed_packet=16M
+    log-error=/opt/bitnami/mysql/logs/mysqld.log
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+---
+apiVersion: v1
+data:
+  00-init.sql: |
+    grant all privileges on *.* to xwiki@'%'
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql-init-scripts
+  namespace: open4goods
+---
+apiVersion: v1
+data:
+  DB_DATABASE: xwiki
+  DB_HOST: xwiki-mysql
+  DB_USER: xwiki
+  XWIKI_ADMIN_PASSWORD: admin
+  XWIKI_ADMIN_USER: admin
+  XWIKI_MAIL_FROM: xwiki@example.com
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: xwiki
+    helm.sh/chart: xwiki-1.5.5
+  name: xwiki
+---
+apiVersion: v1
+data:
+  glowroot.properties: ""
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: xwiki
+    helm.sh/chart: xwiki-1.5.5
+  name: xwiki-init-scripts
+---
+apiVersion: v1
+data:
+  mysql-password: eHdpa2k=
+  mysql-root-password: eHdpa2k=
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+type: Opaque
+---
+apiVersion: v1
+data:
+  mysql-database: ""
+  mysql-password: ""
+  mysql-root-password: ""
+  mysql-user: ""
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: xwiki
+    helm.sh/chart: xwiki-1.5.5
+  name: xwiki
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: xwiki
+    helm.sh/chart: xwiki-1.5.5
+  name: xwiki-init-scripts
+stringData:
+  entrypoint: "#!/bin/bash\n##\n# *Experimental* solution for custom properties.\n#
+    With time we are looking other alternatives to setup this custom values.\n##\n#
+    Always execute \"first_start\" in order to get all new values keys from future
+    versions.\nrm -f /usr/local/xwiki/data/xwiki.cfg\nrm -f /usr/local/xwiki/data/xwiki.properties\nrm
+    -f /usr/local/xwiki/data/hibernate.cfg.xml\n\n# Reuse commands/resources from
+    default entrypoint.\nsource /usr/local/bin/docker-entrypoint.sh\nfile_env 'CONTEXT_PATH'
+    'ROOT'\nif [ -d \"/usr/local/tomcat\" ]; then\n  export AS_PATH=/usr/local/tomcat\nelse\n
+    \ export AS_PATH=/var/lib/jetty\nfi\necho \"Path: ${AS_PATH}\"\n\n# Currently
+    database preferences are replaced on hibernate (XML) file. \n# To prevent errors
+    with special XML chars, replace all for respective encoded alternative. \nescapeXML()
+    {\n  echo \"$1\" | sed -e 's/&/\\&amp;/g' -e 's/</\\&lt;/g' -e 's/>/\\&gt;/g'
+    -e 's/\"/\\&quot;/g' -e \"s/'/\\&apos;/g\"\n}\nif [[ -n \"$DB_PASSWORD\" ]]; then\n
+    \ export DB_PASSWORD=$(escapeXML $DB_PASSWORD)\nfi\nif [[ -n \"$JDBC_PARAMS\"
+    ]]; then\n  export JDBC_PARAMS=$(escapeXML $JDBC_PARAMS)\nfi\n\n# Setup all default
+    actions from first start\nfirst_start\n## \n# On future versions, when LTS start
+    have this method we can remove this from this script. \n# This method was requested
+    on: https://github.com/xwiki/xwiki-docker/pull/36\n## \nfunction xwiki_replace_or_add()
+    {\n  local file_path=\"$1\"\n  local setting=\"$2\"\n  local new_value=\"$3\"\n\n
+    \ # Check if the setting exists in the file\n  if grep -Eq \"^ *#? *$setting=\"
+    \"$file_path\"; then\n    # If the setting exists, replace the occurrence with
+    the new value\n    sed -i 's|^\\( *#\\? *\\)'\"$setting\"'=.*$|'\"$setting\"'='\"$new_value\"'|g'
+    \"$file_path\"\n  else\n    # If the setting doesn't exist, add it at the end
+    of the file\n    echo \"$setting=$new_value\" >> \"$file_path\"\n  fi\n}\n\n#
+    Add URL for Solr Remote instance\n# Backward compatibility for old image\n\n#
+    Replace all values from keys defineded on customConfigs\n# If we detect extension,
+    we loop over the array and add them\n\n# Replace all values from keys defined
+    on customConfigsSecrets\n\n# Set secret Java options from javaOptsSecrets\n\n#
+    Replace the platform provenance to keep track of the image\nsed -i 's/<id>org.xwiki.platform:xwiki-platform-distribution-war/<id>org.xwiki.contrib:xwiki-platform-distribution-helm-docker/'
+    \\\n  $AS_PATH/webapps/${CONTEXT_PATH}/META-INF/extension.xed\nsed -i 's/<id>org.xwiki.platform:xwiki-platform-distribution-docker/<id>org.xwiki.contrib:xwiki-platform-distribution-helm-docker/'
+    \\\n  $AS_PATH/webapps/${CONTEXT_PATH}/META-INF/extension.xed\n\n# Append properties
+    prefixed with \"-D\" from a secret that provides properties in a file.\n# If no
+    parameter is given append to the environment variable \"JAVA_OPTS\"\n# otherwise
+    append to the file given as a parameter.\npublishProperties () {\n  properties=\"${1}\"\n
+    \ outFile=\"${2}\"\n\n  for key in \"${!properties[@]}\"; do\n    # skip element
+    that either miss key OR value\n    if [[ -z \"${key}\" || -z \"${properties[${key}]}\"
+    ]]; then\n      continue\n    fi\n    # If no output file is given we fill the
+    environment variable\n    if [[ -z ${outFile} ]]; then\n      printf -v property
+    -- '-D%s=%s' \"${key}\" \"${properties[${key}]}\"\n      export JAVA_OPTS=${JAVA_OPTS:+${JAVA_OPTS}
+    }${property}\n    else\n      # If the output file doesn't exist, create it\n
+    \     if [[ ! -f ${outFile} ]]; then\n        echo \"\" > \"${outFile}\"\n      fi\n
+    \     printf -- '-D%s=%s\\n' \"${key}\" \"${properties[${key}]}\" >> \"${outFile}\"\n
+    \   fi\n  done\n}\n\n# Utilise an associative array to set properties.\ndeclare
+    -A properties\n\nif [ -d \"/var/lib/jetty\" ]; then\n  echo \"\" > start.d/xwiki.ini\n
+    \ publishProperties properties start.d/xwiki.ini\n  export JAVA_OPTIONS=\"${JAVA_OPTS}\"\nelse
+    \n  if (/usr/local/tomcat/bin/version.sh | grep -q 'Tomcat/8'); then\n    echo
+    \"Old Tomcat don't support java_opts file... Using normal props.\"\n    publishProperties
+    properties\n  else \n    ## Clear contents of /tmp/java_opts.txt so that we don't
+    add extra arguments at each pod restart.\n    echo \"\" > /tmp/java_opts.txt\n
+    \   publishProperties properties /tmp/java_opts.txt\n    export JAVA_OPTS=\"${JAVA_OPTS}
+    @/tmp/java_opts.txt\"\n  fi\nfi\n\nunset properties\n\nexec /usr/local/bin/docker-entrypoint.sh
+    xwiki\n"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+spec:
+  ports:
+  - name: mysql
+    nodePort: null
+    port: 3306
+    protocol: TCP
+    targetPort: mysql
+  selector:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql-headless
+  namespace: open4goods
+spec:
+  clusterIP: None
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: mysql
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/name: mysql
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: xwiki
+    helm.sh/chart: xwiki-1.5.5
+  name: xwiki
+spec:
+  ports:
+  - name: null
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/name: xwiki
+  sessionAffinity: ClientIP
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+spec:
+  podManagementPolicy: ""
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: primary
+      app.kubernetes.io/instance: xwiki
+      app.kubernetes.io/name: mysql
+      app.kubernetes.io/part-of: mysql
+  serviceName: xwiki-mysql-headless
+  template:
+    metadata:
+      annotations:
+        checksum/configuration: e198c9f4d10a7f61748adad0a3360877c135802418b2be000ba95c73fd789a3c
+      labels:
+        app.kubernetes.io/component: primary
+        app.kubernetes.io/instance: xwiki
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mysql
+        app.kubernetes.io/part-of: mysql
+        app.kubernetes.io/version: 8.4.4
+        helm.sh/chart: mysql-12.3.2
+    spec:
+      affinity:
+        nodeAffinity: null
+        podAffinity: null
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: xwiki
+                  app.kubernetes.io/name: mysql
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: BITNAMI_DEBUG
+          value: "false"
+        - name: MYSQL_ROOT_PASSWORD_FILE
+          value: /opt/bitnami/mysql/secrets/mysql-root-password
+        - name: MYSQL_ENABLE_SSL
+          value: "no"
+        - name: MYSQL_USER
+          value: xwiki
+        - name: MYSQL_PASSWORD_FILE
+          value: /opt/bitnami/mysql/secrets/mysql-password
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_DATABASE
+          value: xwiki
+        envFrom: null
+        image: docker.io/bitnami/mysql:8.4.4-debian-12-r7
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD
+          failureThreshold: 6
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        name: mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 400m
+            memory: 2Gi
+          requests:
+            cpu: 400m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+          seLinuxOptions: {}
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          failureThreshold: 10
+          initialDelaySeconds: 150
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /bitnami/mysql
+          name: data
+        - mountPath: /tmp
+          name: empty-dir
+          subPath: tmp-dir
+        - mountPath: /opt/bitnami/mysql/conf
+          name: empty-dir
+          subPath: app-conf-dir
+        - mountPath: /opt/bitnami/mysql/tmp
+          name: empty-dir
+          subPath: app-tmp-dir
+        - mountPath: /opt/bitnami/mysql/logs
+          name: empty-dir
+          subPath: app-logs-dir
+        - mountPath: /docker-entrypoint-initdb.d
+          name: custom-init-scripts
+        - mountPath: /opt/bitnami/mysql/conf/my.cnf
+          name: config
+          subPath: my.cnf
+        - mountPath: /opt/bitnami/mysql/secrets/
+          name: mysql-credentials
+      initContainers:
+      - args:
+        - -ec
+        - |
+          #!/bin/bash
+
+          . /opt/bitnami/scripts/libfs.sh
+          # We copy the logs folder because it has symlinks to stdout and stderr
+          if ! is_dir_empty /opt/bitnami/mysql/logs; then
+            cp -r /opt/bitnami/mysql/logs /emptydir/app-logs-dir
+          fi
+        command:
+        - /bin/bash
+        image: docker.io/bitnami/mysql:8.4.4-debian-12-r7
+        imagePullPolicy: IfNotPresent
+        name: preserve-logs-symlinks
+        resources:
+          limits:
+            cpu: 400m
+            memory: 2Gi
+          requests:
+            cpu: 400m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+          seLinuxOptions: {}
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /emptydir
+          name: empty-dir
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: xwiki-mysql
+      volumes:
+      - configMap:
+          name: xwiki-mysql
+        name: config
+      - configMap:
+          name: xwiki-mysql-init-scripts
+        name: custom-init-scripts
+      - name: mysql-credentials
+        secret:
+          items:
+          - key: mysql-root-password
+            path: mysql-root-password
+          - key: mysql-password
+            path: mysql-password
+          secretName: xwiki-mysql
+      - emptyDir: {}
+        name: empty-dir
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/component: primary
+        app.kubernetes.io/instance: xwiki
+        app.kubernetes.io/name: mysql
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: xwiki
+    helm.sh/chart: xwiki-1.5.5
+  name: xwiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: xwiki
+      app.kubernetes.io/name: xwiki
+  serviceName: xwiki
+  template:
+    metadata:
+      annotations:
+        checksum/configmap: 51e5f5e202d8bc43c5675bcf70da5b5b5a2ba9f693ec53466faa815af6c3c405
+        checksum/initialization-configmaps: 779fb2a9731056f94c51eb81b132e0c950d10873edaee039e2df5a6a9c86460d
+        checksum/initialization-secrets: 70367779dfae87485b30a4856d13561d88960b32bb4480a7740cd873b5556928
+      labels:
+        app.kubernetes.io/instance: xwiki
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: xwiki
+        helm.sh/chart: xwiki-1.5.5
+    spec:
+      containers:
+      - command:
+        - /bin/bash
+        - /entrypoint/start.sh
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx1024m -Xmx1g
+        - name: DB_HOST
+          value: nudger-xwiki-mysql
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mysql-password
+              name: xwiki-mysql
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: DB_HOST
+              name: xwiki
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              key: DB_USER
+              name: xwiki
+        - name: DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: DB_DATABASE
+              name: xwiki
+        image: xwiki:lts-mysql-tomcat
+        imagePullPolicy: IfNotPresent
+        name: xwiki
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /usr/local/xwiki/data
+          name: xwiki-data
+        - mountPath: /configmaps
+          name: configmaps
+        - mountPath: /entrypoint
+          name: entrypoint
+          readOnly: true
+      initContainers:
+      - args:
+        - |
+          cp /secrets/entrypoint /entrypoint/start.sh
+          chmod 0550 /entrypoint/start.sh
+        command:
+        - /bin/sh
+        - -c
+        env: null
+        image: xwiki:lts-mysql-tomcat
+        imagePullPolicy: IfNotPresent
+        name: xwiki-secrets
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        securityContext: {}
+        volumeMounts:
+        - mountPath: /secrets
+          name: secrets
+        - mountPath: /entrypoint
+          name: entrypoint
+      serviceAccountName: xwiki-sa
+      volumes:
+      - configMap:
+          name: xwiki-init-scripts
+        name: configmaps
+      - name: secrets
+        secret:
+          secretName: xwiki-init-scripts
+      - emptyDir:
+          medium: Memory
+          sizeLimit: 1Mi
+        name: entrypoint
+      - name: xwiki-data
+  volumeClaimTemplates:
+  - metadata:
+      name: xwiki-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: longhorn
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: primary
+      app.kubernetes.io/instance: xwiki
+      app.kubernetes.io/name: mysql
+      app.kubernetes.io/part-of: mysql
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: xwiki
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.3.2
+  name: xwiki-mysql
+  namespace: open4goods
+spec:
+  egress:
+  - {}
+  ingress:
+  - ports:
+    - port: 3306
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: xwiki
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: mysql
+      app.kubernetes.io/version: 8.4.4
+      helm.sh/chart: mysql-12.3.2
+  policyTypes:
+  - Ingress
+  - Egress

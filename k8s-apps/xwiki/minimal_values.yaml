@@ -80,7 +80,6 @@ mysql:
       storageClass: longhorn   # <== on bascule ici sur Longhorn
       accessModes:
         - ReadWriteOnce
-      selector: {}
     resources:
       requests:
         memory: "1Gi"
@@ -88,13 +87,15 @@ mysql:
       limits:
         memory: "2Gi"
         cpu: "400m"
-    startupProbe: 
-      enabled: false
     livenessProbe: 
+      enabled: false
+    startupProbe: 
       enabled: false
     readinessProbe:
       enabled: false
-
+    customLivenessProbe: {}
+    customReadinessProbe: {}
+    customStartupProbe: {}
 ingress:
   enabled: false
 
