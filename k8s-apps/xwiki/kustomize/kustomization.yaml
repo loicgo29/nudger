@@ -1,6 +1,16 @@
 resources:
   - ./rendered.yaml
 
+
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: xwiki-mysql
+      namespace: open4goods
+    path: patch-storageclass.yaml
+
 patches:
   - target:
       kind: StatefulSet
@@ -38,5 +48,25 @@ patches:
       name: xwiki-mysql
       namespace: open4goods
     patch: |-
-      - op: remove
-        path: /spec/volumeClaimTemplates/0/spec/selector
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: longhorn
+
+  - target:
+      kind: StatefulSet
+      name: xwiki-mysql
+      namespace: open4goods
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/startupProbe
+        value:
+          exec:
+            command:
+              - sh
+              - -c
+              - "mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"
+          initialDelaySeconds: 150
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 10
+

@@ -1,0 +1,6 @@
+- op: remove
+  path: /spec/volumeClaimTemplates/0/spec/selector
+- op: replace
+  path: /spec/volumeClaimTemplates/0/spec/storageClassName
+  value: longhorn-single-node
+

@@ -22,7 +22,7 @@ kustomize build "$KUSTOMIZE_DIR" > "$KUSTOMIZE_DIR/final.yaml"
 echo "=== [4/4] kubectl $ACTION ==="
 case "$ACTION" in
   apply)
-    kubectl apply -f "$KUSTOMIZE_DIR/final.yaml"
+    kubectl apply -f "$KUSTOMIZE_DIR/final.yaml" 
     ;;
   create)
     kubectl create -f "$KUSTOMIZE_DIR/final.yaml"

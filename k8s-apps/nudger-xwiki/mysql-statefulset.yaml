@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: xwiki-mysql
+  namespace: nudger-xwiki
+spec:
+  clusterIP: None
+  ports:
+    - port: 3306
+  selector:
+    app: xwiki-mysql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: xwiki-mysql
+  namespace: nudger-xwiki
+spec:
+  serviceName: xwiki-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xwiki-mysql
+  template:
+    metadata:
+      labels:
+        app: xwiki-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpass
+            - name: MYSQL_DATABASE
+              value: xwiki
+            - name: MYSQL_USER
+              value: xwiki
+            - name: MYSQL_PASSWORD
+              value: xwikipass
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

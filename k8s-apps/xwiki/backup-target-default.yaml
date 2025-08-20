@@ -1,0 +1,10 @@
+apiVersion: longhorn.io/v1
+kind: BackupTarget
+metadata:
+  name: default
+  namespace: longhorn-system
+spec:
+  type: nfs       # tu peux mettre 's3', 's3Compatible', ou 'nfs'; ici juste un dummy local
+  nfs:
+    path: "/dummy"
+    server: "127.0.0.1"
