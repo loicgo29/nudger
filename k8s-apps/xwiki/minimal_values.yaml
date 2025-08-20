@@ -53,10 +53,9 @@ podDisruptionBudget:
 persistence:
   enabled: true
   size: 5Gi
-  storageClass: ""
+  storageClass: longhorn   # <== on bascule ici sur Longhorn
   accessModes:
     - ReadWriteOnce
-
 ##
 ## MySQL chart configuration
 ##
@@ -78,7 +77,10 @@ mysql:
     persistence:
       enabled: true
       size: 5Gi
-      storageClass: local-path
+      storageClass: longhorn   # <== on bascule ici sur Longhorn
+      accessModes:
+        - ReadWriteOnce
+      selector: {}
     resources:
       requests:
         memory: "1Gi"
