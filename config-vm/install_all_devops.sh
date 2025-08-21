@@ -64,4 +64,4 @@ if ! command -v lazygit &> /dev/null; then
 fi
 
 echo "✅ Installation terminée !"
-
+ 
