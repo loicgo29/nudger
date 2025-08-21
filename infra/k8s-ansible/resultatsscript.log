@@ -1,0 +1,77 @@
+ mv ../../config-vm/fstabnudger.sh .
+(ansible_venv) vagrant@vagrant:~/nudger/infra/k8s-ansible$ mv ../../config-vm/flannel.sh .
+(ansible_venv) vagrant@vagrant:~/nudger/infra/k8s-ansible$ ./fstabnudger.sh
+Ce script doit être exécuté en tant que root (sudo).
+(ansible_venv) vagrant@vagrant:~/nudger/infra/k8s-ansible$ sudo ./fstabnudger.sh
+Aucune ligne /swap.img non commentée trouvée dans /etc/fstab. Rien à faire.
+Redémarrage de kubelet...
+Statut kubelet :
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: active (running) since Tue 2025-08-19 10:17:54 UTC; 147ms ago
+       Docs: https://kubernetes.io/docs/
+   Main PID: 56282 (kubelet)
+      Tasks: 1 (limit: 9389)
+     Memory: 852.0K
+        CPU: 80ms
+     CGroup: /system.slice/kubelet.service
+             └─56282 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/e…
+
+Aug 19 10:17:54 vagrant systemd[1]: Started kubelet: The Kubernetes Node Agent.
+(ansible_venv) vagrant@vagrant:~/nudger/infra/k8s-ansible$ sudo ./flannel.sh
+👉 Chargement du module br_netfilter...
+👉 Vérification du module...
+br_netfilter           32768  0
+bridge                307200  1 br_netfilter
+👉 Activation du paramètre sysctl...
+net.bridge.bridge-nf-call-iptables = 1
+👉 Ajout du paramètre pour persistance...
+👉 Rechargement des paramètres sysctl...
+* Applying /etc/sysctl.d/10-console-messages.conf ...
+kernel.printk = 4 4 1 7
+* Applying /etc/sysctl.d/10-ipv6-privacy.conf ...
+net.ipv6.conf.all.use_tempaddr = 2
+net.ipv6.conf.default.use_tempaddr = 2
+* Applying /etc/sysctl.d/10-kernel-hardening.conf ...
+kernel.kptr_restrict = 1
+* Applying /etc/sysctl.d/10-magic-sysrq.conf ...
+kernel.sysrq = 176
+* Applying /etc/sysctl.d/10-network-security.conf ...
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.all.rp_filter = 2
+* Applying /etc/sysctl.d/10-ptrace.conf ...
+kernel.yama.ptrace_scope = 1
+* Applying /etc/sysctl.d/10-zeropage.conf ...
+vm.mmap_min_addr = 65536
+* Applying /usr/lib/sysctl.d/50-default.conf ...
+kernel.core_uses_pid = 1
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.default.accept_source_route = 0
+sysctl: setting key "net.ipv4.conf.all.accept_source_route": Invalid argument
+net.ipv4.conf.default.promote_secondaries = 1
+sysctl: setting key "net.ipv4.conf.all.promote_secondaries": Invalid argument
+net.ipv4.ping_group_range = 0 2147483647
+net.core.default_qdisc = fq_codel
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+fs.protected_regular = 1
+fs.protected_fifos = 1
+* Applying /usr/lib/sysctl.d/50-pid-max.conf ...
+kernel.pid_max = 4194304
+* Applying /etc/sysctl.d/99-kubernetes.conf ...
+net.bridge.bridge-nf-call-iptables = 1
+* Applying /usr/lib/sysctl.d/99-protect-links.conf ...
+fs.protected_fifos = 1
+fs.protected_hardlinks = 1
+fs.protected_regular = 2
+fs.protected_symlinks = 1
+* Applying /etc/sysctl.d/99-sysctl.conf ...
+net.bridge.bridge-nf-call-iptables = 1
+* Applying /etc/sysctl.conf ...
+net.bridge.bridge-nf-call-iptables = 1
+👉 Redémarrage des pods Flannel...
+pod "kube-flannel-ds-zgfdf" deleted
+✅ Correction appliquée. Flannel devrait redémarrer correctement.
+(ansible_venv) vagrant@vagrant:~/nudger/infra/k8s-ansible$

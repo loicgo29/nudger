@@ -1,0 +1,155 @@
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nudger-xwiki
+---
+# PersistentVolume (local path, static)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path 
+  hostPath:
+    path: /mnt/data/mysql
+    type: DirectoryOrCreate
+---
+# PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: nudger-xwiki
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+# MySQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: xwiki-mysql
+  namespace: nudger-xwiki
+spec:
+  clusterIP: None
+  ports:
+    - port: 3306
+  selector:
+    app: xwiki-mysql
+---
+# MySQL StatefulSet (using the static PVC)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: xwiki-mysql
+  namespace: nudger-xwiki
+spec:
+  serviceName: xwiki-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xwiki-mysql
+  template:
+    metadata:
+      labels:
+        app: xwiki-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.7
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpass
+            - name: MYSQL_DATABASE
+              value: xwiki
+            - name: MYSQL_USER
+              value: xwiki
+            - name: MYSQL_PASSWORD
+              value: xwikipass
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -u root -p$MYSQL_ROOT_PASSWORD
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -u root -p$MYSQL_ROOT_PASSWORD
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+# XWiki Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: xwiki
+  namespace: nudger-xwiki
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30081
+  selector:
+    app: xwiki
+---
+# XWiki Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xwiki
+  namespace: nudger-xwiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xwiki
+  template:
+    metadata:
+      labels:
+        app: xwiki
+    spec:
+      containers:
+        - name: xwiki
+          image: xwiki:lts-mysql-tomcat
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_USER
+              value: xwiki
+            - name: DB_PASSWORD
+              value: xwikipass
+            - name: DB_HOST
+              value: xwiki-mysql
+            - name: DB_DATABASE
+              value: xwiki
+

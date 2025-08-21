@@ -1,21 +1,55 @@
 ---
-# disable_swap.yml - Fichier de tâches uniquement
-- name: Désactiver le swap immédiatement
-  ansible.builtin.command:
-    cmd: swapoff -a
+- name: Désactiver le swap et sécuriser kubelet
+  hosts: all
+  become: yes
+  tasks:
 
-- name: Commenter les lignes swap dans /etc/fstab
-  ansible.builtin.replace:
-    path: /etc/fstab
-    regexp: '^([^#].* swap .*)$'
-    replace: '#\1'
-    backup: yes
+    - name: Commenter la ligne swap dans /etc/fstab si elle n'est pas déjà commentée
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^([^#].* swap .*)$'
+        replace: '#\1'
+        backup: yes
 
-- name: Vérifier que le swap est désactivé
-  ansible.builtin.shell: swapon --show
-  register: swap_status
-  changed_when: false
+    - name: Désactiver le swap immédiatement
+      ansible.builtin.command:
+        cmd: swapoff -a
+      register: swap_off
+      changed_when: swap_off.rc == 0
 
-- name: Afficher le statut du swap
-  ansible.builtin.debug:
-    msg: "Swap activé ? {{ swap_status.stdout != '' }}"
+    - name: Vérifier que le swap est désactivé
+      ansible.builtin.shell: swapon --show
+      register: swap_status
+      changed_when: false
+
+    - name: Afficher le statut du swap
+      ansible.builtin.debug:
+        msg: "Swap activé ? {{ swap_status.stdout != '' }}"
+
+    - name: Créer un service systemd pour désactiver le swap au boot
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/disable-swap.service
+        content: |
+          [Unit]
+          Description=Disable swap at boot
+          Before=kubelet.service
+          [Service]
+          Type=oneshot
+          ExecStart=/sbin/swapoff -a
+          RemainAfterExit=yes
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+        - Enable disable-swap.service
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.command: systemctl daemon-reload
+
+    - name: Enable disable-swap.service
+      ansible.builtin.systemd:
+        name: disable-swap.service
+        enabled: yes
+        state: started
+
