@@ -122,3 +122,4 @@ if command -v kubectl &>/dev/null; then
 fi
 echo "source ~/.bashrc && source $HOME/ansible_venv/bin/activate"
 
+export EDITOR=vim
