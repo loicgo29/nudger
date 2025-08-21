@@ -120,6 +120,4 @@ if command -v kubectl &>/dev/null; then
         echo "Warning: Échec de génération de la complétion kubectl" >&2
     fi
 fi
-echo "source ~/.bashrc"
-echo " source= $HOME/ansible_venv/bin/activate"
-
+echo "source ~/.bashrc && source $HOME/ansible_venv/bin/activate"

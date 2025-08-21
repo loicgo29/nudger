@@ -31,4 +31,12 @@ if command -v kubectl &> /dev/null; then
         complete -o default -F __start_kubectl k
     fi
 fi
+export LSCOLORS=ExFxBxDxCxegedabagacad  # Mac OS; sinon LS_COLORS pour Linux
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
 
+# Prompt coloré
+export PS1="\[\e[32m\]\u@\h\[\e[m\]:\[\e[34m\]\w\[\e[m\]\$ "
+kubectl config set-context --current --namespace=nudger-xwiki
