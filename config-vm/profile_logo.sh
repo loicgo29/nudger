@@ -14,7 +14,7 @@ fi
 clear
 
 # Configuration de l'environnement
-export KUBECONFIG="/home/vagrant/.kube/config"
+export KUBECONFIG="$HOME/.kube/config"
 
 # Configuration de l'historique (équivalent Bash)
 HISTCONTROL=ignoredups:erasedups
