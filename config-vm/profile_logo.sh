@@ -14,13 +14,18 @@ fi
 clear
 
 # Configuration de l'environnement
-export KUBECONFIG="/home/vagrant/.k0s/kubeconfig"
+export KUBECONFIG="/home/vagrant/.kube/config"
 
 # Configuration de l'historique (équivalent Bash)
 HISTCONTROL=ignoredups:erasedups
 HISTSIZE=100000
 HISTFILESIZE=200000
+# Faire une copie de sauvegarde de votre .bashrc actuel
+cp ~/.bashrc ~/.bashrc.backup
 
+# Copier le nouveau .bashrc
+cp ~/nudger/config-vm/.bashrc ~/.bashrc
+cp ~/nudger/config-vm/.bash_aliases ~/.bash_aliases
 # Alias
 alias ll='ls -laFh --color=auto'
 alias la='ls -A'
@@ -62,7 +67,7 @@ EOF
 echo -e '\033[0m'
 
 # Variables d'env spécifiques à Kubernetes
-export KUBECONFIG="/home/vagrant/.k0s/kubeconfig"
+export KUBECONFIG="/home/vagrant/.kube/config"
 
 # Historique optimisé pour Bash
 HISTCONTROL=ignoredups:erasedups
@@ -115,5 +120,6 @@ if command -v kubectl &>/dev/null; then
         echo "Warning: Échec de génération de la complétion kubectl" >&2
     fi
 fi
-echo "✅ Environnement Kubernetes prêt !"
+echo "source ~/.bashrc"
+echo " source= $HOME/ansible_venv/bin/activate"
 

@@ -16,6 +16,9 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: local-path 
+  hostPath:
+    path: /mnt/data/mysql
+    type: DirectoryOrCreate
 ---
 # PersistentVolumeClaim
 apiVersion: v1
@@ -64,7 +67,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:8.0
+          image: mysql:5.7
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: rootpass
@@ -79,6 +82,26 @@ spec:
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -u root -p$MYSQL_ROOT_PASSWORD
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -u root -p$MYSQL_ROOT_PASSWORD
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
