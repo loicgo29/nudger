@@ -37,7 +37,7 @@ helm upgrade --install longhorn longhorn/longhorn \
 
 
 kubectl label node vagrant longhorn.io/node=ready
-
+ 
 ============= KUSOTIMSE
 Récupère la dernière version (exemple v5.4.1) :
 
