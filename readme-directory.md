@@ -71,6 +71,7 @@ git branch -a
 echo "git checkout -b fix/15082025"
 echo "git pull origin fix/15082025-2OK"
 echo "git push -u origin fix/15082025"
+echo "git branch --set-upstream-to=origin/fix/16082025 fix/16082025"
 
 ```
 
@@ -87,3 +88,9 @@ profile_logo.sh
 cd nudger/infra/k8s-ansible
 ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml 
 
+### patcher br si reboot
+./patch1.sh
+
+### creer directory pour stockage des pv
+sudo mkdir -p /data/xwiki /data/mysql
+sudo chmod 777 /data/xwiki /data/mysql
