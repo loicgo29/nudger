@@ -14,13 +14,18 @@ fi
 clear
 
 # Configuration de l'environnement
-export KUBECONFIG="/home/vagrant/.k0s/kubeconfig"
+export KUBECONFIG="/home/vagrant/.kube/config"
 
 # Configuration de l'historique (équivalent Bash)
 HISTCONTROL=ignoredups:erasedups
 HISTSIZE=100000
 HISTFILESIZE=200000
+# Faire une copie de sauvegarde de votre .bashrc actuel
+cp ~/.bashrc ~/.bashrc.backup
 
+# Copier le nouveau .bashrc
+cp ~/nudger/config-vm/.bashrc ~/.bashrc
+cp ~/nudger/config-vm/.bash_aliases ~/.bash_aliases
 # Alias
 alias ll='ls -laFh --color=auto'
 alias la='ls -A'
@@ -62,7 +67,7 @@ EOF
 echo -e '\033[0m'
 
 # Variables d'env spécifiques à Kubernetes
-export KUBECONFIG="/home/vagrant/.k0s/kubeconfig"
+export KUBECONFIG="/home/vagrant/.kube/config"
 
 # Historique optimisé pour Bash
 HISTCONTROL=ignoredups:erasedups
@@ -90,11 +95,31 @@ alias gg='git log --oneline --all --graph --name-status'
 alias s='sudo -s'
 alias vu='vagrant up'
 
-# Complétions kubectl
+# Configuration fiable de la complétion kubectl
 if command -v kubectl &>/dev/null; then
-    source <(kubectl completion bash)
-    complete -F __start_kubectl k
+    # Création du répertoire si inexistant
+    COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
+    mkdir -p "$COMPLETION_DIR"
+    
+    # Génération du fichier de complétion
+    KUBE_COMPLETION_FILE="$COMPLETION_DIR/kubectl"
+    kubectl completion bash > "$KUBE_COMPLETION_FILE" 2>/dev/null
+    
+    # Chargement sécurisé
+    if [[ -f "$KUBE_COMPLETION_FILE" ]]; then
+        source "$KUBE_COMPLETION_FILE"
+        # Alias standard avec complétion
+        alias k=kubectl
+        complete -o default -F __start_kubectl k
+        
+        # Alias supplémentaires utiles
+        alias kg='kubectl get'
+        alias kd='kubectl describe'
+        alias kn='kubectl config set-context --current --namespace'
+    else
+        echo "Warning: Échec de génération de la complétion kubectl" >&2
+    fi
 fi
-
-echo "✅ Environnement Kubernetes prêt !"
+echo "source ~/.bashrc"
+echo " source= $HOME/ansible_venv/bin/activate"
 
