@@ -1,0 +1,23 @@
+#cloud-config
+system_info:
+  default_user:
+    name: ""
+
+runcmd:
+  # Crée l'utilisateur si inexistant
+  - id -u $USER >/dev/null 2>&1 || useradd -m -s /bin/bash -G sudo $USER
+  - echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USER
+
+  # Configure SSH pour ton accès
+  - mkdir -p /home/$USER/.ssh
+  - echo '$ID-SSH-PUB' > /home/$USER/.ssh/authorized_keys
+  - chown -R $USER:$USER /home/$USER/.ssh
+  - chmod 700 /home/$USER/.ssh
+  - chmod 600 /home/$USER/.ssh/authorized_keys
+
+  # Installe les paquets utiles
+  - apt-get update && apt-get install -y git curl vim openssh-client
+
+  # Clone le repo en HTTPS (pas besoin de clé privée)
+  - sudo -u $USER git clone $DEPOT-GIT /home/$USER/nudger
+
