@@ -31,5 +31,5 @@ runcmd:
   - apt-get update && apt-get install -y git curl vim openssh-client
 
   # Clone le repo en HTTPS (pas besoin de clé privée)
-  - sudo -u nudger-k8s git clone https://github.com/loicgo29/nudger.git /home/nudger-k8s/nudger
+  - sudo -u nudger-k8s git clone --branch feat/220825 --single-branch https://github.com/loicgo29/nudger.git /home/nudger-k8s/nudger
 
