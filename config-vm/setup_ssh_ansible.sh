@@ -7,8 +7,8 @@ set -e
 
 # Variables
 ANSIBLE_KEY="$HOME/.ssh/id_ansible"
-ANSIBLE_NODES=("10.0.2.15")   # Ajoute ici toutes tes IP de VMs
-ANSIBLE_USER="vagrant"
+ANSIBLE_NODES=("49.12.192.213")   # Ajoute ici toutes tes IP de VMs
+ANSIBLE_USER="nudgerk8s"
 
 # ----------------------------
 # 1️⃣ Génération de la clé SSH pour Ansible

@@ -4,7 +4,7 @@
 
 # 0️⃣ Préparer le système pour kubeadm
 - name: Charger le module br_netfilter
-  modprobe:
+  community.general.modprobe:
     name: br_netfilter
     state: present
   become: yes
