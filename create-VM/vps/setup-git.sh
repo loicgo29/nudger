@@ -42,7 +42,8 @@ ssh -o StrictHostKeyChecking=no -i "$DEPLOY_KEY" "$USER@$VM_IP" "
     rm -rf ~/$REPO_NAME
   fi
   echo '📥 Clonage $REPO_NAME'
-  git clone --branch $BRANCH --single-branch $REPO ~/$REPO_NAME
+  GIT_SSH_COMMAND='ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=no' git clone --branch $BRANCH --single-branch $REPO ~/$REPO_NAME
+
 "
 
 echo "✅ Déploiement Git terminé sur $VM_IP"
