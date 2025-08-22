@@ -1,2 +1,0 @@
-Processes
-ssh -i ~/.ssh/id_vm_ed25519 root@65.109.139.26
