@@ -2,7 +2,19 @@
 system_info:
   default_user:
     name: ""
-
+users:
+  - name: nudger-k8s
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIqKTlRSzPT86KSpW6rBpSqUbRrtCvi48K/L+FzaBjzc loicgourmelon@gmail.com
+ipackages:
+  - git
+  - curl
+  - vim
+  - openssh-client
+      
 runcmd:
   # Crée l'utilisateur si inexistant
   - id -u nudger-k8s >/dev/null 2>&1 || useradd -m -s /bin/bash -G sudo nudger-k8s
