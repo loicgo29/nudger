@@ -1,36 +1,33 @@
-#!/bin/bash
-# setup-git.sh
-# Usage: ./setup-git.sh <user> <repo_url> <branch> <git_user_name> <git_user_email>
+#!/usr/bin/env bash
+set -euo pipefail
 
-USER="$1"
-REPO="$2"
-BRANCH="${3:-main}"
-GIT_NAME="$4"
-GIT_EMAIL="$5"
+USER="nudger-k8s"
+DEPLOY_KEY="$HOME/.ssh/id_vm_ed25519"
+VM_IP="$1"
+REPO="git@github.com:loicgo29/nudger.git"
+BRANCH="feat/220825"
+REPO_NAME=$(basename "$REPO" .git)
 
-if [ -z "$USER" ] || [ -z "$REPO" ] || [ -z "$GIT_NAME" ] || [ -z "$GIT_EMAIL" ]; then
-  echo "Usage: $0 <user> <repo_url> <branch> <git_user_name> <git_user_email>"
-  exit 1
-fi
+# --- Préparer .ssh ---
+ssh  -o StrictHostKeyChecking=no -i "$DEPLOY_KEY" "$USER@$VM_IP" "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+scp -o StrictHostKeyChecking=no -i "$DEPLOY_KEY" "$DEPLOY_KEY" "$USER@$VM_IP:/home/$USER/.ssh/id_deploy"
+ssh  -o StrictHostKeyChecking=no -i "$DEPLOY_KEY" "$USER@$VM_IP" "chmod 600 ~/.ssh/id_deploy && chown $USER:$USER ~/.ssh/id_deploy"
 
-HOME_DIR="/home/$USER"
-TARGET_DIR="$HOME_DIR/nudger"
+# --- known_hosts ---
+ssh  -o StrictHostKeyChecking=no -i "$DEPLOY_KEY" "$USER@$VM_IP" "ssh-keyscan github.com >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts && chown $USER:$USER ~/.ssh/known_hosts"
+ssh  -o StrictHostKeyChecking=no  -i "$DEPLOY_KEY" "$USER@$VM_IP" "
+  git config --global user.name 'Ton Nom' &&
+  git config --global user.email 'ton.email@example.com'
+"
+# --- Cloner ou remplacer le repo ---
+ssh  -o StrictHostKeyChecking=no -i "$DEPLOY_KEY" "$USER@$VM_IP" "
+  if [ -d ~/$REPO_NAME ]; then
+    echo '⚠️  Répertoire $REPO_NAME existant, suppression pour éviter erreurs'
+    rm -rf ~/$REPO_NAME
+  fi
+  echo '📥 Clonage $REPO_NAME'
+  GIT_SSH_COMMAND='ssh -i ~/.ssh/id_deploy' git clone --branch $BRANCH --single-branch $REPO ~/$REPO_NAME
+"
 
-# --- Configurer Git ---
-echo "➡️ Configuration Git pour l'utilisateur $USER..."
-sudo -u "$USER" git config --global user.name "$GIT_NAME"
-sudo -u "$USER" git config --global user.email "$GIT_EMAIL"
-
-# --- Cloner ou mettre à jour le repo ---
-if [ -d "$TARGET_DIR/.git" ]; then
-  echo "➡️ Repo déjà existant, mise à jour avec git pull..."
-  sudo -u "$USER" git -C "$TARGET_DIR" fetch origin "$BRANCH"
-  sudo -u "$USER" git -C "$TARGET_DIR" checkout "$BRANCH"
-  sudo -u "$USER" git -C "$TARGET_DIR" pull
-else
-  echo "➡️ Clonage du repo $REPO sur la branche $BRANCH..."
-  sudo -u "$USER" git clone --branch "$BRANCH" --single-branch "$REPO" "$TARGET_DIR" 2>&1 | tee "$HOME_DIR/nudger-git-clone.log"
-fi
-
-echo "✅ Setup Git terminé."
+echo "✅ Déploiement Git terminé sur $VM_IP"
 

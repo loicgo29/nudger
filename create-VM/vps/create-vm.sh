@@ -80,5 +80,6 @@ echo "ssh -i ~/.ssh/$ID_SSH -o StrictHostKeyChecking=no root@$VM_IP"
 echo "A FAIRE sur la VM:"
 echo "passwd"
 echo "su - $USER"
+./setup-git.sh $VM_IP
 ssh -i ~/.ssh/$ID_SSH -o StrictHostKeyChecking=no root@"$VM_IP"
 
