@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# --- Vérification des prérequis ---
+command -v hcloud >/dev/null 2>&1 || { echo "❌ hcloud CLI manquant. Installe-le avant de continuer."; exit 1; }
+command -v grep >/dev/null 2>&1 || { echo "❌ grep manquant."; exit 1; }
+command -v sed >/dev/null 2>&1 || { echo "❌ sed manquant."; exit 1; }
+command -v awk >/dev/null 2>&1 || { echo "❌ awk manquant."; exit 1; }
+command -v nc >/dev/null 2>&1 || { echo "❌ nc (netcat) manquant."; exit 1; }
+command -v ssh >/dev/null 2>&1 || { echo "❌ ssh manquant."; exit 1; }
+command -v ssh-keygen >/dev/null 2>&1 || { echo "❌ ssh-keygen manquant."; exit 1; }
+
+# Vérification du fichier template
+[[ -f ./cloud-init-template.yaml ]] || { echo "❌ cloud-init-template.yaml manquant."; exit 1; }
+
+# Vérification de la clé privée SSH
+[[ -f ~/.ssh/id_vm_ed25519 ]] || { echo "❌ Clé privée SSH ~/.ssh/id_vm_ed25519 manquante."; exit 1; }
+
+echo "✅ Tous les prérequis sont présents, le script peut démarrer..."
+
 # --- Vérification des arguments ---
 if [[ $# -ne 4 ]]; then
   echo "Usage: $0 <USER> <DEPOT-GIT> <VM-NAME> <ID-SSH>"
