@@ -1,20 +1,17 @@
 #cloud-config
-system_info:
-  default_user:
-    name: ""
 users:
-  - name: $USER
+  - name: ${USER}
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: sudo
     shell: /bin/bash
     ssh_authorized_keys:
-      - $ID-SSH-PUB
-ipackages:
+      - ${ID_SSH_PUB}
+
+packages:
   - git
   - curl
   - vim
   - openssh-client
-      
 runcmd:
   # Crée l'utilisateur si inexistant
   - id -u $USER >/dev/null 2>&1 || useradd -m -s /bin/bash -G sudo $USER
