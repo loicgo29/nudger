@@ -48,4 +48,8 @@
     name: disable-swap.service
     enabled: yes
     state: started
-
+- name: Enable disable-swap.service
+  systemd:
+    name: disable-swap.service
+    enabled: true
+    daemon_reload: true
