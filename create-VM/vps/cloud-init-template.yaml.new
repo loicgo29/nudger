@@ -5,13 +5,17 @@ users:
     groups: sudo
     shell: /bin/bash
     ssh_authorized_keys:
-      - $ID_ANSIBLE_PUB
+      - ${ID_ANSIBLE_PUB}
+
 packages:
   - git
   - curl
   - vim
   - openssh-client
+
 runcmd:
+  # Assurer les permissions sur .ssh
   - mkdir -p /home/ansible/.ssh
   - chmod 700 /home/ansible/.ssh
+  - chown ansible:ansible /home/ansible/.ssh
 
