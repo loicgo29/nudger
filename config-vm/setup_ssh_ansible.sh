@@ -7,7 +7,8 @@ set -e
 
 # Variables
 ANSIBLE_KEY="$HOME/.ssh/id_ansible"
-ANSIBLE_NODES=("49.12.192.213")   # Ajoute ici toutes tes IP de VMs
+ANSIBLE_NODES=($(ip a | grep -w inet | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1))
+
 ANSIBLE_USER="nudgerk8s"
 
 # ----------------------------
@@ -29,7 +30,7 @@ ssh-add "$ANSIBLE_KEY"
 # ----------------------------
 for NODE in "${ANSIBLE_NODES[@]}"; do
     echo "🔹 Copie de la clé sur $NODE"
-    ssh-copy-id -i "${ANSIBLE_KEY}.pub" "$ANSIBLE_USER@$NODE"
+    #ssh-copy-id -i "${ANSIBLE_KEY}.pub" "$ANSIBLE_USER@$NODE"
 done
 
 # ----------------------------
