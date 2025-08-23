@@ -74,5 +74,7 @@ done
 # --- Connexion SSH automatique ---
 echo "➡️  Connexion SSH au serveur... "
 echo "ssh -i ~/.ssh/$ID_SSH -o StrictHostKeyChecking=no $USER@$VM_IP"
+./setup-git.sh $VM_IP
+
 ssh -i ~/.ssh/$ID_SSH -o StrictHostKeyChecking=no "$USER@$VM_IP"
 
