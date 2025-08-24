@@ -12,6 +12,7 @@ IP=$(./create-VM/vps/create-vm.sh "$VM_NAME" "$USER" "$DEPOT_GIT" | tee /dev/tty
 
 
 # --- 2️⃣ Générer l’inventaire pour bootstrap (Python système) ---
+export VM_NAME USER IP ID_SSH ANSIBLE_VENV
 envsubst < infra/k8s-ansible/inventory.ini.j2 > infra/k8s-ansible/inventory.ini
 
 echo "✅ Inventory généré avec IP $IP"

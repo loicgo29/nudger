@@ -84,10 +84,11 @@
 - name: Copier admin.conf pour ansible
   copy:
     src: /etc/kubernetes/admin.conf
-    dest: "{{ user_home }}/.kube/config"
+    dest: /home/{{ ansible_user }}/.kube/config
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: '0644'
+    remote_src: yes   
 
 - name: Définir KUBECONFIG pour ansible
   lineinfile:
