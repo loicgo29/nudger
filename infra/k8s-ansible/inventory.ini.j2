@@ -1,6 +1,6 @@
 # inventory.ini.j2
 
-[masters]
+[k8s_masters]
 $VM_NAME ansible_host=$IP ansible_user=$USER ansible_ssh_private_key_file=$HOME/.ssh/$ID_SSH ansible_python_interpreter=${PYTHON_INTERPRETER:-/usr/bin/python3}
 
 
