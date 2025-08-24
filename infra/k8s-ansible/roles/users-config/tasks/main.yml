@@ -92,3 +92,23 @@
     kubectl completion bash > $COMPLETION_DIR/kubectl
   loop: "{{ users_k8s }}"
 
+- name: Copy deploy key for Git access
+  ansible.builtin.copy:
+    src: "~/.ssh/id_ed25519" 
+    dest: "/home/{{ item.name }}/.ssh/id_ed25519"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0600'
+  loop: "{{ users_k8s }}"
+
+- name: Clone Git repositories for each user
+  ansible.builtin.git:
+    repo: "git@github.com:loicgo29/nudger.git"
+    dest: "/home/{{ item.name }}/nudger"
+    key_file: "/home/{{ item.name }}/.ssh/id_ed25519"
+    accept_hostkey: yes
+    version: main
+  loop: "{{ users_k8s }}"
+  become: yes
+  become_user: "{{ item.name }}"
+
