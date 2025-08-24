@@ -1,7 +1,7 @@
 # inventory.ini.j2
 
 [masters]
-{{ VM_NAME }} ansible_host={{ IP }} ansible_user={{ USER }} ansible_ssh_private_key_file={{ HOME }}/.ssh/{{ ID_SSH }} ansible_python_interpreter={{ PYTHON_INTERPRETER | default('/usr/bin/python3') }}
+$VM_NAME ansible_host=$IP ansible_user=$USER ansible_ssh_private_key_file=$HOME/.ssh/$ID_SSH ansible_python_interpreter=${PYTHON_INTERPRETER:-/usr/bin/python3}
 
 
 # tu peux aussi ajouter d'autres groupes si tu veux
