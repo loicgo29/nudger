@@ -1,0 +1,10 @@
+users_k8s:
+  - name: kubernetes-admin
+    groups: ['sudo', 'docker']
+    kubeconfig: /etc/kubernetes/admin.conf
+    ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
+  - name: dev-loic
+    groups: ['docker']
+    kubeconfig: /home/kubernetes-admin/.kube/config
+    ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
+

@@ -73,10 +73,3 @@
     enabled: yes
   become: yes
 
-- name: Create .kube directory in user home
-  file:
-    path: "/home/{{ ansible_user }}/.kube"
-    state: directory
-    mode: '0700'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
