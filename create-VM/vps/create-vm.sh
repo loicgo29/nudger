@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
+DIRHOME=/Users/loicgourmelon/devops/nudger
 # --- PRÉREQUIS ---
 # --- Vérification des prérequis ---
 command -v hcloud >/dev/null 2>&1 || { echo "❌ hcloud CLI manquant. Installe-le avant de continuer."; exit 1; }
@@ -10,7 +10,7 @@ command -v ssh >/dev/null 2>&1 || { echo "❌ ssh manquant."; exit 1; }
 command -v ssh-keygen >/dev/null 2>&1 || { echo "❌ ssh-keygen manquant."; exit 1; }
 
 # Vérification du fichier template
-[[ -f ./cloud-init-template.yaml ]] || { echo "❌ cloud-init-template.yaml manquant."; exit 1; }
+[[ -f $DIRHOME/create-VM/vps/cloud-init-template.yaml ]] || { echo "❌ $DIR/cloud-init-template.yaml manquant."; exit 1; }
 
 # Vérification de la clé privée SSH
 [[ -f ~/.ssh/id_vm_ed25519 ]] || { echo "❌ Clé privée SSH ~/.ssh/id_vm_ed25519 manquante."; exit 1; }
@@ -21,9 +21,6 @@ echo "✅ Tous les prérequis sont présents, le script peut démarrer..."
 for cmd in hcloud envsubst nc ssh ssh-keygen scp; do
     command -v $cmd >/dev/null 2>&1 || { echo "❌ $cmd manquant. Installe-le avant de continuer."; exit 1; }
 done
-
-[[ -f ./cloud-init-template.yaml ]] || { echo "❌ cloud-init-template.yaml manquant."; exit 1; }
-[[ -f ~/.ssh/id_vm_ed25519 ]] || { echo "❌ Clé privée SSH ~/.ssh/id_vm_ed25519 manquante."; exit 1; }
 
 echo "✅ Tous les prérequis sont présents"
 
@@ -44,7 +41,7 @@ REPO_NAME=$(basename "$DEPOT_GIT" .git)
 # --- Génération cloud-init ---
 echo "➡️ Génération du cloud-init.yaml pour $USER et $DEPOT_GIT"
 export USER DEPOT_GIT ID_SSH_PUB
-envsubst < cloud-init-template.yaml > cloud-init.yaml
+envsubst < $DIRHOME/create-VM/vps/cloud-init-template.yaml > $DIRHOME/create-VM/vps/cloud-init.yaml
 echo "✅ cloud-init.yaml généré"
 
 # --- Création VM Hetzner ---
@@ -53,7 +50,7 @@ OUTPUT=$(hcloud server create \
   --name "$NAME" \
   --image ubuntu-22.04 \
   --type cpx21 \
-  --user-data-from-file ./cloud-init.yaml \
+  --user-data-from-file $DIRHOME/create-VM/vps/cloud-init.yaml \
   --ssh-key loic-vm-key)
 echo "$OUTPUT"
 

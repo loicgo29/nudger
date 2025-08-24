@@ -3,11 +3,11 @@ set -euo pipefail
 
 VM_NAME="master1"
 USER="ansible"
-DEPOT_GIT=" https://github.com/loicgo29/nudger.git"
+DEPOT_GIT="https://github.com/loicgo29/nudger.git"
 ID_SSH="id_vm_ed25519"
 
 # 1️⃣ Créer la VM
-IP=$(./create-vm.sh "$VM_NAME" "$USER" "$DEPOT_GIT" | awk '/VM IP:/ {print $3}')
+IP=$(./create-VM/vps/create-vm.sh "$VM_NAME" "$USER" "$DEPOT_GIT" | awk '/VM IP:/ {print $3}')
 
 # 2️⃣ Mettre à jour l’inventaire
 cat > inventory.ini <<EOF
