@@ -1,29 +1,17 @@
 ---
-- name: Mettre à jour la liste des paquets
-  ansible.builtin.apt:
-    update_cache: yes
-    cache_valid_time: 3600
+- name: Définir les variables pour DevOps
+  set_fact:
+    ansible_venv: "/home/ansible/ansible_venv"
+    user_home: "/home/ansible"
+    bin_dir: "/home/ansible/bin"
+    requirements_file: "/home/ansible/nudger/infra/k8s-ansible/requirements.yml"
+  tags: always
 
-- name: Mettre à jour tous les paquets installés
+- name: Installer python3-venv avant de créer le virtualenv
   ansible.builtin.apt:
-    upgrade: dist
-
-- name: Installer les paquets système
-  ansible.builtin.apt:
-    name:
-      - zsh
-      - git
-      - curl
-      - wget
-      - jq
-      - tree
-      - unzip
-      - bash-completion
-      - make
-      - tar
-      - gzip
-      - python3-venv
+    name: python3-venv
     state: present
+    update_cache: yes
 
 - name: Vérifier si le virtualenv Ansible existe
   stat:
@@ -56,21 +44,43 @@
       - pyyaml
     virtualenv: "{{ ansible_venv }}"
 
-- name: Installer les collections Ansible indispensables
-  command: "{{ ansible_venv }}/bin/ansible-galaxy collection install kubernetes.core ansible.posix community.general --force"
+- name: Définir ansible_python_interpreter vers le venv
+  set_fact:
+    ansible_python_interpreter: "{{ ansible_venv }}/bin/python3"
 
-- name: Installer les collections depuis requirements.yml si présent
-  command: "{{ ansible_venv }}/bin/ansible-galaxy collection install -r {{ requirements_file }} --force"
-  args:
-    removes: "{{ requirements_file }}"
-  when: requirements_file is file
+- name: Mettre à jour la liste des paquets
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
 
+- name: Mettre à jour tous les paquets installés
+  ansible.builtin.apt:
+    upgrade: dist
+
+- name: Installer les paquets système
+  ansible.builtin.apt:
+    name:
+      - zsh
+      - git
+      - curl
+      - wget
+      - jq
+      - tree
+      - unzip
+      - bash-completion
+      - make
+      - tar
+      - gzip
+      - python3-venv
+    state: present
+
+# --- fzf ---
 - name: Vérifier si fzf est déjà installé
   stat:
     path: "{{ user_home }}/.fzf"
   register: fzf_stat
 
-- name: Cloner et installer fzf
+- name: Cloner fzf
   git:
     repo: https://github.com/junegunn/fzf.git
     dest: "{{ user_home }}/.fzf"
@@ -81,11 +91,18 @@
   command: "{{ user_home }}/.fzf/install --all"
   when: not fzf_stat.stat.exists
 
+# --- lazygit ---
 - name: Vérifier si lazygit est déjà installé
   command: which lazygit
   register: lazygit_check
   failed_when: false
   changed_when: false
+
+- name: Créer le répertoire bin_dir
+  file:
+    path: "{{ bin_dir }}"
+    state: directory
+    mode: '0755'
 
 - name: Récupérer la dernière version de lazygit
   uri:
@@ -99,16 +116,11 @@
     lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
   when: lazygit_check.rc != 0
 
-- name: Créer le répertoire bin_dir
-  ansible.builtin.file:
-    path: "{{ bin_dir }}"
-    state: directory
-    mode: '0755'
-
 - name: Télécharger lazygit
-  ansible.builtin.get_url:
+  get_url:
     url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
     dest: "{{ bin_dir }}/lazygit.tar.gz"
+  when: lazygit_check.rc != 0
 
 - name: Décompresser lazygit
   unarchive:
@@ -126,6 +138,7 @@
 - name: Ajouter ~/bin au PATH si absent
   lineinfile:
     path: "{{ user_home }}/.bashrc"
-    regexp: '^export PATH=.*\\$HOME/bin'
+    regexp: '^export PATH=.*\$HOME/bin'
     line: 'export PATH=$HOME/bin:$PATH'
     insertafter: EOF
+
