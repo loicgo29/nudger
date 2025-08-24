@@ -7,6 +7,12 @@
     requirements_file: "/home/ansible/nudger/infra/k8s-ansible/requirements.yml"
   tags: always
 
+- name: Wait for apt lock to be released
+  ansible.builtin.wait_for:
+    path: /var/lib/dpkg/lock-frontend
+    state: absent
+    timeout: 300
+
 - name: Installer python3-venv avant de créer le virtualenv
   ansible.builtin.apt:
     name: python3-venv
