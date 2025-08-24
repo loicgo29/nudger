@@ -22,4 +22,4 @@ echo "➡️ Bootstrap Ansible sur $VM_NAME..."
 cd infra/k8s-ansible
 ansible-playbook -i ./inventory.ini ./playbooks/nudger.yml
 
-
+echo "ssh -i ~/.ssh/id_vm_ed25519 ansible@$IP"
