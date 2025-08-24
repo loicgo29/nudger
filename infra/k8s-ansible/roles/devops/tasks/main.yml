@@ -7,13 +7,6 @@
     requirements_file: "/home/ansible/nudger/infra/k8s-ansible/requirements.yml"
   tags: always
 
-- name: Wait for apt lock to be released
-  ansible.builtin.wait_for:
-    path: /var/lib/dpkg/lock-frontend
-    state: absent
-    timeout: 60   # réduit le timeout pour ne pas bloquer trop longtemps
-  ignore_errors: yes
-
 - name: Ensure python3-venv is installed
   ansible.builtin.apt:
     name: python3-venv
@@ -54,10 +47,6 @@
       - kubernetes
       - pyyaml
     virtualenv: "{{ ansible_venv }}"
-
-- name: Définir ansible_python_interpreter vers le venv
-  set_fact:
-    ansible_python_interpreter: "{{ ansible_venv }}/bin/python3"
 
 - name: Mettre à jour la liste des paquets
   ansible.builtin.apt:
