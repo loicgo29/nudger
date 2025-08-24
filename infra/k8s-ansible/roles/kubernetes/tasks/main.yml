@@ -80,3 +80,19 @@
     mode: '0700'
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
+
+- name: Copier admin.conf pour ansible
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: Définir KUBECONFIG pour ansible
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: 'export KUBECONFIG=$HOME/.kube/config'
+    create: yes
+    state: present
+
