@@ -34,7 +34,7 @@ NAME="$1"
 USER="$2"
 DEPOT_GIT="$3"
 ID_SSH="id_vm_ed25519"
-BRANCH="feat/250825
+BRANCH="feat/250825"
 ID_SSH_PUB=$(cat ~/.ssh/${ID_SSH}.pub)
 REPO_NAME=$(basename "$DEPOT_GIT" .git)
 
