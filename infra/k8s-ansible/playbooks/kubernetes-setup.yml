@@ -13,13 +13,6 @@
     - name: Disable swap (for all nodes)
       import_tasks: disable_swap.yml
       when: inventory_hostname in groups['k8s_masters'] or inventory_hostname in groups['k8s_workers']
-    - name: Déployer la clé SSH ansible pour nudger-k8s
-      ansible.builtin.authorized_key:
-        user: nudger-k8s
-        state: present
-        key: "{{ lookup('file', '/home/nudger-k8s/.ssh/id_ansible.pub') }}"
-      when: inventory_hostname in groups['k8s_masters'] or inventory_hostname in groups['k8s_workers']
-
 
   roles:
     - role: docker

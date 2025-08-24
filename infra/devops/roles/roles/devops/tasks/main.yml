@@ -1,0 +1,127 @@
+---
+- name: Mise à jour et installation des paquets système
+  become: true
+  apt:
+    update_cache: yes
+    upgrade: dist
+    name:
+      - zsh
+      - git
+      - curl
+      - wget
+      - jq
+      - tree
+      - unzip
+      - bash-completion
+      - make
+      - tar
+      - gzip
+      - python3-venv
+    state: present
+
+- name: Vérifier si le virtualenv Ansible existe
+  stat:
+    path: "{{ ansible_venv }}/bin/activate"
+  register: venv_stat
+
+- name: Supprimer le venv si incomplet
+  file:
+    path: "{{ ansible_venv }}"
+    state: absent
+  when: not venv_stat.stat.exists
+
+- name: Créer le virtualenv Ansible
+  command: python3 -m venv "{{ ansible_venv }}"
+  when: not venv_stat.stat.exists
+
+- name: Mettre pip à jour dans le venv
+  pip:
+    name: pip
+    state: latest
+    virtualenv: "{{ ansible_venv }}"
+
+- name: Installer les paquets Python dans le venv
+  pip:
+    name:
+      - "ansible-core>=2.16,<2.18"
+      - ansible-lint
+      - openshift
+      - kubernetes
+      - pyyaml
+    virtualenv: "{{ ansible_venv }}"
+
+- name: Installer les collections Ansible indispensables
+  command: "{{ ansible_venv }}/bin/ansible-galaxy collection install kubernetes.core ansible.posix community.general --force"
+
+- name: Installer les collections depuis requirements.yml si présent
+  command: "{{ ansible_venv }}/bin/ansible-galaxy collection install -r {{ requirements_file }} --force"
+  args:
+    removes: "{{ requirements_file }}"
+  when: requirements_file is file
+
+- name: Vérifier si fzf est déjà installé
+  stat:
+    path: "{{ user_home }}/.fzf"
+  register: fzf_stat
+
+- name: Cloner et installer fzf
+  git:
+    repo: https://github.com/junegunn/fzf.git
+    dest: "{{ user_home }}/.fzf"
+    depth: 1
+  when: not fzf_stat.stat.exists
+
+- name: Lancer l’install de fzf
+  command: "{{ user_home }}/.fzf/install --all"
+  when: not fzf_stat.stat.exists
+
+- name: Vérifier si lazygit est déjà installé
+  command: which lazygit
+  register: lazygit_check
+  failed_when: false
+  changed_when: false
+
+- name: Récupérer la dernière version de lazygit
+  uri:
+    url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
+    return_content: yes
+  register: lazygit_release
+  when: lazygit_check.rc != 0
+
+- name: Extraire la version lazygit
+  set_fact:
+    lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
+  when: lazygit_check.rc != 0
+
+- name: Télécharger lazygit
+  get_url:
+    url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    dest: /tmp/lazygit.tar.gz
+  when: lazygit_check.rc != 0
+
+- name: Décompresser lazygit
+  unarchive:
+    src: /tmp/lazygit.tar.gz
+    dest: /tmp/
+    remote_src: yes
+  when: lazygit_check.rc != 0
+
+- name: Déplacer lazygit dans ~/bin
+  copy:
+    src: /tmp/lazygit
+    dest: "{{ bin_dir }}/lazygit"
+    mode: '0755'
+  when: lazygit_check.rc != 0
+
+- name: Nettoyer archive lazygit
+  file:
+    path: /tmp/lazygit.tar.gz
+    state: absent
+  when: lazygit_check.rc != 0
+
+- name: Ajouter ~/bin au PATH si absent
+  lineinfile:
+    path: "{{ user_home }}/.bashrc"
+    regexp: '^export PATH=.*\\$HOME/bin'
+    line: 'export PATH=$HOME/bin:$PATH'
+    insertafter: EOF
