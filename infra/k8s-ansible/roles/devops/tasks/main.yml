@@ -99,29 +99,27 @@
     lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
   when: lazygit_check.rc != 0
 
+- name: Créer le répertoire bin_dir
+  ansible.builtin.file:
+    path: "{{ bin_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Télécharger lazygit
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
-    dest: /tmp/lazygit.tar.gz
-  when: lazygit_check.rc != 0
+    dest: "{{ bin_dir }}/lazygit.tar.gz"
 
 - name: Décompresser lazygit
   unarchive:
-    src: /tmp/lazygit.tar.gz
-    dest: /tmp/
+    src: "{{ bin_dir }}/lazygit.tar.gz"
+    dest: "{{ bin_dir }}"
     remote_src: yes
-  when: lazygit_check.rc != 0
-
-- name: Déplacer lazygit dans ~/bin
-  copy:
-    src: /tmp/lazygit
-    dest: "{{ bin_dir }}/lazygit"
-    mode: '0755'
   when: lazygit_check.rc != 0
 
 - name: Nettoyer archive lazygit
   file:
-    path: /tmp/lazygit.tar.gz
+    path: "{{ bin_dir }}/lazygit.tar.gz"
     state: absent
   when: lazygit_check.rc != 0
 
