@@ -3,7 +3,8 @@ set -euo pipefail
 
 VM_NAME="master1"
 USER="ansible"
-DEPOT_GIT="https://github.com/loicgo29/nudger.git"
+DEPOT_GIT="git@github.com:loicgo29/nudger.git"
+
 ID_SSH="id_vm_ed25519"
 
 # 1️⃣ Créer la VM
