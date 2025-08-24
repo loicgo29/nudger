@@ -5,13 +5,15 @@ users:
     groups: sudo
     shell: /bin/bash
     ssh_authorized_keys:
-      - $ID_ANSIBLE_PUB
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIqKTlRSzPT86KSpW6rBpSqUbRrtCvi48K/L+FzaBjzc loicgourmelon@gmail.com
+
 packages:
   - git
   - curl
   - vim
   - openssh-client
 runcmd:
-  - mkdir -p /home/ansible/.ssh
-  - chmod 700 /home/ansible/.ssh
+  # Installe les paquets utiles
+  - apt-get update && apt-get install -y git curl vim openssh-client
+
 

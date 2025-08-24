@@ -1,0 +1,13 @@
+---
+# playbooks/site.yml
+# Playbook principal pour provisionner une VM DevOps + Kubernetes
+
+- name: Bootstrap DevOps
+  import_playbook: bootstrap-devops.yml
+
+- name: Setup Kubernetes & Containerd
+  import_playbook: kubernetes-setup.yml
+
+- name: Setup Users
+  import_playbook: setup-k8s-users.yml
+

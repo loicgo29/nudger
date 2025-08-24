@@ -1,0 +1,18 @@
+# Rôle users-config: variables par défaut
+
+# Liste des utilisateurs à créer
+users_k8s:
+  - name: kubernetes-admin
+    groups: [sudo, docker]
+    kubeconfig: /etc/kubernetes/admin.conf
+
+  - name: dev-loic
+    groups: [docker]
+    kubeconfig: /home/kubernetes-admin/.kube/config   # ou un config spécifique si tu veux
+
+# Répertoire des binaires ou alias
+bash_aliases_file: ".bash_aliases"
+bashrc_file: ".bashrc"
+install_kubectx: true
+install_kubens: true
+
