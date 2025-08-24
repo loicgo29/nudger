@@ -1,0 +1,94 @@
+- name: Ensure users exist
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | join(',') }}"
+    shell: /bin/bash
+    create_home: yes
+  loop: "{{ users_k8s }}"
+
+- name: Add SSH public key for each user
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_public_key }}"
+    state: present
+  loop: "{{ users_k8s }}"
+  when: item.ssh_public_key is defined
+
+- name: Ensure .kube directory exists
+  file:
+    path: "/home/{{ item.name }}/.kube"
+    state: directory
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0700'
+  loop: "{{ users_k8s }}"
+
+- name: Copy kubeconfig for each user
+  copy:
+    src: "{{ item.kubeconfig }}"
+    dest: "/home/{{ item.name }}/.kube/config"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0600'
+    remote_src: yes
+  loop: "{{ users_k8s }}"
+  when: item.kubeconfig is defined and item.kubeconfig != ""
+
+- name: Ensure .bash_aliases exists
+  file:
+    path: "/home/{{ item.name }}/{{ bash_aliases_file }}"
+    state: touch
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0644'
+  loop: "{{ users_k8s }}"
+
+- name: Deploy common aliases for Kubernetes
+  copy:
+    src: "bash_aliases"
+    dest: "/home/{{ item.name }}/{{ bash_aliases_file }}"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0644'
+  loop: "{{ users_k8s }}"
+
+- name: Source .bash_aliases in .bashrc
+  lineinfile:
+    path: "/home/{{ item.name }}/.bashrc"
+    regexp: '^source ~/.bash_aliases'
+    line: 'source ~/.bash_aliases'
+    state: present
+  loop: "{{ users_k8s }}"
+
+- name: Install kubectx and kubens
+  git:
+    repo: https://github.com/ahmetb/kubectx.git
+    dest: "/opt/kubectx"
+    version: master
+    force: yes
+  when: install_kubectx or install_kubens
+  become: yes
+
+- name: Symlink kubectx binary
+  file:
+    src: /opt/kubectx/kubectx
+    dest: /usr/local/bin/kubectx
+    state: link
+  when: install_kubectx
+  become: yes
+
+- name: Symlink kubens binary
+  file:
+    src: /opt/kubectx/kubens
+    dest: /usr/local/bin/kubens
+    state: link
+  when: install_kubens
+  become: yes
+
+- name: Setup Bash completion for kubectl
+  shell: |
+    COMPLETION_DIR="/home/{{ item.name }}/.local/share/bash-completion/completions"
+    mkdir -p $COMPLETION_DIR
+    kubectl completion bash > $COMPLETION_DIR/kubectl
+  loop: "{{ users_k8s }}"
+

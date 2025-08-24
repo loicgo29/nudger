@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
+DIRHOME=/Users/loicgourmelon/devops/nudger
+# --- PRÉREQUIS ---
 # --- Vérification des prérequis ---
 command -v hcloud >/dev/null 2>&1 || { echo "❌ hcloud CLI manquant. Installe-le avant de continuer."; exit 1; }
 command -v envsubst >/dev/null 2>&1 || { echo "❌ envsubst manquant (paquet gettext)."; exit 1; }
@@ -9,72 +10,101 @@ command -v ssh >/dev/null 2>&1 || { echo "❌ ssh manquant."; exit 1; }
 command -v ssh-keygen >/dev/null 2>&1 || { echo "❌ ssh-keygen manquant."; exit 1; }
 
 # Vérification du fichier template
-[[ -f ./cloud-init-template.yaml ]] || { echo "❌ cloud-init-template.yaml manquant."; exit 1; }
+[[ -f $DIRHOME/create-VM/vps/cloud-init-template.yaml ]] || { echo "❌ $DIR/cloud-init-template.yaml manquant."; exit 1; }
 
 # Vérification de la clé privée SSH
 [[ -f ~/.ssh/id_vm_ed25519 ]] || { echo "❌ Clé privée SSH ~/.ssh/id_vm_ed25519 manquante."; exit 1; }
 
 echo "✅ Tous les prérequis sont présents, le script peut démarrer..."
 
-# --- Vérification des arguments ---
-if [[ $# -ne 4 ]]; then
-  echo "Usage: $0 <USER> <DEPOT-GIT> <VM-NAME> <ID-SSH>"
-  exit 1
+
+for cmd in hcloud envsubst nc ssh ssh-keygen scp; do
+    command -v $cmd >/dev/null 2>&1 || { echo "❌ $cmd manquant. Installe-le avant de continuer."; exit 1; }
+done
+
+echo "✅ Tous les prérequis sont présents"
+
+# --- ARGUMENTS ---
+if [[ $# -ne 3 ]]; then
+    echo "Usage: $0 <VM_NAME> <USER> <DEPOT_GIT>"
+    exit 1
 fi
 
-USER=$1
-DEPOT_GIT=$2
-NAME=$3
-ID_SSH=$4   # ex: id_vm_ed25519
+NAME="$1"
+USER="$2"
+DEPOT_GIT="$3"
+ID_SSH="id_vm_ed25519"
+BRANCH="feat/230825-2"
+ID_SSH_PUB=$(cat ~/.ssh/${ID_SSH}.pub)
+REPO_NAME=$(basename "$DEPOT_GIT" .git)
 
-# --- Génération du cloud-init.yaml ---
-echo "➡️  Génération du cloud-init.yaml pour l'utilisateur '$USER', dépôt '$DEPOT_GIT' et clé '$ID_SSH'"
+# --- Génération cloud-init ---
+echo "➡️ Génération du cloud-init.yaml pour $USER et $DEPOT_GIT"
+export USER DEPOT_GIT ID_SSH_PUB
+envsubst < $DIRHOME/create-VM/vps/cloud-init-template.yaml > $DIRHOME/create-VM/vps/cloud-init.yaml
+echo "✅ cloud-init.yaml généré"
 
-export USER
-export DEPOT_GIT
-export ID_SSH_PUB="$(cat ~/.ssh/${ID_SSH}.pub)"
-
-envsubst < cloud-init-template.yaml > cloud-init.yaml
-
-echo "✅ Fichier cloud-init.yaml généré"
-
-# --- Création de la VM ---
-echo "➡️  Lancement de la création de la VM Hetzner : $NAME"
-
+# --- Création VM Hetzner ---
+echo "➡️ Création de la VM $NAME..."
 OUTPUT=$(hcloud server create \
   --name "$NAME" \
   --image ubuntu-22.04 \
   --type cpx21 \
-  --user-data-from-file ./cloud-init.yaml \
+  --user-data-from-file $DIRHOME/create-VM/vps/cloud-init.yaml \
   --ssh-key loic-vm-key)
+echo "$OUTPUT"
 
-echo "$OUTPUT"   # Log complet pour debug
-
-# --- Extraction de l'IP ---
+# --- Extraction IP ---
 VM_IP=$(echo "$OUTPUT" | awk '/IPv4:/ {print $2}')
+[[ -n "$VM_IP" ]] || { echo "❌ Impossible de récupérer l'adresse IP"; exit 1; }
+echo "✅ VM IP: $VM_IP"
 
-if [[ -z "$VM_IP" ]]; then
-  echo "❌ Impossible de récupérer l'adresse IPv4 de la VM"
-  exit 1
-fi
+# --- Nettoyage known_hosts ---
+ssh-keygen -R "$VM_IP" >/dev/null 2>&1 || true
 
-# --- Supprime l'ancienne entrée SSH si elle existe ---
-if grep -q "$VM_IP" ~/.ssh/known_hosts; then
-    echo "⚠️  Ancienne clé SSH pour $VM_IP trouvée, suppression..."
-    ssh-keygen -R "$VM_IP" > /dev/null 2>&1
-fi
+# --- Attente SSH ---
+echo "⏳ Attente de SSH..."
+while ! nc -z -w2 "$VM_IP" 22; do sleep 2; done
 
-echo "✅ Adresse IP de la VM: $VM_IP"
-echo "⏳ Vérification que SSH est disponible..."
-while ! nc -z -w2 "$VM_IP" 22; do
-    echo "SSH non disponible, attente 2s..."
-    sleep 2
-done
+# --- Préparation SSH sur VM ---
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/$ID_SSH "$USER@$VM_IP" "
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+"
 
-# --- Connexion SSH automatique ---
-echo "➡️  Connexion SSH au serveur... "
-echo "ssh -i ~/.ssh/$ID_SSH -o StrictHostKeyChecking=no $USER@$VM_IP"
-./setup-git.sh $VM_IP
+scp -o StrictHostKeyChecking=no -i ~/.ssh/$ID_SSH ~/.ssh/$ID_SSH "$USER@$VM_IP:/home/$USER/.ssh/id_deploy"
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/$ID_SSH "$USER@$VM_IP" "
+chmod 600 ~/.ssh/id_deploy
+chown $USER:$USER ~/.ssh/id_deploy
+"
 
-ssh -i ~/.ssh/$ID_SSH -o StrictHostKeyChecking=no "$USER@$VM_IP"
+# --- Config Git ---
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/$ID_SSH "$USER@$VM_IP" "
+cat > ~/.ssh/config <<'EOF'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_deploy
+  StrictHostKeyChecking no
+EOF
+chmod 600 ~/.ssh/config
+chown $USER:$USER ~/.ssh/config
+
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+chown $USER:$USER ~/.ssh/known_hosts
+
+git config --global user.name 'Ton Nom'
+git config --global user.email 'ton.email@example.com'
+"
+
+# --- Clonage du dépôt ---
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/$ID_SSH "$USER@$VM_IP" "
+if [ -d ~/$REPO_NAME ]; then rm -rf ~/$REPO_NAME; fi
+GIT_SSH_COMMAND='ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=no' \
+git clone --branch $BRANCH --single-branch $DEPOT_GIT ~/$REPO_NAME
+"
+
+echo "✅ Déploiement Git terminé sur $VM_IP"
+echo "Tu peux te connecter avec: ssh -i ~/.ssh/$ID_SSH $USER@$VM_IP"
 

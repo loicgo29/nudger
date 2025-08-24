@@ -34,11 +34,7 @@
       RemainAfterExit=yes
       [Install]
       WantedBy=multi-user.target
-  notify:
-    - Reload systemd
-    - Enable disable-swap.service
 
-# Handlers appelés par notify
 - name: Reload systemd
   ansible.builtin.systemd:
     daemon_reload: yes
@@ -48,8 +44,4 @@
     name: disable-swap.service
     enabled: yes
     state: started
-- name: Enable disable-swap.service
-  systemd:
-    name: disable-swap.service
-    enabled: true
-    daemon_reload: true
+

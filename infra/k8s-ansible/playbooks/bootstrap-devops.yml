@@ -1,0 +1,13 @@
+---
+- name: Bootstrap DevOps sur les VMs
+  hosts: all
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_venv: "/home/ansible/ansible_venv"
+    user_home: "/home/ansible"
+    bin_dir: "{{ user_home }}/bin"
+    requirements_file: "/home/ansible/nudger/infra/k8s-ansible/requirements.yml"
+  roles:
+    - devops
+
