@@ -1,0 +1,6 @@
+---
+# Variables spécifiques si besoin
+ansible_venv: "{{ ansible_env.HOME }}/ansible_venv"
+requirements_file: "{{ ansible_env.HOME }}/nudger/infra/k8s-ansible/requirements.yml"
+
+

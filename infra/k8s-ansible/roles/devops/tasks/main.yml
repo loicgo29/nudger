@@ -1,9 +1,15 @@
 ---
-- name: Mise à jour et installation des paquets système
-  become: true
-  apt:
+- name: Mettre à jour la liste des paquets
+  ansible.builtin.apt:
     update_cache: yes
+    cache_valid_time: 3600
+
+- name: Mettre à jour tous les paquets installés
+  ansible.builtin.apt:
     upgrade: dist
+
+- name: Installer les paquets système
+  ansible.builtin.apt:
     name:
       - zsh
       - git
