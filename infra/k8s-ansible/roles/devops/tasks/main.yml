@@ -11,13 +11,18 @@
   ansible.builtin.wait_for:
     path: /var/lib/dpkg/lock-frontend
     state: absent
-    timeout: 300
+    timeout: 60   # réduit le timeout pour ne pas bloquer trop longtemps
+  ignore_errors: yes
 
-- name: Installer python3-venv avant de créer le virtualenv
+- name: Ensure python3-venv is installed
   ansible.builtin.apt:
     name: python3-venv
     state: present
     update_cache: yes
+  retries: 5
+  delay: 10
+  register: apt_result
+  until: apt_result is succeeded
 
 - name: Vérifier si le virtualenv Ansible existe
   stat:
