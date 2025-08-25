@@ -1,50 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# --- Paramètres ---
-feature=${1:-feature}         # nom de la fonctionnalité
-prefix=${2:-feat}             # préfixe de la branche
-assignee=${3:-}               # GitHub username
-reviewers=${4:-}              # GitHub reviewers
-labels=${5:-}                 # labels séparés par des virgules
+# Usage: ./new-feature.sh <feature_name> <type>
+# ex: ./new-feature.sh xwiki feat
+
+feature="$1"
+type="$2"
 today=$(date +%Y%m%d)
-branch_name="${prefix}/${today}-${feature}"
+branch_name="${type}/${today}-${feature}"
 base_branch="main"
 
-# --- Mise à jour de main ---
+# Met à jour la branche principale
 echo "🔄 Mise à jour de $base_branch..."
 git checkout "$base_branch"
-git pull --ff-only
+git pull origin "$base_branch"
 
-# --- Création de la branche ---
+# Création de la nouvelle branche
 echo "🌱 Création de la branche '$branch_name'..."
 git checkout -b "$branch_name"
 
-# --- Pousser la branche et configurer le suivi ---
-git push -u origin "$branch_name"
-
-# --- Vérification des labels existants sur GitHub ---
-valid_labels=""
-if [ -n "$labels" ]; then
-    IFS=',' read -ra all_labels <<< "$labels"
-    for l in "${all_labels[@]}"; do
-        if gh label list | grep -qx "$l"; then
-            valid_labels+="$l,"
-        else
-            echo "⚠️ Label '$l' n'existe pas, il sera ignoré."
-        fi
-    done
-    valid_labels=${valid_labels%,} # retire la dernière virgule
+# Si aucun commit, faire un commit initial vide
+if [ -z "$(git diff --staged --name-only)" ] && [ -z "$(git diff --name-only)" ]; then
+    echo "⚠️ Aucun changement détecté, création d'un commit vide..."
+    git commit --allow-empty -m "Initial commit for $branch_name"
 fi
 
-# --- Création de la PR ---
-echo "🚀 Création de la Pull Request..."
-cmd=(gh pr create --base "$base_branch" --head "$branch_name" --title "$branch_name" --body "Branche créée automatiquement le $today pour *$feature*" )
-[ -n "$assignee" ] && cmd+=(--assignee "$assignee")
-[ -n "$reviewers" ] && cmd+=(--reviewer "$reviewers")
-[ -n "$valid_labels" ] && cmd+=(--label "$valid_labels")
+# Push de la branche
+git push -u origin "$branch_name"
 
-"${cmd[@]}"
+# Création de la PR uniquement s'il y a au moins un commit
+if [ -n "$(git rev-list "$base_branch"..HEAD)" ]; then
+    echo "🚀 Création de la Pull Request..."
+    gh pr create \
+        --base "$base_branch" \
+        --head "$branch_name" \
+        --title "$branch_name" \
+        --body "Branche créée automatiquement le $today pour *$feature*"
+else
+    echo "⚠️ Pas de commit sur la branche, PR non créée."
+fi
 
-echo "✅ Branche '$branch_name' créée et PR ouverte."
+echo "✅ Branche '$branch_name' prête et suivie sur origin/$branch_name"
 
