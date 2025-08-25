@@ -127,19 +127,28 @@
           source ~/.local/share/bash-completion/completions/kubectl
       fi
   loop: "{{ users_k8s }}"
-  owner: "{{ item.name }}"
-  group: "{{ item.name }}"
-  mode: '0644'
+  become: yes
+  become_user: "{{ item.name }}"
+
+- name: Ensure correct permissions for .bashrc
+  file:
+    path: "/home/{{ item.name }}/.bashrc"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0644'
+  loop: "{{ users_k8s }}"
+
+
 - name: Configure global Git user name and email
   ansible.builtin.git_config:
     name: "{{ item.key }}"
     scope: global
     value: "{{ item.value }}"
   loop:
-    - { key: "user.name", value: "Your Name" }
-    - { key: "user.email", value: "you@example.com" }
+    - { key: "user.name", value: "LoGo" }
+    - { key: "user.email", value: "logo@gmail.com" }
   loop_control:
     loop_var: item
   become: yes
-  become_user: "{{ dev-loic }}"
+  become_user: dev-loic
 
