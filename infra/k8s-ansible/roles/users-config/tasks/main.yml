@@ -111,3 +111,23 @@
   loop: "{{ users_k8s }}"
   become: yes
   become_user: "{{ item.name }}"
+- name: Add kg function and kubectl completion to .bashrc
+  blockinfile:
+    path: "/home/{{ item.name }}/.bashrc"
+    block: |
+      # -----------------------------
+      # Kubectl alias/function and completion
+      # -----------------------------
+      kg()
+      {
+          kubectl "$@"
+      }
+      # Load kubectl completion
+      if [ -f ~/.local/share/bash-completion/completions/kubectl ]; then
+          source ~/.local/share/bash-completion/completions/kubectl
+      fi
+  loop: "{{ users_k8s }}"
+  owner: "{{ item.name }}"
+  group: "{{ item.name }}"
+  mode: '0644'
+
