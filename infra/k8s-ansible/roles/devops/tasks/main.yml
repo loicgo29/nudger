@@ -83,23 +83,39 @@
     group: "{{ ansible_user_gid }}"
 
 # --- fzf ---
-- name: Vérifier si fzf est déjà installé
-  stat:
-    path: "{{ user_home }}/.fzf"
-  register: fzf_stat
 
-- name: Cloner fzf
+- name: Vérifier si fzf existe déjà dans ~/bin
+  stat:
+    path: "{{ user_home }}/bin/fzf"
+  register: fzf_check
+
+- name: Cloner fzf si nécessaire
   git:
     repo: https://github.com/junegunn/fzf.git
     dest: "{{ user_home }}/.fzf"
     depth: 1
-  when: not fzf_stat.stat.exists
+  when: not fzf_check.stat.exists
 
-- name: Lancer l’install de fzf
+- name: Installer fzf
   command: "{{ user_home }}/.fzf/install --all"
-  when: not fzf_stat.stat.exists
+  args:
+    chdir: "{{ user_home }}/.fzf"
+  when: not fzf_check.stat.exists
 
-# --- lazygit ---
+- name: Vérifier que le binaire fzf existe après installation
+  stat:
+    path: "{{ user_home }}/.fzf/bin/fzf"
+  register: fzf_bin
+
+- name: Créer lien symbolique vers fzf dans ~/bin
+  file:
+    src: "{{ user_home }}/.fzf/bin/fzf"
+    dest: "{{ user_home }}/bin/fzf"
+    state: link
+    force: yes
+  when: fzf_bin.stat.exists
+
+  # --- lazygit ---
 - name: Vérifier si lazygit est installé et fonctionnel
   command: "{{ ansible_env.HOME }}/bin/lazygit --version"
   register: lazygit_check
