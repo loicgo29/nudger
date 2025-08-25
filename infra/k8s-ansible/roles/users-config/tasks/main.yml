@@ -170,4 +170,11 @@
     name: dev-loic
     groups: sudo
     append: yes
-
+- name: Allow dev-loic to run sudo without password
+  copy:
+    dest: /etc/sudoers.d/dev-loic
+    content: "dev-loic ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+  become: yes
