@@ -4,5 +4,10 @@ cd nudger
  ./config-vm/install_all_devops.sh
 ./config-vm/setup_ssh_ansible.sh
 source ~/ansible_venv/bin/activate
-vim /home/nudger-k8s/nudger/infra/k8s-ansible/inventory.ini #changer IP
 
+===========
+Pour générer ton mot de passe hashé (mode Linux standard) :
+# avec openssl
+openssl passwd -6
+
+A date : Processes
