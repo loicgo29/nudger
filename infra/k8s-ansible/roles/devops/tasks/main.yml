@@ -46,6 +46,7 @@
       - openshift
       - kubernetes
       - pyyaml
+      - passlib
     virtualenv: "{{ ansible_venv }}"
 
 - name: Mettre à jour la liste des paquets

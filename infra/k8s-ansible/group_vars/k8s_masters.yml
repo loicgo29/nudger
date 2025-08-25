@@ -1,7 +1,7 @@
 users_k8s:
   - name: kubernetes-admin
     groups: ['sudo', 'docker']
-    password: "SuperSecretRoot"
+    password: "$6$Dm6zU4AbJZ8PWHer$enpO4r2M3klnPgDr8RsBBUh3kaB4UCgHtjoQfRj2xvis5DOoU/Nn/c9ZFR0RhtOi4Zl69s0l9WVERTZoa5LrQ0"
     kubeconfig: /etc/kubernetes/admin.conf
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
     git_repos:
@@ -11,8 +11,11 @@ users_k8s:
     groups: ['docker']
     kubeconfig: /home/kubernetes-admin/.kube/config
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
-    password: "SuperSecretDev"
+    password: "$6$Dm6zU4AbJZ8PWHer$enpO4r2M3klnPgDr8RsBBUh3kaB4UCgHtjoQfRj2xvis5DOoU/Nn/c9ZFR0RhtOi4Zl69s0l9WVERTZoa5LrQ0"
     git_repos:
       - repo: git@github.com:loicgo29/nudger.git
         dest: /home/kubernetes-admin/nudger
+
+
+ansible_python_interpreter: /usr/bin/python3
 

@@ -1,9 +1,16 @@
-- name: Ensure users exist
+---
+- name: Ensure root has a password
+  ansible.builtin.user:
+    name: root
+    password: "$6$KqWnS3H9$8trHwCqW1jv1PldjUZyPrjHk7Lk4pxq65j.FHfojQo6FJ94L0W3nE6m9oQ7bM8Xun3zQO2U7KpVqpL7h9c9aC/"
+
+- name: Ensure users exist with pre-hashed passwords
   ansible.builtin.user:
     name: "{{ item.name }}"
     groups: "{{ item.groups | join(',') }}"
     shell: /bin/bash
     create_home: yes
+    password: "{{ item.password }}"   # déjà un hash
   loop: "{{ users_k8s }}"
 
 - name: Add SSH public key for each user
@@ -138,7 +145,6 @@
   become: yes
   become_user: dev-loic
 
-
 - name: Copy deploy key for Git access
   ansible.builtin.copy:
     src: "~/.ssh/id_ed25519"
@@ -158,8 +164,10 @@
   loop: "{{ users_k8s }}"
   become: yes
   become_user: "{{ item.name }}"
+
 - name: Add dev-loic to sudo group
   user:
     name: dev-loic
     groups: sudo
     append: yes
+

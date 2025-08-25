@@ -1,0 +1,20 @@
+---
+- name: Check Python environment for Ansible
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Show Python executable
+      ansible.builtin.command: which python3
+      register: python_path
+
+    - debug:
+        msg: "Python used by Ansible: {{ python_path.stdout }}"
+
+    - name: Check if passlib is importable
+      ansible.builtin.command: /usr/bin/python3 -c "import passlib; print(passlib.__version__)"
+      register: passlib_check
+      ignore_errors: yes
+
+    - debug:
+        msg: "{{ passlib_check.stdout }}"
+
