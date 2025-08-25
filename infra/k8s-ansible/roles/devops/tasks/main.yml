@@ -74,6 +74,13 @@
       - gzip
       - python3-venv
     state: present
+- name: Créer le répertoire bin si nécessaire
+  file:
+    path: "{{ bin_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
 
 # --- fzf ---
 - name: Vérifier si fzf est déjà installé
@@ -93,53 +100,50 @@
   when: not fzf_stat.stat.exists
 
 # --- lazygit ---
-- name: Vérifier si lazygit est déjà installé
-  command: which lazygit
+- name: Vérifier si lazygit est installé et fonctionnel
+  command: "{{ ansible_env.HOME }}/bin/lazygit --version"
   register: lazygit_check
-  failed_when: false
-  changed_when: false
+  ignore_errors: yes
 
-- name: Créer le répertoire bin_dir
+- name: Supprimer le dossier lazygit s'il existe à la place du binaire
   file:
-    path: "{{ bin_dir }}"
-    state: directory
-    mode: '0755'
+    path: "{{ ansible_env.HOME }}/bin/lazygit"
+    state: absent
+  when: lazygit_check.rc != 0
+
+- name: Vérifier si lazygit existe déjà
+  stat:
+    path: "/home/dev-loic/bin/lazygit"
+  register: lazygit_path
 
 - name: Récupérer la dernière version de lazygit
   uri:
     url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
     return_content: yes
   register: lazygit_release
-  when: lazygit_check.rc != 0
+  when: not lazygit_path.stat.exists
 
 - name: Extraire la version lazygit
   set_fact:
     lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
-  when: lazygit_check.rc != 0
+  when: not lazygit_path.stat.exists
 
 - name: Télécharger lazygit
   get_url:
     url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
-    dest: "{{ bin_dir }}/lazygit.tar.gz"
-  when: lazygit_check.rc != 0
+    dest: "/home/dev-loic/bin/lazygit.tar.gz"
+  when: not lazygit_path.stat.exists
 
-- name: Décompresser lazygit
+- name: Décompresser lazygit dans ~/bin
   unarchive:
-    src: "{{ bin_dir }}/lazygit.tar.gz"
-    dest: "{{ bin_dir }}"
+    src: "/home/dev-loic/bin/lazygit.tar.gz"
+    dest: "/home/dev-loic/bin"
     remote_src: yes
-  when: lazygit_check.rc != 0
+  when: not lazygit_path.stat.exists
 
 - name: Nettoyer archive lazygit
   file:
-    path: "{{ bin_dir }}/lazygit.tar.gz"
+    path: "/home/dev-loic/bin/lazygit.tar.gz"
     state: absent
-  when: lazygit_check.rc != 0
-
-- name: Ajouter ~/bin au PATH si absent
-  lineinfile:
-    path: "{{ user_home }}/.bashrc"
-    regexp: '^export PATH=.*\$HOME/bin'
-    line: 'export PATH=$HOME/bin:$PATH'
-    insertafter: EOF
+  when: not lazygit_path.stat.exists
 
