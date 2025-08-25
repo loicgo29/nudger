@@ -158,4 +158,8 @@
   loop: "{{ users_k8s }}"
   become: yes
   become_user: "{{ item.name }}"
-
+- name: Add dev-loic to sudo group
+      user:
+        name: dev-loic
+        groups: sudo
+        append: yes
