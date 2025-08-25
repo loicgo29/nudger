@@ -14,3 +14,18 @@ Utiliser un service MySQL externe sur x86 (sur un autre host ou cloud)
 Forcer émulation x86 (--platform=linux/amd64)
 	Fonctionne mais lente et fragile sous Kubernetes sur M1, à éviter pour un déploiement réaliste.
 Donc, la solution la plus robuste pour ton environnement local M1/K8s est passer à MariaDB ARM64.
+-----------
+kubectl taint nodes master1 node-role.kubernetes.io/control-plane:NoSchedule-
+
+kubectl config set-context --current --namespace=nudger-xwiki
+
+passwd
+New password:
+Retype new password:
+passwd: password updated successfully
+root@master1:~# passwd dev-loic
+New password:
+Retype new password:
+passwd: password updated successfully
+root@master1:~#
+sudo usermod -aG sudo dev-loic
