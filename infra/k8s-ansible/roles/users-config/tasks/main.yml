@@ -111,4 +111,3 @@
   loop: "{{ users_k8s }}"
   become: yes
   become_user: "{{ item.name }}"
-
