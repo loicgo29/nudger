@@ -1,6 +1,7 @@
 users_k8s:
   - name: kubernetes-admin
     groups: ['sudo', 'docker']
+    password: "SuperSecretRoot"
     kubeconfig: /etc/kubernetes/admin.conf
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
     git_repos:
@@ -10,6 +11,7 @@ users_k8s:
     groups: ['docker']
     kubeconfig: /home/kubernetes-admin/.kube/config
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
+    password: "SuperSecretDev"
     git_repos:
       - repo: git@github.com:loicgo29/nudger.git
         dest: /home/kubernetes-admin/nudger

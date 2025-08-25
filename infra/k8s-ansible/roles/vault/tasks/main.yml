@@ -1,0 +1,120 @@
+---
+- name: Install unzip and curl
+  apt:
+    name:
+      - unzip
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Create vault system user
+  user:
+    name: "{{ vault_user }}"
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Download Vault
+  get_url:
+    url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_amd64.zip"
+    dest: "/tmp/vault_{{ vault_version }}.zip"
+    mode: '0644'
+
+- name: Unzip Vault
+  unarchive:
+    src: "/tmp/vault_{{ vault_version }}.zip"
+    dest: /usr/local/bin/
+    remote_src: yes
+    creates: "{{ vault_bin }}"
+
+- name: Create Vault directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: '0755'
+  loop:
+    - "{{ vault_data_dir }}"
+    - "{{ vault_config_dir }}"
+
+- name: Deploy Vault config file
+  template:
+    src: vault.hcl.j2
+    dest: "{{ vault_config_dir }}/vault.hcl"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: '0644'
+
+- name: Create systemd service for Vault
+  copy:
+    dest: /etc/systemd/system/vault.service
+    content: |
+      [Unit]
+      Description=HashiCorp Vault
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User={{ vault_user }}
+      Group={{ vault_group }}
+      ExecStart={{ vault_bin }} server -config={{ vault_config_dir }}/vault.hcl
+      ExecReload=/bin/kill -HUP $MAINPID
+      Restart=on-failure
+      LimitNOFILE=65536
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable and start Vault
+  systemd:
+    name: vault
+    state: started
+    enabled: true
+
+- name: Wait for Vault to be listening
+  wait_for:
+    host: 127.0.0.1
+    port: 8200
+    delay: 2
+    timeout: 30
+
+- name: Check if Vault is already initialized
+  command: "{{ vault_bin }} status -format=json"
+  register: vault_status
+  failed_when: false
+  ignore_errors: yes
+
+- name: Initialize Vault only if not initialized
+  command: "{{ vault_bin }} operator init -key-shares=1 -key-threshold=1 -format=json"
+  register: vault_init
+  changed_when: false
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:8200"
+  when: vault_status.rc != 0
+
+- name: Save vault initialization output
+  copy:
+    dest: /etc/vault/.vault_initialized
+    content: "{{ vault_init.stdout }}"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: '0600'
+  when: vault_init.stdout is defined and vault_init.stdout != ""
+- name: Enable KV v2 engine on path secret
+  command: vault secrets enable -path=secret kv-v2
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:8200"
+    VAULT_TOKEN: "{{ vault_root_token }}"
+  args:
+    creates: /tmp/kv2_enabled.flag
+
+- name: Create flag file so the task is idempotent
+  file:
+    path: /tmp/kv2_enabled.flag
+    state: touch
+
