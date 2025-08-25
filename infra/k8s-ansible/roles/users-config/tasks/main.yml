@@ -130,4 +130,16 @@
   owner: "{{ item.name }}"
   group: "{{ item.name }}"
   mode: '0644'
+- name: Configure global Git user name and email
+  ansible.builtin.git_config:
+    name: "{{ item.key }}"
+    scope: global
+    value: "{{ item.value }}"
+  loop:
+    - { key: "user.name", value: "Your Name" }
+    - { key: "user.email", value: "you@example.com" }
+  loop_control:
+    loop_var: item
+  become: yes
+  become_user: "{{ dev-loic }}"
 
