@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Récupère la branche courante
 branch=$(git rev-parse --abbrev-ref HEAD)
 
 # Interdit commit direct sur main/master
@@ -10,25 +9,38 @@ if [[ "$branch" == "main" || "$branch" == "master" ]]; then
   exit 1
 fi
 
-# Vérifie l'état du repo
+# Vérifie s'il y a des modifs à commit
 if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
-  echo "📌 Modifs détectées dans le repo :"
+  echo "📌 Modifs détectées :"
   git status -s
 else
-  echo "✅ Rien à commit, repo clean"
+  echo "✅ Rien à commit"
   exit 0
 fi
 
-# Vérifie le message de commit
+# Vérifie le message
 if [ $# -eq 0 ]; then
-  echo "❌ Fournis un message de commit"
+  echo "❌ Fournis un message de commit (ex: feat: ajoute script gcp)"
   exit 1
 fi
 
 msg="$*"
 
-# Ajoute, commit et push
-echo "➡️ Commit sur la branche '$branch' avec message : \"$msg\""
+# Vérifie la convention (feat|fix|chore|docs|refactor|test|perf)
+if ! [[ "$msg" =~ ^(feat|fix|chore|docs|refactor|test|perf)(\([a-z0-9_-]+\))?:\ .+ ]]; then
+  echo "❌ Message invalide. Utilise la convention :"
+  echo "   feat: ajout d'une nouvelle fonctionnalité"
+  echo "   fix: correction d'un bug"
+  echo "   chore: tâches diverses"
+  echo "   docs: documentation"
+  echo "   refactor: refactorisation du code"
+  echo "   test: ajout/modif de tests"
+  echo "   perf: optimisation de performance"
+  exit 1
+fi
+
+# Commit et push
+echo "➡️ Commit sur '$branch' avec : \"$msg\""
 git add -A
 git commit -m "$msg"
 git push -u origin "$branch"
