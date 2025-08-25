@@ -1,54 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# --- Config ---
-default_prefix="feat"
-today=$(date +"%Y%m%d")
-branch_name=""
-
-# --- Variables PR ---
-assignee="loicgo29"               # ton pseudo GitHub
-reviewers="loicgo29"              # reviewers par défaut
-labels="automated,feature"        # labels par défaut
-base_branch="main"                # trunk base branch
-
-# --- Check args ---
-if [ $# -lt 1 ]; then
-  echo "Usage: $0 <nom-fonctionnalite> [prefix]"
-  echo "Ex: $0 login feat"
-  exit 1
-fi
-
-feature=$1
-prefix=${2:-$default_prefix}
-
-# --- Force update main ---
-echo "🔄 Mise à jour de $base_branch..."
-git checkout $base_branch
-git pull origin $base_branch
-
-# --- Génération nom de branche ---
+# --- Paramètres ---
+feature=${1:-feature}         # nom de la fonctionnalité
+prefix=${2:-feat}             # préfixe de la branche
+assignee=${3:-}               # GitHub username
+reviewers=${4:-}              # GitHub reviewers
+labels=${5:-}                 # labels séparés par des virgules
+today=$(date +%Y%m%d)
 branch_name="${prefix}/${today}-${feature}"
+base_branch="main"
 
-# --- Création et push ---
+# --- Mise à jour de main ---
+echo "🔄 Mise à jour de $base_branch..."
+git checkout "$base_branch"
+git pull --ff-only
+
+# --- Création de la branche ---
 echo "🌱 Création de la branche '$branch_name'..."
 git checkout -b "$branch_name"
+
+# --- Pousser la branche et configurer le suivi ---
 git push -u origin "$branch_name"
 
-# --- Création PR (via GitHub CLI) ---
-if command -v gh >/dev/null 2>&1; then
-  echo "🚀 Ouverture de la Pull Request..."
-  gh pr create \
-    --base "$base_branch" \
-    --head "$branch_name" \
-    --title "$branch_name" \
-    --body "Branche créée automatiquement le $today pour *$feature*" \
-    --assignee "$assignee" \
-    --label "$labels" \
-    --reviewer "$reviewers"
-else
-  echo "⚠️ GitHub CLI (gh) non installé, pas de PR automatique."
+# --- Vérification des labels existants sur GitHub ---
+valid_labels=""
+if [ -n "$labels" ]; then
+    IFS=',' read -ra all_labels <<< "$labels"
+    for l in "${all_labels[@]}"; do
+        if gh label list | grep -qx "$l"; then
+            valid_labels+="$l,"
+        else
+            echo "⚠️ Label '$l' n'existe pas, il sera ignoré."
+        fi
+    done
+    valid_labels=${valid_labels%,} # retire la dernière virgule
 fi
 
-echo "✅ Branche '$branch_name' créée, suivie et PR ouverte (si possible)."
+# --- Création de la PR ---
+echo "🚀 Création de la Pull Request..."
+cmd=(gh pr create --base "$base_branch" --head "$branch_name" --title "$branch_name" --body "Branche créée automatiquement le $today pour *$feature*" )
+[ -n "$assignee" ] && cmd+=(--assignee "$assignee")
+[ -n "$reviewers" ] && cmd+=(--reviewer "$reviewers")
+[ -n "$valid_labels" ] && cmd+=(--label "$valid_labels")
+
+"${cmd[@]}"
+
+echo "✅ Branche '$branch_name' créée et PR ouverte."
 
