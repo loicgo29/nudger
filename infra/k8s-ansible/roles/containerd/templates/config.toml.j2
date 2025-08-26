@@ -1,3 +1,9 @@
+# containerd config tailored for Kubernetes:
+# - systemd cgroups
+# - default CRI settings
+# If you need to tweak registries or mirrors, extend the [plugins."io.containerd.grpc.v1.cri".registry] section.
+
+
 disabled_plugins = []
 imports = []
 oom_score = 0

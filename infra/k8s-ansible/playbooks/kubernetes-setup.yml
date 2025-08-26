@@ -1,30 +1,32 @@
 ---
 - name: Configure Kubernetes Cluster
-  hosts: all
-  become: yes
-  vars:
-    ansible_python_interpreter: "/home/ansible/ansible_venv/bin/python3"
-    K8S_AUTH_KUBECONFIG: /etc/kubernetes/admin.conf
+  hosts: all   # ou un groupe 'k8s_all' si tu as masters+workers
+  become: true
 
-  vars_files:
-    - roles/common/vars/main.yml
-    - roles/docker/vars/main.yml
-    - roles/kubernetes/vars/main.yml
-    - roles/containerd/vars/main.yml
-    - meta/main.yml
+  # Environment for kubectl/k8s modules (fallback — les rôles mettent déjà KUBECONFIG quand nécessaire)
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
 
   pre_tasks:
-    - name: Disable swap (for all nodes)
-      import_tasks: disable_swap.yml
-      when: inventory_hostname in groups['k8s_masters'] or inventory_hostname in groups['k8s_workers']
+    # ---- Swap must be disabled before kubeadm ----
+    - name: Disable swap immediately (runtime)
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaptotal_mb | int > 0
+      changed_when: false
+
+    - name: Ensure swap is disabled on boot (comment fstab entries)
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^\s*([^#]\S+\s+\S+\s+swap\s+\S+.*)$'
+        replace: '# \1'
 
   roles:
-    - role: docker
-      tags: docker
-    - role: kubernetes
-      tags: kubernetes
-    - role: containerd
-      tags: containerd
-  environment:
-    K8S_AUTH_KUBECONFIG: /etc/kubernetes/admin.conf
+    - role: docker       # installe Docker CE (si tu l’utilises) — sinon supprime ce rôle
+      tags: [docker]
+
+    - role: kubernetes   # ajoute repo pkgs.k8s.io + kubeadm/kubelet/kubectl (pinned)
+      tags: [kubernetes]
+
+    - role: containerd   # installe containerd + init master + Flannel (auto-namespace)
+      tags: [containerd]
 
