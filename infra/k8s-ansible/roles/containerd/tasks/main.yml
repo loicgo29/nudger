@@ -3,7 +3,6 @@
 # initializes a single master (first host in group k8s_masters),
 # applies Flannel CNI, and configures kubeconfig for root + ansible user.
 
-# PRE-FLIGHT: kernel modules and sysctl
 # ----------------------------
 # System prep for Kubernetes
 # ----------------------------
@@ -57,6 +56,16 @@
     name: containerd
     state: present
     update_cache: true
+  become: true
+  tags: containerd
+
+- name: Ensure /etc/containerd dir exists
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
   become: true
   tags: containerd
 
@@ -132,15 +141,84 @@
     --pod-network-cidr={{ pod_network_cidr }}
     --control-plane-endpoint={{ hostvars[groups['k8s_masters'][0]].ansible_host }}
     --upload-certs
+    --skip-phases=addon/kube-proxy
   args:
     creates: "{{ kubeconfig_path }}"
+  environment:
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: "127.0.0.1,localhost,{{ ansible_host }},10.96.0.0/12,{{ pod_network_cidr }}"
   when:
     - inventory_hostname == groups['k8s_masters'][0]
     - not kubeadm_config.stat.exists
   register: kubeadm_init
-  notify: Save kubeconfig file (root)
+  notify: Save kubeconfig file
   become: true
   tags: init
+
+# --- Wait for API server to be ready before kube-proxy ---
+- name: Wait for API server port 6443 to be listening (local)
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: 6443
+    timeout: 180
+    delay: 5
+  when: inventory_hostname == groups['k8s_masters'][0]
+  become: true
+  tags: apiserver_wait
+
+- name: Wait for API server /readyz to return ok
+  ansible.builtin.command: kubectl get --raw=/readyz?verbose
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: "127.0.0.1,localhost,{{ ansible_host }},10.96.0.0/12,{{ pod_network_cidr }}"
+  register: apiready
+  changed_when: false
+  until: apiready.rc == 0 and ('ok' in apiready.stdout)
+  retries: 60
+  delay: 5
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: apiserver_wait
+
+# --- kube-proxy fix (run addon phase with proxies disabled) ---
+- name: Check if kube-proxy DaemonSet already exists
+  ansible.builtin.command: kubectl -n kube-system get ds kube-proxy -o name
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: kp_ds
+  changed_when: false
+  failed_when: false
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: kube_proxy
+
+- name: Run kubeadm init phase addon kube-proxy (proxies disabled)
+  ansible.builtin.command: kubeadm init phase addon kube-proxy --v=4
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: "127.0.0.1,localhost,{{ ansible_host }},10.96.0.0/12,{{ pod_network_cidr }}"
+  register: kp_phase
+  changed_when: "'applied' in kp_phase.stdout or 'created' in kp_phase.stdout"
+  when:
+    - inventory_hostname == groups['k8s_masters'][0]
+    - kp_ds.rc != 0 or (kp_ds.stdout | length) == 0
+  retries: 10
+  delay: 6
+  become: true
+  tags: kube_proxy
+
+- name: Wait for kube-proxy rollout to complete
+  ansible.builtin.command: kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: kp_rollout
+  changed_when: false
+  failed_when: kp_rollout.rc != 0
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: kube_proxy
 
 # ----------------------------
 # Kubeconfig for ansible user
@@ -188,6 +266,9 @@
     cmd: "kubectl apply -f {{ flannel_manifest_url }}"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: "127.0.0.1,localhost,{{ ansible_host }},10.96.0.0/12,{{ pod_network_cidr }}"
   register: flannel_apply
   changed_when: "'created' in flannel_apply.stdout or 'configured' in flannel_apply.stdout"
   become: true
@@ -200,6 +281,9 @@
     kubectl get ds -A -l app=flannel -o jsonpath='{.items[0].metadata.namespace}'
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: "127.0.0.1,localhost,{{ ansible_host }},10.96.0.0/12,{{ pod_network_cidr }}"
   register: flannel_ns_detect
   changed_when: false
   failed_when: flannel_ns_detect.rc != 0 or flannel_ns_detect.stdout | length == 0
@@ -213,6 +297,9 @@
     rollout status ds/kube-flannel-ds --timeout={{ flannel_wait_timeout }}
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: "127.0.0.1,localhost,{{ ansible_host }},10.96.0.0/12,{{ pod_network_cidr }}"
   register: flannel_rollout
   changed_when: false
   failed_when: flannel_rollout.rc != 0

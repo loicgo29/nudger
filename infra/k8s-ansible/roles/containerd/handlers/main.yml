@@ -7,7 +7,7 @@
   become: true
 
 # Writes root's kubeconfig for convenience after init
-- name: Save kubeconfig file (root)
+- name: Save kubeconfig file
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
     dest: /root/.kube/config
