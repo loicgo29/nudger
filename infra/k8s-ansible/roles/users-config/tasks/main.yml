@@ -27,12 +27,12 @@
     owner: root
     group: root
     mode: '0440'
+    validate: 'visudo -cf %s'
   loop: "{{ users_k8s }}"
   when: item.sudo_nopass | default(false)
   become: true
 
-# 4) Authorized keys (safer than copying private keys)
-# Ensure ~/.ssh exists for each user
+# 4) Authorized keys (no private keys copied)
 - name: Ensure ~/.ssh exists for each user
   ansible.builtin.file:
     path: "/home/{{ item.name }}/.ssh"
@@ -49,8 +49,6 @@
     user: "{{ item.0.name }}"
     key: "{{ item.1 }}"
     state: present
-    # Tip: set manage_dir: true if you don't run the mkdir task above
-    # manage_dir: true
   loop: "{{ users_k8s | subelements('ssh_public_keys', skip_missing=True) }}"
   loop_control:
     label: "{{ item.0.name }}"
@@ -67,7 +65,6 @@
   become: true
 
 # 5) Kubeconfig: copy existing OR render template
-#    Rationale: Some envs expose /etc/kubernetes/admin.conf; others prefer user-scoped config via template.
 - name: Ensure ~/.kube exists
   ansible.builtin.file:
     path: "/home/{{ item.name }}/.kube"
@@ -99,7 +96,7 @@
   vars:
     user_name: "{{ item.name }}"
   when: item.kubeconfig_template | default(false)
-  # Complexity note: we pass per-user user_name into the template; apiserver_host comes from defaults.
+
 - name: Ensure KUBECONFIG in .bashrc
   ansible.builtin.lineinfile:
     path: "/home/{{ item.name }}/.bashrc"
@@ -129,35 +126,7 @@
   loop: "{{ users_k8s }}"
   when: bash_aliases_enable | default(true)
 
-# 7) kubectx/kubens system-wide (once) + symlinks
-- name: Checkout kubectx repo (system-wide)
-  ansible.builtin.git:
-    repo: "https://github.com/ahmetb/kubectx.git"
-    dest: "{{ kubectx_checkout_dir }}"
-    version: master
-    update: yes
-  when: (install_kubectx or install_kubens)
-  become: true
-
-- name: Symlink kubectx into /usr/local/bin
-  ansible.builtin.file:
-    src: "{{ kubectx_checkout_dir }}/kubectx"
-    dest: "/usr/local/bin/kubectx"
-    state: link
-    force: true
-  when: install_kubectx | default(false)
-  become: true
-
-- name: Symlink kubens into /usr/local/bin
-  ansible.builtin.file:
-    src: "{{ kubectx_checkout_dir }}/kubens"
-    dest: "/usr/local/bin/kubens"
-    state: link
-    force: true
-  when: install_kubens | default(false)
-  become: true
-
-# 8) kubectl completion per user (only generates if not present)
+# 7) kubectl completion per user (only generates if not present)
 - name: Ensure bash-completion dir exists for each user
   ansible.builtin.file:
     path: "/home/{{ item.name }}/.local/share/bash-completion/completions"
@@ -179,62 +148,7 @@
   loop: "{{ users_k8s }}"
   when: kubectl_completion_enable | default(true)
 
-# 9) Per-user Git config (only when provided)
-- name: Configure per-user git user.name
-  ansible.builtin.git_config:
-    name: user.name
-    value: "{{ item.git.name }}"
-    scope: global
-  become: true
-  become_user: "{{ item.name }}"
-  loop: "{{ users_k8s }}"
-  when: item.git is defined and (item.git.name | default('')) | length > 0
-
-- name: Configure per-user git user.email
-  ansible.builtin.git_config:
-    name: user.email
-    value: "{{ item.git.email }}"
-    scope: global
-  become: true
-  become_user: "{{ item.name }}"
-  loop: "{{ users_k8s }}"
-  when: item.git is defined and (item.git.email | default('')) | length > 0
-
-# 10) Clone repos for each user
-# Use subelements to iterate (user, repo) pairs. No nested/duplicate loops.
-- name: Keep SSH_AUTH_SOCK when sudo (so agent forwarding survives)
-  ansible.builtin.copy:
-    dest: /etc/sudoers.d/keep-ssh-auth-sock
-    content: 'Defaults env_keep += "SSH_AUTH_SOCK"'
-    owner: root
-    group: root
-    mode: '0440'
-    validate: 'visudo -cf %s'
-  become: true
-
-- name: Ensure github.com is in known_hosts for each user
-  ansible.builtin.known_hosts:
-    path: "/home/{{ item.name }}/.ssh/known_hosts"
-    name: github.com
-    key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 github.com 2>/dev/null') }}"
-    state: present
-  loop: "{{ users_k8s }}"
-  become: true
-  become_user: "{{ item.name }}"
-
-- name: Clone repos for each user (HTTPS read-only)
-  ansible.builtin.git:
-    repo: "{{ item.1.repo | regex_replace('^git@github.com:', 'https://github.com/') }}"
-    dest: "/home/{{ item.0.name }}/{{ (item.1.dest | default('nudger')) | basename }}"
-    version: "{{ item.1.version | default('main') }}"
-    accept_hostkey: true
-  become: true
-  become_user: "{{ item.0.name }}"
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.repo }}"
-
-# 11) Create ~/bin and symlink common tools for each user
+# 8) Create ~/bin and symlink common tools for each user (optional convenience)
 - name: Ensure per-user ~/bin exists
   ansible.builtin.file:
     path: "/home/{{ item.name }}/bin"
@@ -244,14 +158,12 @@
     mode: '0755'
   loop: "{{ users_k8s }}"
 
-# We must check tool presence on the *remote* before linking.
-# Strategy: build (user, tool) pairs via product, stat each tool.src remotely,
-# then create the link only when the src exists.
+# If you keep this, it only links existing binaries (no git involved here)
 - name: Stat tool binaries on remote hosts (per user/tool pair)
   ansible.builtin.stat:
     path: "{{ item.1.src }}"
   register: tools_stat
-  loop: "{{ users_k8s | product(tools_symlinks) | list }}"
+  loop: "{{ users_k8s | product(tools_symlinks | default([])) | list }}"
   loop_control:
     label: "{{ item.0.name }} <- {{ item.1.name }}"
 
@@ -261,7 +173,7 @@
     dest: "/home/{{ item.item.0.name }}/bin/{{ item.item.1.name }}"
     state: link
     force: true
-  loop: "{{ tools_stat.results }}"
+  loop: "{{ tools_stat.results | default([]) }}"
   when: item.stat.exists
   loop_control:
     label: "{{ item.item.0.name }} <- {{ item.item.1.name }}"

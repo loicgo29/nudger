@@ -1,53 +1,41 @@
 ---
-# List of users to ensure on the host. Each entry can override options below.
-users_k8s:
-  - name: kubernetes-admin
-    groups: [sudo, docker]
-    # Hash produced by `mkpasswd --method=sha-512` (leave empty to not set)
-    password_hash: ""
-    ssh_public_keys: []           # e.g. ["ssh-ed25519 AAAA... user@host"]
-    sudo_nopass: false
-    # Kubeconfig handling:
-    kubeconfig_src: "/etc/kubernetes/admin.conf"  # copy from remote path if set
-    kubeconfig_template: false    # set true to render templates/kubeconfig.j2
-    # Optional per-user Git setup:
-    git:
-      name: ""
-      email: ""
-    # Repositories to clone for this user:
-    repos: []                     # e.g. [{repo: "git@github.com:org/app.git", dest: "~/app", version: "main"}]
+# roles/users-config/defaults/main.yml
+# Variables par défaut pour le rôle users-config (AUCUNE tâche ici).
 
-  - name: dev-loic
-    groups: [docker]
-    password_hash: ""
-    ssh_public_keys: []
-    sudo_nopass: true
-    kubeconfig_src: "/home/kubernetes-admin/.kube/config"
-    kubeconfig_template: false
-    git:
-      name: "LoGo"
-      email: "logo@gmail.com"
-    repos:
-      - { repo: "git@github.com:loicgo29/nudger.git", dest: "~/nudger", version: "main" }
+# Liste d’utilisateurs à gérer. Laisse vide par défaut.
+# Exemple (à mettre ailleurs: group_vars/host_vars/playbook vars) :
+# users_k8s:
+#   - name: kubernetes-admin
+#     groups: [sudo]
+#     ssh_public_keys:
+#       - "ssh-ed25519 AAAA... user@example"
+#     kubeconfig: /etc/kubernetes/admin.conf
+#   - name: dev-loic
+#     groups: [sudo]
+#     ssh_public_key: "ssh-ed25519 AAAA... user@example"
+#     kubeconfig: /etc/kubernetes/admin.conf
+users_k8s: []
 
-# Bash files
+# Activer le déploiement d’alias bash communs
+bash_aliases_enable: true
 bash_aliases_file: ".bash_aliases"
 bashrc_file: ".bashrc"
-bash_aliases_enable: true
 
-# kubectx/kubens installation (system-wide, symlinked to /usr/local/bin)
+# Complétion kubectl
+kubectl_completion_enable: true
+
+# kubectx / kubens (installation système depuis GitHub)
 install_kubectx: true
 install_kubens: true
 kubectx_checkout_dir: "/opt/kubectx"
 
-# Generate kubectl completion per user under ~/.local/share/...
-kubectl_completion_enable: true
+# Lien d’outils dans ~/bin (rempli si tu veux créer des symlinks)
+# Exemple :
+# tools_symlinks:
+#   - { name: "lazygit", src: "/opt/lazygit/lazygit" }
+#   - { name: "fzf",     src: "/opt/fzf/bin/fzf" }
+tools_symlinks: []
 
-# Tools to expose in each user's ~/bin via symlink (if present on system)
-tools_symlinks:
-  - { src: "/opt/lazygit/lazygit", name: "lazygit" }
-  - { src: "/opt/fzf/bin/fzf",     name: "fzf" }
-
-# API server host for kubeconfig template (used only if kubeconfig_template: true)
-apiserver_host: "{{ hostvars[groups['k8s_masters'][0]].ansible_host | default(ansible_host) }}"
+# Fallback kubeconfig si non précisé par utilisateur (utilisé par les tâches)
+kubeconfig_default_src: "/etc/kubernetes/admin.conf"
 

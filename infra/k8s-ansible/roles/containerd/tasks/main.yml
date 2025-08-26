@@ -69,6 +69,17 @@
   become: true
   tags: containerd
 
+- name: Write crictl.yaml pointing to containerd
+  copy:
+    dest: /etc/crictl.yaml
+    mode: '0644'
+    content: |
+      runtime-endpoint: unix:///var/run/containerd/containerd.sock
+      image-endpoint: unix:///var/run/containerd/containerd.sock
+      timeout: 10
+      debug: false
+  become: true
+
 - name: Deploy containerd config
   ansible.builtin.template:
     src: config.toml.j2
@@ -134,16 +145,17 @@
   register: kubeadm_config
   become: true
   tags: init
+- name: Render kubeadm config
+  template:
+    src: kubeadm-config.j2
+    dest: /root/kubeadm-config.yaml
+    mode: '0644'
+  when: inventory_hostname == groups['k8s_masters'][0]
+  become: true
 
-- name: Initialize Kubernetes control-plane (only first master)
-  ansible.builtin.command: >
-    kubeadm init
-    --pod-network-cidr={{ pod_network_cidr }}
-    --control-plane-endpoint={{ hostvars[groups['k8s_masters'][0]].ansible_host }}
-    --upload-certs
-    --skip-phases=addon/kube-proxy
-  args:
-    creates: "{{ kubeconfig_path }}"
+- name: Initialize control-plane (skip kube-proxy)
+  command: kubeadm init --config=/root/kubeadm-config.yaml --skip-phases=addon/kube-proxy
+  args: { creates: "{{ kubeconfig_path }}" }
   environment:
     HTTP_PROXY: ""
     HTTPS_PROXY: ""
@@ -151,10 +163,7 @@
   when:
     - inventory_hostname == groups['k8s_masters'][0]
     - not kubeadm_config.stat.exists
-  register: kubeadm_init
-  notify: Save kubeconfig file
   become: true
-  tags: init
 
 # --- Wait for API server to be ready before kube-proxy ---
 - name: Wait for API server port 6443 to be listening (local)
@@ -210,15 +219,33 @@
   become: true
   tags: kube_proxy
 
-- name: Wait for kube-proxy rollout to complete
-  ansible.builtin.command: kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  register: kp_rollout
+- name: Wait API /readyz
+  command: kubectl get --raw=/readyz
+  environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+  register: ready
+  until: ready.rc == 0 and ('ok' in ready.stdout)
+  retries: 30
+  delay: 2
   changed_when: false
-  failed_when: kp_rollout.rc != 0
   when: inventory_hostname == groups['k8s_masters'][0]
-  tags: kube_proxy
+  become: true
+
+- name: Ensure kube-proxy is installed
+  command: kubeadm init phase addon kube-proxy --config=/root/kubeadm-config.yaml
+  environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+  register: kp
+  until: kp.rc == 0
+  retries: 3
+  delay: 10
+  when: inventory_hostname == groups['k8s_masters'][0]
+  become: true
+
+- name: Wait kube-proxy rollout
+  command: kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
+  environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+  changed_when: false
+  when: inventory_hostname == groups['k8s_masters'][0]
+  become: true
 
 # ----------------------------
 # Kubeconfig for ansible user
@@ -306,4 +333,19 @@
   become: true
   when: inventory_hostname == groups['k8s_masters'][0]
   tags: flannel
+
+- name: Flush handlers now (may restart kubelet/containerd)
+  meta: flush_handlers
+
+- name: Wait for API server /readyz to be ok (post-handlers)
+  ansible.builtin.uri:
+    url: https://127.0.0.1:6443/readyz
+    method: GET
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: readyz
+  until: readyz.status == 200 and ('ok' in readyz.content)
+  retries: 60
+  delay: 2
 
