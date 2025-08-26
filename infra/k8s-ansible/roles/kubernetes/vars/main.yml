@@ -1,4 +1,5 @@
-# Docker
+---
+# Docker (optional if you also want Docker runtime)
 docker_dependencies:
   - apt-transport-https
   - ca-certificates
@@ -14,9 +15,15 @@ docker_packages:
   - containerd.io
 
 # Kubernetes
-kubernetes_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+# NOTE: pkgs.k8s.io repos are per-minor release. Adjust v1.28 accordingly.
+kubernetes_repo: >-
+  deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg]
+  https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /
+
 kubernetes_gpg_key: "https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key"
+
 kubernetes_packages:
   - kubelet
   - kubeadm
   - kubectl
+

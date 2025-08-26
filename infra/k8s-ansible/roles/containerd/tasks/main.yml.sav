@@ -1,0 +1,198 @@
+# --------------------
+# Containerd + Kubernetes + Flannel
+# --------------------
+
+# 0️⃣ Préparer le système pour kubeadm
+- name: Charger le module br_netfilter
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+  become: yes
+  tags: kube_prep
+
+- name: Activer bridge-nf-call-iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  become: yes
+  tags: kube_prep
+
+# 1️⃣ Installer containerd et CRI
+- name: Supprimer ancienne config containerd si présente
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+  become: yes
+  tags: containerd_install
+
+- name: Installer containerd et dépendances
+  apt:
+    name: containerd
+    state: present
+    update_cache: yes
+  become: yes
+  tags: containerd_install
+
+- name: Générer config containerd
+  template:
+    src: config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  tags: containerd_install
+
+- name: Redémarrer containerd
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+  become: yes
+  tags: containerd_install
+
+
+- name: Vérifier que CRI répond
+  command: ctr plugins ls
+  register: cri_plugins
+  changed_when: false
+  failed_when: "'io.containerd.grpc.v1.cri' in cri_plugins.stdout and 'error' in cri_plugins.stdout"
+  become: yes
+  tags: containerd_install
+  
+# 2️⃣ Initialiser Kubernetes
+- name: Vérifier si le cluster Kubernetes est déjà initialisé
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_config
+  become: yes
+  tags: kubernetes_init
+
+- name: Initialize Kubernetes cluster (master only)
+  ansible.builtin.command: >
+    kubeadm init
+    --pod-network-cidr={{ pod_network_cidr }}
+    --control-plane-endpoint={{ hostvars[groups['k8s_masters'][0]].ansible_host }}
+    --upload-certs
+  args:
+    creates: /etc/kubernetes/admin.conf
+  when:
+    - inventory_hostname == groups['k8s_masters'][0]
+    - not kubeadm_config.stat.exists
+  register: kubeadm_init
+  notify:
+    - Save kubeconfig file
+    - Configure kubectl
+  tags: kubernetes_init
+
+- name: Fetch kubeconfig from master
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: ~/.kube/config
+    flat: yes
+  when: inventory_hostname == groups['k8s_masters'][0]
+
+# 3️⃣ Appliquer Flannel CNI
+- name: Apply Flannel CNI manifest
+  ansible.builtin.command:
+    cmd: "kubectl apply -f {{ flannel_manifest_url }}"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: flannel_apply
+  changed_when: flannel_apply.rc == 0
+  tags: flannel
+
+- name: Wait for Flannel pods to be Running
+  ansible.builtin.shell: >
+    kubectl get pods -n {{ flannel_namespace }} -l {{ flannel_label_selector }} -o jsonpath='{.items[*].status.phase}' | grep -v Running || true
+  register: flannel_status
+  retries: "{{ flannel_wait_retries }}"
+  delay: "{{ flannel_wait_delay }}"
+  until: "'Pending' not in flannel_status.stdout and 'CrashLoopBackOff' not in flannel_status.stdout"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  changed_when: false
+  failed_when: false
+  tags: flannel
+
+# 4️⃣ Configurer kube-proxy RBAC après Flannel
+- name: Ensure kube-proxy ClusterRole exists
+  become: yes
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: system:node-proxier
+      rules:
+        - apiGroups: [""]
+          resources:
+            - endpoints
+            - services
+            - nodes
+          verbs: ["get", "list", "watch"]
+        - apiGroups: ["discovery.k8s.io"]
+          resources:
+            - endpointslices
+          verbs: ["get", "list", "watch"]
+        - apiGroups: ["events.k8s.io"]
+          resources:
+            - events
+          verbs: ["create", "patch", "update"]
+
+- name: Ensure kube-proxy ClusterRoleBinding exists
+  become: yes
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: system:kube-proxy
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: system:node-proxier
+      subjects:
+        - kind: ServiceAccount
+          name: kube-proxy
+          namespace: kube-system
+
+- name: Restart kube-proxy DaemonSet
+  become: yes
+  kubernetes.core.k8s:
+    state: patched
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: kube-proxy
+        namespace: kube-system
+
+- name: Create .kube directory in user home
+  file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    mode: '0700'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copier admin.conf pour ansible
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/{{ ansible_user }}/.kube/config
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+    remote_src: yes
+
+- name: Définir KUBECONFIG pour ansible
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: 'export KUBECONFIG=$HOME/.kube/config'
+    create: yes
+    state: present

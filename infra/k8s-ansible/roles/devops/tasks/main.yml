@@ -1,64 +1,23 @@
 ---
-- name: Définir les variables pour DevOps
-  set_fact:
-    ansible_venv: "/home/ansible/ansible_venv"
-    user_home: "/home/ansible"
-    bin_dir: "/home/ansible/bin"
-    requirements_file: "/home/ansible/nudger/infra/k8s-ansible/requirements.yml"
-  tags: always
+# Expect the calling play to set: become: true
+# Variables expected (can live in vars/defaults):
+# - ansible_venv
+# - user_home
+# - bin_dir
 
-- name: Ensure python3-venv is installed
+# ========== Base packages & user env ==========
+- name: Ensure python3-venv is installed (with retry)
   ansible.builtin.apt:
     name: python3-venv
     state: present
     update_cache: yes
+  register: apt_result
   retries: 5
   delay: 10
-  register: apt_result
   until: apt_result is succeeded
+  tags: [packages]
 
-- name: Vérifier si le virtualenv Ansible existe
-  stat:
-    path: "{{ ansible_venv }}/bin/activate"
-  register: venv_stat
-
-- name: Supprimer le venv si incomplet
-  file:
-    path: "{{ ansible_venv }}"
-    state: absent
-  when: not venv_stat.stat.exists
-
-- name: Créer le virtualenv Ansible
-  command: python3 -m venv "{{ ansible_venv }}"
-  when: not venv_stat.stat.exists
-
-- name: Mettre pip à jour dans le venv
-  pip:
-    name: pip
-    state: latest
-    virtualenv: "{{ ansible_venv }}"
-
-- name: Installer les paquets Python dans le venv
-  pip:
-    name:
-      - "ansible-core>=2.16,<2.18"
-      - ansible-lint
-      - openshift
-      - kubernetes
-      - pyyaml
-      - passlib
-    virtualenv: "{{ ansible_venv }}"
-
-- name: Mettre à jour la liste des paquets
-  ansible.builtin.apt:
-    update_cache: yes
-    cache_valid_time: 3600
-
-- name: Mettre à jour tous les paquets installés
-  ansible.builtin.apt:
-    upgrade: dist
-
-- name: Installer les paquets système
+- name: Install base system packages
   ansible.builtin.apt:
     name:
       - zsh
@@ -72,74 +31,170 @@
       - make
       - tar
       - gzip
-      - python3-venv
     state: present
+    update_cache: yes
+  tags: [packages]
 
-# --- fzf ---
-- name: Vérifier si fzf est déjà installé
-  stat:
-    path: "{{ user_home }}/.fzf"
-  register: fzf_stat
-
-- name: Cloner fzf
-  git:
-    repo: https://github.com/junegunn/fzf.git
-    dest: "{{ user_home }}/.fzf"
-    depth: 1
-  when: not fzf_stat.stat.exists
-
-- name: Lancer l’install de fzf
-  command: "{{ user_home }}/.fzf/install --all"
-  when: not fzf_stat.stat.exists
-
-# --- lazygit ---
-- name: Vérifier si lazygit est déjà installé
-  command: which lazygit
-  register: lazygit_check
-  failed_when: false
-  changed_when: false
-
-- name: Créer le répertoire bin_dir
-  file:
+- name: Ensure user bin directory exists
+  ansible.builtin.file:
     path: "{{ bin_dir }}"
     state: directory
     mode: '0755'
+    owner: "{{ ansible_user_id | default(lookup('env','USER')) }}"
+  tags: [user-env]
 
-- name: Récupérer la dernière version de lazygit
-  uri:
+# ========== Ansible virtualenv ==========
+# Rationale: we enforce idempotence with `creates:` and remove a broken venv if activate is missing.
+
+- name: Check if the Ansible virtualenv exists
+  ansible.builtin.stat:
+    path: "{{ ansible_venv }}/bin/activate"
+  register: venv_stat
+  tags: [venv]
+
+- name: Remove the venv if incomplete
+  ansible.builtin.file:
+    path: "{{ ansible_venv }}"
+    state: absent
+  when: not venv_stat.stat.exists
+  tags: [venv]
+
+- name: Create the Ansible virtualenv (idempotent via creates)
+  ansible.builtin.command: python3 -m venv "{{ ansible_venv }}"
+  args:
+    creates: "{{ ansible_venv }}/bin/activate"
+  tags: [venv]
+
+- name: Upgrade pip inside the venv
+  ansible.builtin.pip:
+    name: pip
+    state: latest
+    virtualenv: "{{ ansible_venv }}"
+    virtualenv_command: "python3 -m venv"
+  tags: [venv]
+
+- name: Install Python packages in the venv
+  ansible.builtin.pip:
+    name:
+      - "ansible-core>=2.16,<2.18"
+      - ansible-lint
+      - openshift
+      - kubernetes
+      - pyyaml
+      - passlib
+    virtualenv: "{{ ansible_venv }}"
+    virtualenv_command: "python3 -m venv"
+  tags: [venv]
+
+# ========== fzf (system install in /opt + user symlink) ==========
+# We keep fzf under /opt/fzf (root-owned), build binaries with ./install --bin, and expose to user via ~/bin symlink.
+# This avoids touching global PATH or user rc files unless you want key bindings.
+
+- name: Clone fzf into /opt/fzf
+  ansible.builtin.git:
+    repo: "https://github.com/junegunn/fzf.git"
+    dest: "/opt/fzf"
+    version: master
+    update: yes
+  tags: [fzf]
+
+- name: Build fzf binaries (idempotent with creates)
+  ansible.builtin.command: "./install --bin"
+  args:
+    chdir: "/opt/fzf"
+    creates: "/opt/fzf/bin/fzf"
+  tags: [fzf]
+
+- name: Symlink fzf into the user's bin
+  ansible.builtin.file:
+    src: /opt/fzf/bin/fzf
+    dest: "{{ bin_dir }}/fzf"
+    state: link
+    force: yes
+  tags: [fzf, user-env]
+
+# Optional: enable key bindings + completion for bash users.
+# NOTE: This touches the user's .bashrc; skip if you prefer a clean shell config.
+- name: Enable fzf key bindings and completion (bash)
+  ansible.builtin.lineinfile:
+    path: "{{ user_home }}/.bashrc"
+    regexp: 'fzf/shell/key-bindings\.bash'
+    line: 'source /opt/fzf/shell/key-bindings.bash && source /opt/fzf/shell/completion.bash'
+    insertafter: EOF
+    create: yes
+  tags: [fzf, user-env]
+
+# ========== lazygit ==========
+# Strategy:
+# 1) Detect existing binary under /opt/lazygit to avoid rework.
+# 2) Query GitHub Releases API for latest version (rate-limited if unauthenticated).
+# 3) Download, unarchive, and symlink into user's bin.
+# Tips:
+# - For CI, pass a GitHub token via `github_token` to avoid rate limits.
+# - Pin a specific version by setting lazygit_version and skipping the API call.
+
+- name: Check if lazygit is already present
+  ansible.builtin.stat:
+    path: /opt/lazygit/lazygit
+  register: lazygit_binary
+  tags: [lazygit]
+
+- name: Fetch latest lazygit release metadata from GitHub
+  ansible.builtin.uri:
     url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
     return_content: yes
+    headers:
+      Accept: application/vnd.github+json
+      Authorization: "{{ ('Bearer ' ~ github_token) if (github_token | default('') | length) > 0 else omit }}"
   register: lazygit_release
-  when: lazygit_check.rc != 0
+  when: not lazygit_binary.stat.exists and (lazygit_version | default('') == '')
+  tags: [lazygit]
 
-- name: Extraire la version lazygit
-  set_fact:
-    lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
-  when: lazygit_check.rc != 0
+- name: Set lazygit_version from API response
+  ansible.builtin.set_fact:
+    lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v','') }}"
+  when: not lazygit_binary.stat.exists and (lazygit_version | default('') == '')
+  tags: [lazygit]
 
-- name: Télécharger lazygit
-  get_url:
-    url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
-    dest: "{{ bin_dir }}/lazygit.tar.gz"
-  when: lazygit_check.rc != 0
+- name: Ensure /opt/lazygit exists
+  ansible.builtin.file:
+    path: /opt/lazygit
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  when: not lazygit_binary.stat.exists
+  tags: [lazygit]
 
-- name: Décompresser lazygit
-  unarchive:
-    src: "{{ bin_dir }}/lazygit.tar.gz"
-    dest: "{{ bin_dir }}"
+- name: Download lazygit {{ lazygit_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    dest: /opt/lazygit/lazygit.tar.gz
+    mode: '0644'
+  when: not lazygit_binary.stat.exists
+  tags: [lazygit]
+
+- name: Unarchive lazygit (creates the binary)
+  ansible.builtin.unarchive:
+    src: /opt/lazygit/lazygit.tar.gz
+    dest: /opt/lazygit
     remote_src: yes
-  when: lazygit_check.rc != 0
+    creates: /opt/lazygit/lazygit
+  when: not lazygit_binary.stat.exists
+  tags: [lazygit]
 
-- name: Nettoyer archive lazygit
-  file:
-    path: "{{ bin_dir }}/lazygit.tar.gz"
+- name: Remove lazygit tarball
+  ansible.builtin.file:
+    path: /opt/lazygit/lazygit.tar.gz
     state: absent
-  when: lazygit_check.rc != 0
+  when: not lazygit_binary.stat.exists
+  tags: [lazygit]
 
-- name: Ajouter ~/bin au PATH si absent
-  lineinfile:
-    path: "{{ user_home }}/.bashrc"
-    regexp: '^export PATH=.*\$HOME/bin'
-    line: 'export PATH=$HOME/bin:$PATH'
-    insertafter: EOF
+- name: Symlink lazygit into the user's bin
+  ansible.builtin.file:
+    src: /opt/lazygit/lazygit
+    dest: "{{ bin_dir }}/lazygit"
+    state: link
+    force: yes
+  tags: [lazygit, user-env]
 

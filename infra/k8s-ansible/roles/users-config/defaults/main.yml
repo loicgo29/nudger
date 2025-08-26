@@ -1,18 +1,53 @@
-# Rôle users-config: variables par défaut
-
-# Liste des utilisateurs à créer
+---
+# List of users to ensure on the host. Each entry can override options below.
 users_k8s:
   - name: kubernetes-admin
     groups: [sudo, docker]
-    kubeconfig: /etc/kubernetes/admin.conf
+    # Hash produced by `mkpasswd --method=sha-512` (leave empty to not set)
+    password_hash: ""
+    ssh_public_keys: []           # e.g. ["ssh-ed25519 AAAA... user@host"]
+    sudo_nopass: false
+    # Kubeconfig handling:
+    kubeconfig_src: "/etc/kubernetes/admin.conf"  # copy from remote path if set
+    kubeconfig_template: false    # set true to render templates/kubeconfig.j2
+    # Optional per-user Git setup:
+    git:
+      name: ""
+      email: ""
+    # Repositories to clone for this user:
+    repos: []                     # e.g. [{repo: "git@github.com:org/app.git", dest: "~/app", version: "main"}]
 
   - name: dev-loic
     groups: [docker]
-    kubeconfig: /home/kubernetes-admin/.kube/config   # ou un config spécifique si tu veux
+    password_hash: ""
+    ssh_public_keys: []
+    sudo_nopass: true
+    kubeconfig_src: "/home/kubernetes-admin/.kube/config"
+    kubeconfig_template: false
+    git:
+      name: "LoGo"
+      email: "logo@gmail.com"
+    repos:
+      - { repo: "git@github.com:loicgo29/nudger.git", dest: "~/nudger", version: "main" }
 
-# Répertoire des binaires ou alias
+# Bash files
 bash_aliases_file: ".bash_aliases"
 bashrc_file: ".bashrc"
+bash_aliases_enable: true
+
+# kubectx/kubens installation (system-wide, symlinked to /usr/local/bin)
 install_kubectx: true
 install_kubens: true
+kubectx_checkout_dir: "/opt/kubectx"
+
+# Generate kubectl completion per user under ~/.local/share/...
+kubectl_completion_enable: true
+
+# Tools to expose in each user's ~/bin via symlink (if present on system)
+tools_symlinks:
+  - { src: "/opt/lazygit/lazygit", name: "lazygit" }
+  - { src: "/opt/fzf/bin/fzf",     name: "fzf" }
+
+# API server host for kubeconfig template (used only if kubeconfig_template: true)
+apiserver_host: "{{ hostvars[groups['k8s_masters'][0]].ansible_host | default(ansible_host) }}"
 
