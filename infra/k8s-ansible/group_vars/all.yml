@@ -1,0 +1,16 @@
+k8s_version: "v1.28.15"
+pod_network_cidr: "10.244.0.0/16"
+kubeconfig_path: "/etc/kubernetes/admin.conf"
+flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+flannel_wait_timeout: "5m"
+
+# Kubectx/kubens
+install_kubectx: true
+install_kubens: true
+kubectx_checkout_dir: "/opt/kubectx"
+
+# Users-config
+bash_aliases_enable: true
+kubectl_completion_enable: true
+users_clone_repos: false   # active-le plus tard quand SSH est OK
+
