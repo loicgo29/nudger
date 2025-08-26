@@ -1,0 +1,17 @@
+# VCS / IDE / caches
+**/.git/**            # repo Git
+**/.github/**         # CI
+**/.idea/** **/.vscode/** **/.DS_Store
+**/__pycache__/** *.retry *.log
+
+# Environnements / artefacts
+**/.venv/** ansible_venv/** collections/**  # venv & collections
+**/.terraform/** **/.kube/**                # hors-sujet
+*.tar.gz *.zip
+
+# Clés & secrets (adapté)
+**/id_*  **/*.pem **/*.key **/*.age
+vault_pass.txt
+group_vars/*/vault.yml
+host_vars/*/vault.yml
+**/secrets*.yml  **/*vault*.yml

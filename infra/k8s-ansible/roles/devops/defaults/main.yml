@@ -1,0 +1,23 @@
+---
+# Defaults are the lowest-precedence vars: easy to override in inventory,
+# group_vars/host_vars, or with -e on the CLI.
+
+# User-scoped paths; tweak per host if needed.
+user_home: "{{ ansible_env.HOME }}"
+bin_dir: "{{ user_home }}/bin"
+
+# Virtualenv for Ansible tooling.
+ansible_venv: "{{ user_home }}/ansible_venv"
+
+# Kept for future use (galaxy/collections pinning). Not used by tasks yet.
+requirements_file: "{{ user_home }}/nudger/infra/k8s-ansible/requirements.yml"
+
+# Lazygit version handling:
+# - Leave empty to fetch "latest" from GitHub Releases API (may hit rate limits).
+# - Set a version string (e.g., "0.43.1") to pin and skip the API call.
+lazygit_version: ""
+
+# Optional GitHub token to avoid API rate limits (empty by default).
+# If you provide it, the URI task can add an Authorization header.
+github_token: ""
+
