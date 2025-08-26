@@ -32,6 +32,7 @@
   become: true
 
 # 4) Authorized keys (safer than copying private keys)
+# Ensure ~/.ssh exists for each user
 - name: Ensure ~/.ssh exists for each user
   ansible.builtin.file:
     path: "/home/{{ item.name }}/.ssh"
@@ -40,15 +41,30 @@
     group: "{{ item.name }}"
     mode: '0700'
   loop: "{{ users_k8s }}"
+  become: true
 
-- name: Add SSH authorized keys for each user
+# List of keys (ssh_public_keys: [])
+- name: Add SSH authorized keys (list)
   ansible.builtin.authorized_key:
     user: "{{ item.0.name }}"
     key: "{{ item.1 }}"
     state: present
+    # Tip: set manage_dir: true if you don't run the mkdir task above
+    # manage_dir: true
   loop: "{{ users_k8s | subelements('ssh_public_keys', skip_missing=True) }}"
   loop_control:
     label: "{{ item.0.name }}"
+  become: true
+
+# Single key (ssh_public_key: "ssh-ed25519 ...")
+- name: Add SSH authorized key (single)
+  ansible.builtin.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_public_key }}"
+    state: present
+  loop: "{{ users_k8s }}"
+  when: item.ssh_public_key is defined and (item.ssh_public_key | length) > 0
+  become: true
 
 # 5) Kubeconfig: copy existing OR render template
 #    Rationale: Some envs expose /etc/kubernetes/admin.conf; others prefer user-scoped config via template.
@@ -61,16 +77,16 @@
     mode: '0700'
   loop: "{{ users_k8s }}"
 
-- name: Copy kubeconfig from remote path when provided
+- name: Copy kubeconfig when provided (kubeconfig or kubeconfig_src)
   ansible.builtin.copy:
-    src: "{{ item.kubeconfig_src }}"
+    src: "{{ item.kubeconfig_src | default(item.kubeconfig) }}"
     dest: "/home/{{ item.name }}/.kube/config"
     owner: "{{ item.name }}"
     group: "{{ item.name }}"
     mode: '0600'
     remote_src: true
   loop: "{{ users_k8s }}"
-  when: item.kubeconfig_src is defined and item.kubeconfig_src | length > 0
+  when: (item.kubeconfig_src | default(item.kubeconfig | default(''))) | length > 0
 
 - name: Render kubeconfig from template when requested
   ansible.builtin.template:
@@ -84,6 +100,13 @@
     user_name: "{{ item.name }}"
   when: item.kubeconfig_template | default(false)
   # Complexity note: we pass per-user user_name into the template; apiserver_host comes from defaults.
+- name: Ensure KUBECONFIG in .bashrc
+  ansible.builtin.lineinfile:
+    path: "/home/{{ item.name }}/.bashrc"
+    regexp: '^\s*export KUBECONFIG='
+    line: 'export KUBECONFIG=$HOME/.kube/config'
+    create: true
+  loop: "{{ users_k8s }}"
 
 # 6) Bash aliases: deploy and ensure sourced in .bashrc
 - name: Deploy bash aliases file
@@ -179,15 +202,35 @@
 
 # 10) Clone repos for each user
 # Use subelements to iterate (user, repo) pairs. No nested/duplicate loops.
-- name: Clone repos for each user
+- name: Keep SSH_AUTH_SOCK when sudo (so agent forwarding survives)
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/keep-ssh-auth-sock
+    content: 'Defaults env_keep += "SSH_AUTH_SOCK"'
+    owner: root
+    group: root
+    mode: '0440'
+    validate: 'visudo -cf %s'
+  become: true
+
+- name: Ensure github.com is in known_hosts for each user
+  ansible.builtin.known_hosts:
+    path: "/home/{{ item.name }}/.ssh/known_hosts"
+    name: github.com
+    key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 github.com 2>/dev/null') }}"
+    state: present
+  loop: "{{ users_k8s }}"
+  become: true
+  become_user: "{{ item.name }}"
+
+- name: Clone repos for each user (HTTPS read-only)
   ansible.builtin.git:
-    repo: "{{ item.1.repo }}"
-    dest: "{{ (item.1.dest | default('~/repo')) | regex_replace('^~', '/home/' ~ item.0.name) }}"
+    repo: "{{ item.1.repo | regex_replace('^git@github.com:', 'https://github.com/') }}"
+    dest: "/home/{{ item.0.name }}/{{ (item.1.dest | default('nudger')) | basename }}"
     version: "{{ item.1.version | default('main') }}"
     accept_hostkey: true
   become: true
   become_user: "{{ item.0.name }}"
-  loop: "{{ users_k8s | subelements('repos', skip_missing=True) }}"
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
   loop_control:
     label: "{{ item.0.name }} -> {{ item.1.repo }}"
 
