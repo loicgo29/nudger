@@ -83,83 +83,60 @@
     group: "{{ ansible_user_gid }}"
 
 # --- fzf ---
+- name: Cloner fzf
+  ansible.builtin.git:
+    repo: "https://github.com/junegunn/fzf.git"
+    dest: "/opt/fzf"
+    version: master
+    update: yes
 
-- name: Vérifier si fzf existe déjà dans ~/bin
-  stat:
-    path: "{{ user_home }}/bin/fzf"
-  register: fzf_check
-
-- name: Cloner fzf si nécessaire
-  git:
-    repo: https://github.com/junegunn/fzf.git
-    dest: "{{ user_home }}/.fzf"
-    depth: 1
-  when: not fzf_check.stat.exists
-
-- name: Installer fzf
-  command: "{{ user_home }}/.fzf/install --all"
+- name: Lancer l’installation des scripts
+  ansible.builtin.command: "./install --bin"
   args:
-    chdir: "{{ user_home }}/.fzf"
-  when: not fzf_check.stat.exists
+    chdir: "/opt/fzf"
 
-- name: Vérifier que le binaire fzf existe après installation
+# --- lazygit ---
+- name: Vérifier si lazygit est déjà présent dans /opt/lazygit
   stat:
-    path: "{{ user_home }}/.fzf/bin/fzf"
-  register: fzf_bin
-
-- name: Créer lien symbolique vers fzf dans ~/bin
-  file:
-    src: "{{ user_home }}/.fzf/bin/fzf"
-    dest: "{{ user_home }}/bin/fzf"
-    state: link
-    force: yes
-  when: fzf_bin.stat.exists
-
-  # --- lazygit ---
-- name: Vérifier si lazygit est installé et fonctionnel
-  command: "{{ ansible_env.HOME }}/bin/lazygit --version"
-  register: lazygit_check
-  ignore_errors: yes
-
-- name: Supprimer le dossier lazygit s'il existe à la place du binaire
-  file:
-    path: "{{ ansible_env.HOME }}/bin/lazygit"
-    state: absent
-  when: lazygit_check.rc != 0
-
-- name: Vérifier si lazygit existe déjà
-  stat:
-    path: "/home/dev-loic/bin/lazygit"
-  register: lazygit_path
+    path: /opt/lazygit/lazygit
+  register: lazygit_binary
 
 - name: Récupérer la dernière version de lazygit
   uri:
     url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
     return_content: yes
   register: lazygit_release
-  when: not lazygit_path.stat.exists
+  when: not lazygit_binary.stat.exists
 
-- name: Extraire la version lazygit
+- name: Définir la version lazygit
   set_fact:
-    lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
-  when: not lazygit_path.stat.exists
+    lazygit_version: "{{ (lazygit_release.json.tag_name | regex_replace('^v', '')) }}"
+  when: not lazygit_binary.stat.exists
+
+- name: Créer le répertoire /opt/lazygit
+  file:
+    path: /opt/lazygit
+    state: directory
+    mode: '0755'
+  when: not lazygit_binary.stat.exists
 
 - name: Télécharger lazygit
   get_url:
-    url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
-    dest: "/home/dev-loic/bin/lazygit.tar.gz"
-  when: not lazygit_path.stat.exists
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    dest: /opt/lazygit/lazygit.tar.gz
+    mode: '0644'
+  when: not lazygit_binary.stat.exists
 
-- name: Décompresser lazygit dans ~/bin
+- name: Extraire lazygit
   unarchive:
-    src: "/home/dev-loic/bin/lazygit.tar.gz"
-    dest: "/home/dev-loic/bin"
+    src: /opt/lazygit/lazygit.tar.gz
+    dest: /opt/lazygit
     remote_src: yes
-  when: not lazygit_path.stat.exists
+  when: not lazygit_binary.stat.exists
 
-- name: Nettoyer archive lazygit
+- name: Supprimer l’archive lazygit
   file:
-    path: "/home/dev-loic/bin/lazygit.tar.gz"
+    path: /opt/lazygit/lazygit.tar.gz
     state: absent
-  when: not lazygit_path.stat.exists
+  when: not lazygit_binary.stat.exists
 
