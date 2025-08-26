@@ -334,3 +334,18 @@
   when: inventory_hostname == groups['k8s_masters'][0]
   tags: flannel
 
+- name: Flush handlers now (may restart kubelet/containerd)
+  meta: flush_handlers
+
+- name: Wait for API server /readyz to be ok (post-handlers)
+  ansible.builtin.uri:
+    url: https://127.0.0.1:6443/readyz
+    method: GET
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: readyz
+  until: readyz.status == 200 and ('ok' in readyz.content)
+  retries: 60
+  delay: 2
+
