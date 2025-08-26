@@ -1,68 +1,75 @@
 ---
-- name: Include common variables
-  include_vars: "{{ role_path }}/../common/vars/main.yml"
-  tags: always
+# ----------------------------
+# Install Docker Engine (from Docker CE upstream repos)
+# ----------------------------
 
-- name: Ensure keyrings directory exists
-  file:
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
     mode: '0755'
-  become: yes
+  become: true
+  tags: ['docker', 'repo']
 
-- name: Download Docker GPG key (ASCII)
-  get_url:
-    url: "https://download.docker.com/linux/ubuntu/gpg"
-    dest: /tmp/docker-archive-keyring.asc
+# Fetch Docker's official GPG key
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: "{{ docker_gpg_url }}"
+    dest: /tmp/docker.gpg.asc
     mode: '0644'
-  become: yes
+  become: true
+  tags: ['docker', 'repo']
 
-- name: Convert GPG key to binary format
-  command: "gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker-archive-keyring.asc"
+# Convert ASCII armored GPG key to binary keyring
+- name: Convert Docker GPG key to keyring format
+  ansible.builtin.command: >
+    gpg --dearmor -o {{ docker_gpg_path }} /tmp/docker.gpg.asc
   args:
-    creates: /etc/apt/keyrings/docker.gpg
-  become: yes
+    creates: "{{ docker_gpg_path }}"
+  become: true
+  tags: ['docker', 'repo']
 
-- name: Remove temporary ASCII GPG key
-  file:
-    path: /tmp/docker-archive-keyring.asc
+- name: Remove temporary Docker ASCII key
+  ansible.builtin.file:
+    path: /tmp/docker.gpg.asc
     state: absent
-  become: yes
+  become: true
+  tags: ['docker', 'repo']
 
-- name: Add Docker repository
-  apt_repository:
+# Add Docker apt repo
+- name: Add Docker APT repository
+  ansible.builtin.apt_repository:
     repo: "{{ docker_repo }}"
-    state: present
     filename: docker
-    update_cache: yes
-  become: yes
-
-- name: Install apt dependencies
-  apt:
-    name: "{{ ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg'] + common_dependencies }}"
     state: present
-    cache_valid_time: 36000
-  become: yes
+    update_cache: true
+  become: true
+  tags: ['docker', 'repo']
+
+# Install required apt dependencies (curl, gnupg, etc.)
+- name: Install Docker dependencies
+  ansible.builtin.apt:
+    name: "{{ docker_dependencies }}"
+    state: present
+    update_cache: true
+  become: true
+  tags: ['docker', 'packages']
 
 - name: Install Docker packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ docker_packages }}"
     state: present
-  become: yes
+    update_cache: true
+  become: true
+  notify: Restart docker
+  tags: ['docker', 'packages']
 
-- name: Ensure Docker service is running and enabled
-  service:
+# Ensure docker service is enabled and started
+- name: Ensure Docker service is running
+  ansible.builtin.service:
     name: docker
     state: started
-    enabled: yes
-  retries: 3
-  delay: 5
-  become: yes
-
-- name: Add user to docker group
-  user:
-    name: "{{ ansible_user }}"
-    groups: docker
-    append: yes
-  become: yes
+    enabled: true
+  become: true
+  tags: ['docker', 'service']
 

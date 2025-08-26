@@ -1,26 +1,19 @@
 ---
-# roles/containerd/handlers/main.yml
-- name: Reload systemd
-  ansible.builtin.systemd:
-    daemon_reload: yes
 - name: Restart containerd
-  service:
+  ansible.builtin.systemd:
     name: containerd
     state: restarted
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true
 
-- name: Save kubeconfig file
-  become: yes
-  copy:
+# Writes root's kubeconfig for convenience after init
+- name: Save kubeconfig file (root)
+  ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
     dest: /root/.kube/config
-    remote_src: yes
+    remote_src: true
     owner: root
     group: root
     mode: '0600'
-
-- name: Configure kubectl
-  become: yes
-  command: kubectl config set-context --current --namespace=default
+  become: true
 

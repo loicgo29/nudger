@@ -1,75 +1,98 @@
 ---
-- name: Include common vars
-  include_vars:
-    file: ../../common/vars/main.yml
+# ----------------------------
+# Kubernetes APT repo + packages
+# ----------------------------
 
+# Best practice: avoid include_vars with relative paths; keep role-scoped defaults
+# that can be overridden via group_vars/host_vars or -e on CLI.
 
-- name: Ensure keyring directory exists
-  file:
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
     mode: '0755'
-  become: yes
+  become: true
+  tags: ['k8s', 'repo']
 
-
-- name: Download Kubernetes GPG key (ASCII)
-  get_url:
-    url: "{{ kubernetes_gpg_key }}"
-    dest: /tmp/kubernetes-archive-keyring.asc
+# Download upstream ASCII armored Release key.
+- name: Download Kubernetes Release key (ASCII)
+  ansible.builtin.get_url:
+    url: "{{ kubernetes_gpg_key_url }}"
+    dest: /tmp/kubernetes-release.asc
     mode: '0644'
-  become: yes
+  become: true
+  tags: ['k8s', 'repo']
 
-- name: Install common dependencies
-  apt:
-    name: "{{ common_dependencies }}"
-    state: present
-    update_cache: yes
-  become: yes
-
-- name: Convert GPG key to binary keyring format
-  command: "gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg /tmp/kubernetes-archive-keyring.asc"
+# Convert to a binary keyring that apt can use.
+# Idempotence: guarded by creates= on the destination keyring file.
+- name: Convert Release key to binary keyring
+  ansible.builtin.command: >
+    gpg --dearmor -o {{ kubernetes_keyring_path }} /tmp/kubernetes-release.asc
   args:
-    creates: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-  become: yes
+    creates: "{{ kubernetes_keyring_path }}"
+  become: true
+  tags: ['k8s', 'repo']
 
-- name: Remove temporary ASCII GPG key
-  file:
-    path: /tmp/kubernetes-archive-keyring.asc
+- name: Remove temporary ASCII key
+  ansible.builtin.file:
+    path: /tmp/kubernetes-release.asc
     state: absent
-  become: yes
+  become: true
+  tags: ['k8s', 'repo']
 
-- name: Remove old Kubernetes repo file if exists
-  file:
+# Clean up legacy list if it exists (older guides used kubernetes.list).
+- name: Remove legacy kubernetes.list if present
+  ansible.builtin.file:
     path: /etc/apt/sources.list.d/kubernetes.list
     state: absent
-  become: yes
+  become: true
+  tags: ['k8s', 'repo']
 
-- name: Add Kubernetes repository
+# Add the per-minor pkgs.k8s.io repository with our keyring.
+- name: Add Kubernetes APT repository (pkgs.k8s.io)
   ansible.builtin.apt_repository:
     repo: "{{ kubernetes_repo }}"
-    state: present
     filename: kubernetes
-    update_cache: yes
-  become: yes
+    state: present
+    update_cache: true
+  become: true
+  tags: ['k8s', 'repo']
 
+# Keep “common” apt prerequisites near where they are used for clarity.
+- name: Install common APT dependencies
+  ansible.builtin.apt:
+    name: "{{ common_apt_dependencies }}"
+    state: present
+    update_cache: true
+  become: true
+  tags: ['k8s', 'packages']
+
+# Install kubelet/kubeadm/kubectl from the pinned minor repo.
 - name: Install Kubernetes packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ kubernetes_packages }}"
     state: present
-    update_cache: yes
-  become: yes
+    update_cache: true
+  become: true
+  notify: Restart kubelet
+  tags: ['k8s', 'packages']
 
-- name: Hold packages at specific version
-  dpkg_selections:
+# Holding versions is important: kubeadm/kubelet/kubectl must match.
+# This avoids inadvertent upgrades when the repo moves forward.
+- name: Hold Kubernetes packages at installed version
+  ansible.builtin.dpkg_selections:
     name: "{{ item }}"
     selection: hold
   loop: "{{ kubernetes_packages }}"
-  become: yes
+  become: true
+  tags: ['k8s', 'packages']
 
-- name: Ensure kubelet is running
-  service:
+# Ensure kubelet is enabled/running (kubeadm will further configure it later).
+- name: Ensure kubelet service is enabled and running
+  ansible.builtin.service:
     name: kubelet
     state: started
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true
+  tags: ['k8s', 'service']
 
