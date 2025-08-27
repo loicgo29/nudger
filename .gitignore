@@ -2,3 +2,4 @@
 .vagrant/
 .DS_Store
 nudger-infra/k8s-ansible/collections/ansible_collections
+infra/k8s-ansible/playbooks/artifacts/
