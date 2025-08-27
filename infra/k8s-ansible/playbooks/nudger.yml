@@ -8,6 +8,9 @@
 - name: Setup Kubernetes & Containerd
   import_playbook: kubernetes-setup.yml
 
+- name: Setup Vault
+  import_playbook: vault-setup.yml
+
 - name: Setup Users
   import_playbook: setup-k8s-users.yml
 
