@@ -178,3 +178,113 @@
   loop_control:
     label: "{{ item.item.0.name }} <- {{ item.item.1.name }}"
 
+# 9) Git: cloner / mettre à jour les dépôts déclarés par utilisateur
+- name: Installer git (si absent)
+  ansible.builtin.package:
+    name: git
+    state: present
+  become: true
+
+# Option: durcir la vérif d'hôte (préférable si host_key_checking=True)
+- name: Ajouter github.com au known_hosts de chaque user
+  ansible.builtin.known_hosts:
+    path: "/home/{{ item.name }}/.ssh/known_hosts"
+    name: "github.com"
+    key: "github.com {{ lookup('ansible.builtin.pipe', 'ssh-keyscan -t rsa,ed25519 github.com') }}"
+    state: present
+  loop: "{{ users_k8s }}"
+  become: true
+  become_user: "{{ item.name }}"
+  when: (git_known_hosts_enable | default(true))
+
+# Option: durcir la vérif d'hôte (préférable si host_key_checking=True)
+- name: Ajouter github.com au known_hosts de chaque user
+  ansible.builtin.known_hosts:
+    path: "/home/{{ item.name }}/.ssh/known_hosts"
+    name: "github.com"
+    key: "github.com {{ lookup('ansible.builtin.pipe', 'ssh-keyscan -t rsa,ed25519 github.com') }}"
+    state: present
+  loop: "{{ users_k8s }}"
+  become: true
+  become_user: "{{ item.name }}"
+  when: (git_known_hosts_enable | default(true))
+
+# --- Preflight : vérifier que le fichier Vault du rôle existe ---
+- name: "[preflight] Verify vaulted key exists in role files"
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/id_deploy_nudger"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  register: vaulted_key_stat
+
+- name: "[preflight] Fail early if vaulted key missing"
+  ansible.builtin.fail:
+    msg: "roles/users-config/files/id_deploy_nudger introuvable ou mal placé."
+  when: not vaulted_key_stat.stat.exists
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+# --- Déployer la clé privée depuis le fichier Vault du rôle ---
+- name: Install per-user deploy key for GitHub (from vaulted file)
+  ansible.builtin.copy:
+    src: "id_deploy_nudger"                 # vient de roles/users-config/files/
+    dest: "/home/{{ item.name }}/.ssh/id_deploy_nudger"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0600'
+    decrypt: yes
+  loop: "{{ users_k8s }}"
+  become: true
+  # no_log: true   # remet-le après debug
+  when: item.git_repos is defined and item.git_repos | length > 0
+# Déployer la clé privée depuis le fichier vaulté du rôle
+- name: Install per-user deploy key for GitHub (from vaulted file)
+  ansible.builtin.copy:
+    src: "id_deploy_nudger"            # pris depuis roles/users-config/files/
+    dest: "/home/{{ item.name }}/.ssh/id_deploy_nudger"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0600'
+    decrypt: yes                       # déchiffre le fichier Vault
+  loop: "{{ users_k8s }}"
+  become: true
+  no_log: true
+  when: item.git_repos is defined and item.git_repos | length > 0
+
+# Créer les répertoires cible des dépôts
+- name: Créer le répertoire destination pour chaque dépôt
+  ansible.builtin.file:
+    path: "{{ item.1.dest }}"
+    state: directory
+    owner: "{{ item.0.name }}"
+    group: "{{ item.0.name }}"
+    mode: "0755"
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.0.name }} -> {{ item.1.dest }}"
+  become: true
+
+# Clone/update via clé dédiée (plus d'agent)
+- name: Cloner / mettre à jour les dépôts via SSH (clé dédiée)
+  ansible.builtin.git:
+    repo: "{{ item.1.repo }}"
+    dest: "{{ item.1.dest }}"
+    version: "{{ item.1.version | default('main') }}"
+    update: true
+    force: false
+    depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
+    recursive: "{{ item.1.submodules | default(true) }}"
+    track_submodules: "{{ item.1.submodules | default(true) }}"
+    key_file: "/home/{{ item.0.name }}/.ssh/id_deploy_nudger"
+    accept_newhostkey: true
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.0.name }} <- {{ item.1.repo }}"
+  become: true
+  become_user: "{{ item.0.name }}"
+  when:
+    - item.1.repo is defined
+    - item.1.dest is defined
+
