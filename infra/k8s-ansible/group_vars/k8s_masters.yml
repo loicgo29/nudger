@@ -17,7 +17,6 @@ users_k8s:
       - repo: git@github.com:loicgo29/nudger.git
         dest: /home/dev-loic/nudger
 
-
 ansible_python_interpreter: /usr/bin/python3
 docker_manage_daemon: false
 

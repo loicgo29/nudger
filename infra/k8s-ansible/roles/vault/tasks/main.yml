@@ -219,4 +219,3 @@
   file:
     path: /tmp/kv2_enabled.flag
     state: touch
-
