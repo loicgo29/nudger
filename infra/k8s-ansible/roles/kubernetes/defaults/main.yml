@@ -1,4 +1,17 @@
 ---
+# Commente les lignes swap dans /etc/fstab (recommandé pour K8s)
+disable_swap_comment_fstab: true
+
+# Crée un service systemd de secours pour s'assurer que le swap est off au boot
+disable_swap_create_systemd_unit: true
+disable_swap_unit_name: "disable-swap.service"
+
+# Ajuste vm.swappiness (0 = minimiser l'usage de swap)
+disable_swap_set_sysctl: true
+disable_swap_sysctl_value: 0
+
+
+
 # Kubernetes minor to track; repo/key derive from this.
 k8s_minor: "1.28"
 

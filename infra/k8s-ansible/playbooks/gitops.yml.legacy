@@ -127,4 +127,3 @@
       environment: {KUBECONFIG: /root/.kube/config}
       register: ks
     - debug: var=ks.stdout
-

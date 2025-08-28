@@ -1,18 +1,31 @@
 ---
-- name: Assert helm_values_dir exists (controller)
-  delegate_to: localhost
-  become: false
-  ansible.builtin.stat:
-    path: "{{ helm_values_dir }}"
-  register: hv
-  run_once: true
+# 1) cert-manager (installer les CRDs)
+# Chart >= v1.12 : crds.enabled=true (installCRDs est deprecated)
+- name: Install/upgrade cert-manager (with CRDs)
+  kubernetes.core.helm:
+    name: "{{ cert_release }}"
+    chart_ref: "{{ cert_chart }}"
+    chart_version: "{{ cert_version }}"
+    release_namespace: "{{ cert_ns }}"
+    create_namespace: false
+    atomic: true
+    wait: true
+    timeout: 600s
+    values:
+      crds:
+        enabled: true
+    values_files: "{{ cert_values_files | default([]) }}"
 
-- name: Fail if helm_values_dir missing
-  delegate_to: localhost
-  become: false
-  ansible.builtin.assert:
-    that:
-      - hv.stat.exists
-    fail_msg: "helm_values_dir introuvable: {{ helm_values_dir }}"
-  run_once: true
+# 2) ingress-nginx
+- name: Install/upgrade ingress-nginx
+  kubernetes.core.helm:
+    name: "{{ ingress_release }}"
+    chart_ref: "{{ ingress_chart }}"
+    chart_version: "{{ ingress_version }}"
+    release_namespace: "{{ ingress_ns }}"
+    create_namespace: false
+    atomic: true
+    wait: true
+    timeout: 600s
+    values_files: "{{ ingress_values_files | default([]) }}"
 

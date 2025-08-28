@@ -21,8 +21,8 @@
         replace: '# \1'
 
   roles:
-    - role: docker       # installe Docker CE (si tu l’utilises) — sinon supprime ce rôle
-      tags: [docker]
+#    - role: docker       # installe Docker CE (si tu l’utilises) — sinon supprime ce rôle
+#      tags: [docker]
 
     - role: kubernetes   # ajoute repo pkgs.k8s.io + kubeadm/kubelet/kubectl (pinned)
       tags: [kubernetes]

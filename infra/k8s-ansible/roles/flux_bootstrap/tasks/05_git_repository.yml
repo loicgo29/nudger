@@ -19,3 +19,10 @@
         ref: { branch: "{{ github_branch }}" }
         secretRef: { name: "{{ git_secret_name }}" }
 
+- name: Reconcile GitRepository (fetch revision)
+  ansible.builtin.command: "{{ flux_bin }} -n {{ flux_namespace }} reconcile source git gitops --timeout=2m"
+  environment: { KUBECONFIG: "{{ kubeconfig }}" }
+  register: _reco_src
+  changed_when: "'fetched revision' in (_reco_src.stdout | default(''))"
+  failed_when: false
+

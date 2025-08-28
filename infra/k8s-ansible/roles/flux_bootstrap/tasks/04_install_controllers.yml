@@ -1,8 +1,34 @@
 ---
-- name: Install Flux controllers
-  ansible.builtin.command: "{{ flux_bin }} install -n {{ flux_namespace }}"
-  environment:
-    KUBECONFIG: "{{ kubeconfig }}"
-  register: flux_install
-  changed_when: "'customresourcedefinition' in (flux_install.stdout | default('')) or 'namespace/{{ flux_namespace }}' in (flux_install.stdout | default(''))"
+# Mono-nœud : on dé-taint pour autoriser le scheduling des contrôleurs Flux
+- name: Detect node count
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig }}"
+    api_version: v1
+    kind: Node
+  register: _nodes
+
+- name: Untaint control-plane on single-node (no-op if already untainted)
+  ansible.builtin.shell: |
+    set -e
+    kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
+    kubectl taint nodes --all node-role.kubernetes.io/master- || true
+  when: _nodes.resources | length == 1
+  environment: { KUBECONFIG: "{{ kubeconfig }}" }
+
+# Idempotent: on génère les manifests Flux et on applique
+- name: Install Flux controllers (CRDs + controllers) idempotent
+  ansible.builtin.shell: |
+    set -euo pipefail
+    {{ flux_bin }} install -n {{ flux_namespace }} --export | kubectl apply -f -
+  environment: { KUBECONFIG: "{{ kubeconfig }}" }
+  register: flux_apply
+  changed_when: flux_apply.stdout is search('created|configured')
+
+- name: Wait for Flux deployments to be Available
+  ansible.builtin.shell: |
+    set -e
+    for d in helm-controller kustomize-controller notification-controller source-controller; do
+      kubectl -n {{ flux_namespace }} rollout status deploy/$d --timeout=180s
+    done
+  environment: { KUBECONFIG: "{{ kubeconfig }}" }
 
