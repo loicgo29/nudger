@@ -3,6 +3,6 @@
   ansible.builtin.command: "{{ flux_bin }} install -n {{ flux_namespace }}"
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
-  changed_when: "'namespace/{{ flux_namespace }}' in (command_result.stdout | default(''))"
-  register: command_result
+  register: flux_install
+  changed_when: "'customresourcedefinition' in (flux_install.stdout | default('')) or 'namespace/{{ flux_namespace }}' in (flux_install.stdout | default(''))"
 
