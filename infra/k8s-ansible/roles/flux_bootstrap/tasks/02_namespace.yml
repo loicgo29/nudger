@@ -1,0 +1,10 @@
+---
+- name: Ensure {{ flux_namespace }} namespace exists
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata: { name: "{{ flux_namespace }}" }
+

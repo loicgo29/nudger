@@ -1,0 +1,7 @@
+---
+- import_tasks: 01_prep.yml
+- import_tasks: 02_helm_cli.yml
+- import_tasks: 03_repos.yml
+- import_tasks: 04_values_path.yml
+- import_tasks: 05_deploy.yml
+

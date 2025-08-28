@@ -1,0 +1,26 @@
+---
+- name: Ensure base deps + python kubernetes
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - python3
+      - python3-pip
+      - python3-kubernetes
+    update_cache: true
+    state: present
+
+- name: Ensure /root/.kube exists
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+
+- name: Link kubeconfig to /root/.kube/config
+  ansible.builtin.file:
+    src: "{{ kubeconfig }}"
+    dest: /root/.kube/config
+    state: link
+    force: true
+

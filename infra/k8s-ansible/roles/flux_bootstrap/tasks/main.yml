@@ -1,0 +1,9 @@
+---
+- import_tasks: 01_install_cli.yml
+- import_tasks: 02_namespace.yml
+- import_tasks: 03_secret.yml
+- import_tasks: 04_install_controllers.yml
+- import_tasks: 05_git_repository.yml
+- import_tasks: 06_kustomizations.yml
+- import_tasks: 07_status.yml
+

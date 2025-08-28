@@ -1,0 +1,8 @@
+---
+- name: Install Flux controllers
+  ansible.builtin.command: "{{ flux_bin }} install -n {{ flux_namespace }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  changed_when: "'namespace/{{ flux_namespace }}' in (command_result.stdout | default(''))"
+  register: command_result
+
