@@ -1,0 +1,10 @@
+---
+- name: Bootstrap Flux (secret + GitRepository + Kustomizations)
+  hosts: k8s_masters
+  become: true
+  collections:
+    - kubernetes.core
+
+  roles:
+    - role: flux_bootstrap
+

@@ -1,0 +1,10 @@
+---
+- name: Deploy ingress-nginx & cert-manager via Helm (roles)
+  hosts: k8s_masters
+  become: true
+  collections:
+    - kubernetes.core
+
+  roles:
+    - role: helm_stack
+
