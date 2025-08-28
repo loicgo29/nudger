@@ -1,4 +1,7 @@
 ---
+# defaults/main.yml (du rôle containerd)
+manage_k8s_apt: false
+
 # Commente les lignes swap dans /etc/fstab (recommandé pour K8s)
 disable_swap_comment_fstab: true
 

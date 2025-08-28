@@ -15,7 +15,7 @@ if ! command -v find >/dev/null; then
   echo "find est requis"; exit 1
 fi
 
-find "$DIR" -type f -print0 | while IFS= read -r -d '' f; do
+find "$DIR" -type f -name "*.yaml" -print0 |  while IFS= read -r -d '' f; do
   echo "===== $f ====="
   if [[ "$SKIP_BINARY" == "1" ]]; then
     # Détecte les binaires proprement
