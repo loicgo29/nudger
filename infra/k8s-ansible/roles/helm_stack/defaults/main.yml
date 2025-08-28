@@ -1,16 +1,9 @@
-# Où est le kubeconfig côté machine cible (root)
 kubeconfig: "/etc/kubernetes/admin.conf"
-# chemin des values sur TA machine (contrôleur)
 helm_values_dir: "{{ playbook_dir }}/../../helm-values"
 
-# environnement par défaut
-selected_env: "{{ env | default('staging') }}"
-
-# Helm binaire
 helm_bin: /usr/local/bin/helm
 helm_version: "3.15.4"
 
-# Charts (versions épinglées)
 ingress_repo: "https://kubernetes.github.io/ingress-nginx"
 ingress_chart: "ingress-nginx/ingress-nginx"
 ingress_version: "4.11.3"
@@ -23,6 +16,5 @@ cert_version: "v1.15.1"
 cert_ns: "cert-manager"
 cert_release: "cert-manager"
 
-# Env par défaut si non fourni (staging/prod)
 selected_env: "{{ env | default('staging') }}"
 

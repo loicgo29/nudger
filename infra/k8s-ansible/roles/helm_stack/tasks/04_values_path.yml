@@ -1,4 +1,5 @@
 ---
+# Le dossier de values est sur le CONTRÔLEUR
 - name: Assert helm_values_dir exists (controller)
   delegate_to: localhost
   become: false
@@ -11,8 +12,24 @@
   delegate_to: localhost
   become: false
   ansible.builtin.assert:
-    that:
-      - hv.stat.exists
+    that: [ hv.stat.exists ]
     fail_msg: "helm_values_dir introuvable: {{ helm_values_dir }}"
+  run_once: true
+
+# Values par environnement, facultatives
+- name: Stat values files (controller)
+  delegate_to: localhost
+  become: false
+  vars:
+    _ingress_values: "{{ helm_values_dir }}/{{ selected_env }}/ingress-nginx.values.yaml"
+    _cert_values:    "{{ helm_values_dir }}/{{ selected_env }}/cert-manager.values.yaml"
+  block:
+    - stat: { path: "{{ _ingress_values }}" }
+      register: ingress_values_stat
+    - stat: { path: "{{ _cert_values }}" }
+      register: cert_values_stat
+    - set_fact:
+        ingress_values_files: "{{ ingress_values_stat.stat.exists | ternary([_ingress_values], []) }}"
+        cert_values_files:    "{{ cert_values_stat.stat.exists    | ternary([_cert_values],    []) }}"
   run_once: true
 

@@ -11,16 +11,19 @@
     update_cache: true
     state: present
 
+# On COPIE le kubeconfig (pas de symlink => pas de boucle)
 - name: Ensure /root/.kube exists
   ansible.builtin.file:
     path: /root/.kube
     state: directory
     mode: '0700'
 
-- name: Link kubeconfig to /root/.kube/config
-  ansible.builtin.file:
+- name: Install kubeconfig for root (copy, no symlink)
+  ansible.builtin.copy:
     src: "{{ kubeconfig }}"
     dest: /root/.kube/config
-    state: link
-    force: true
+    owner: root
+    group: root
+    mode: '0600'
+    remote_src: true
 

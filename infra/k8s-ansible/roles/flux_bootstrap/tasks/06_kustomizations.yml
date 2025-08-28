@@ -1,4 +1,5 @@
 ---
+# ⚠️ Fix de chemin: ./clusters/{{ env }} (et pas ./gitops/clusters/…)
 - name: Ensure per-env Kustomizations exist
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig }}"
@@ -12,9 +13,19 @@
       spec:
         interval: "{{ kustomize_interval }}"
         sourceRef: { kind: GitRepository, name: gitops }
-        path: "./gitops/clusters/{{ item }}"
+        path: "./clusters/{{ item }}"
         prune: true
+        timeout: "5m"
         wait: false
   loop: "{{ gitops_envs }}"
   loop_control: { label: "{{ item }}" }
+
+- name: Reconcile {{ item }}-root
+  ansible.builtin.command: "{{ flux_bin }} -n {{ flux_namespace }} reconcile kustomization {{ item }}-root --timeout=5m"
+  environment: { KUBECONFIG: "{{ kubeconfig }}" }
+  loop: "{{ gitops_envs }}"
+  loop_control: { label: "{{ item }}" }
+  register: _reco_ks
+  changed_when: "'applied revision' in (_reco_ks.results | map(attribute='stdout') | join(' '))"
+  failed_when: false
 

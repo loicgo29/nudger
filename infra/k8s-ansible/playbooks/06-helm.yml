@@ -1,0 +1,20 @@
+---
+- name: Deploy ingress-nginx & cert-manager via Helm (roles)
+  hosts: k8s_masters
+  become: true
+  collections:
+    - kubernetes.core
+
+  module_defaults:
+    kubernetes.core.k8s:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.k8s_info:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.helm:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.helm_repository:
+      kubeconfig: /etc/kubernetes/admin.conf
+
+  roles:
+    - role: helm_stack
+

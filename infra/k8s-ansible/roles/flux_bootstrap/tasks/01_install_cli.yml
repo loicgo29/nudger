@@ -9,6 +9,7 @@
     url: "https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_amd64.tar.gz"
     dest: /tmp/flux.tgz
     mode: '0644'
+    checksum: "{{ flux_checksum | default(omit) }}"  # ex: sha256:xxxx
   when: not flux_bin_stat.stat.exists
 
 - name: Unarchive flux to /tmp

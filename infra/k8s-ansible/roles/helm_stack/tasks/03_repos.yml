@@ -15,7 +15,7 @@
 
 - name: Ensure namespaces exist
   kubernetes.core.k8s:
-    kubeconfig: /root/.kube/config
+    kubeconfig: "{{ kubeconfig }}"
     state: present
     definition:
       apiVersion: v1
@@ -25,4 +25,3 @@
   loop:
     - "{{ ingress_ns }}"
     - "{{ cert_ns }}"
-

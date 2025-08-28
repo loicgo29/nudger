@@ -1,4 +1,79 @@
 ---
+- name: Check active swap
+  ansible.builtin.command: swapon --noheadings --show=NAME
+  register: _swapon
+  changed_when: false
+  failed_when: false
+  tags: [swap]
+
+- name: Disable swap at runtime if any is active
+  ansible.builtin.command: swapoff -a
+  when: _swapon.stdout | trim | length > 0
+  changed_when: true
+  tags: [swap]
+
+- name: Comment swap entries in /etc/fstab (keep a backup)
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^\s*([^#].*\s+swap\s+.*)$'
+    replace: '# \1'
+    backup: true
+  when: disable_swap_comment_fstab | bool
+  tags: [swap, fstab]
+
+- name: Create systemd unit to ensure swap is off at boot
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ disable_swap_unit_name }}"
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Disable swap at boot (required by Kubernetes)
+      Before=kubelet.service
+      DefaultDependencies=no
+      After=local-fs.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/sbin/swapoff -a
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  when: disable_swap_create_systemd_unit | bool
+  notify: Reload systemd
+  tags: [swap, systemd]
+
+- name: Enable + start disable-swap service
+  ansible.builtin.systemd:
+    name: "{{ disable_swap_unit_name }}"
+    enabled: true
+    state: started
+  when: disable_swap_create_systemd_unit | bool
+  tags: [swap, systemd]
+
+- name: Set vm.swappiness sysctl
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "{{ disable_swap_sysctl_value }}"
+    state: present
+    sysctl_set: true
+    reload: true
+  when: disable_swap_set_sysctl | bool
+  tags: [swap, sysctl]
+
+- name: Show final swap status (for logs)
+  ansible.builtin.command: swapon --show
+  register: _swap_status
+  changed_when: false
+  failed_when: false
+  tags: [swap]
+
+- name: Debug final swap status
+  ansible.builtin.debug:
+    msg: >-
+      Swap actif ? {{ (_swap_status.stdout | trim) != '' }}
+  tags: [swap]
+
 # ----------------------------
 # Kubernetes APT repo + packages
 # ----------------------------
