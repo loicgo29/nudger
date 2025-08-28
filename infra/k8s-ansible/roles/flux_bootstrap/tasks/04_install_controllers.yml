@@ -1,5 +1,4 @@
----
-# Mono-nœud : on dé-taint pour autoriser le scheduling des contrôleurs Flux
+# 1) (déjà présent plus haut) dé-taint si single-node
 - name: Detect node count
   kubernetes.core.k8s_info:
     kubeconfig: "{{ kubeconfig }}"
@@ -9,26 +8,45 @@
 
 - name: Untaint control-plane on single-node (no-op if already untainted)
   ansible.builtin.shell: |
-    set -e
     kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
     kubectl taint nodes --all node-role.kubernetes.io/master- || true
   when: _nodes.resources | length == 1
   environment: { KUBECONFIG: "{{ kubeconfig }}" }
 
-# Idempotent: on génère les manifests Flux et on applique
-- name: Install Flux controllers (CRDs + controllers) idempotent
-  ansible.builtin.shell: |
-    set -euo pipefail
-    {{ flux_bin }} install -n {{ flux_namespace }} --export | kubectl apply -f -
-  environment: { KUBECONFIG: "{{ kubeconfig }}" }
-  register: flux_apply
-  changed_when: flux_apply.stdout is search('created|configured')
+# 2) Rendre les manifests Flux (command, pas shell → pas de /bin/sh)
+- name: Render Flux manifests
+  ansible.builtin.command: >
+    {{ flux_bin }} install -n {{ flux_namespace }} --export
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: flux_yaml
+  changed_when: false
 
+# 3) Écrire le YAML rendu sur le nœud
+- name: Write rendered manifests to file
+  ansible.builtin.copy:
+    dest: /tmp/flux-install.yaml
+    content: "{{ flux_yaml.stdout }}"
+    mode: '0644'
+
+# 4) Appliquer via kubectl (command → pas de shell, pas de pipefail)
+- name: Apply Flux manifests
+  ansible.builtin.command: kubectl apply -f /tmp/flux-install.yaml
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: kubectl_apply
+  changed_when: kubectl_apply.stdout is search('created|configured')
+
+# 5) Attendre que les deploys soient disponibles
 - name: Wait for Flux deployments to be Available
-  ansible.builtin.shell: |
-    set -e
-    for d in helm-controller kustomize-controller notification-controller source-controller; do
-      kubectl -n {{ flux_namespace }} rollout status deploy/$d --timeout=180s
-    done
-  environment: { KUBECONFIG: "{{ kubeconfig }}" }
+  ansible.builtin.command: >
+    kubectl -n {{ flux_namespace }} rollout status deploy/{{ item }} --timeout=180s
+  loop:
+    - helm-controller
+    - kustomize-controller
+    - notification-controller
+    - source-controller
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  changed_when: false
 

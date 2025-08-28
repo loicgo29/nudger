@@ -1,0 +1,28 @@
+---
+# Prérequis pour utiliser kubernetes.core.*
+- name: Ensure base python deps
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+    state: present
+    update_cache: true
+  become: true
+
+# On tente d'abord via APT (Ubuntu/Debian). S’il n’existe pas, on bascule sur pip.
+- name: Install python3-kubernetes via APT if available
+  ansible.builtin.apt:
+    name: python3-kubernetes
+    state: present
+    update_cache: true
+  register: _apt_k8s
+  failed_when: false
+  become: true
+
+- name: Fallback install kubernetes via pip
+  ansible.builtin.pip:
+    name: kubernetes>=26.1.0
+    executable: pip3
+  when: _apt_k8s is failed or _apt_k8s.rc|default(0) != 0
+  become: true
+

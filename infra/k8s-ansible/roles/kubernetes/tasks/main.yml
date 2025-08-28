@@ -122,6 +122,21 @@
     state: absent
   become: true
   tags: ['k8s', 'repo']
+# tasks/main.yml (du rôle kubernetes) — avant apt_repository:
+- name: Remove legacy Kubernetes apt sources (old prod-cdn/isv format)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+      [ -f "$f" ] || continue
+      if grep -Eiq '(prod-cdn\.packages\.k8s\.io|isv:/kubernetes:/core:/stable)' "$f"; then
+        rm -f "$f"
+      fi
+    done
+  args:
+    executable: /bin/bash
+  register: _legacy_k8s_sources
+  changed_when: _legacy_k8s_sources.rc == 0
+
 
 # Add the per-minor pkgs.k8s.io repository with our keyring.
 - name: Add Kubernetes APT repository (pkgs.k8s.io)
