@@ -5,6 +5,9 @@
   collections:
     - kubernetes.core
 
+  vars_files:
+    - ../group_vars/vault.yml
+
   roles:
     - role: flux_bootstrap
 

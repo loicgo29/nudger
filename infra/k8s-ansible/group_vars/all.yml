@@ -43,4 +43,5 @@ git_sync_interval: "15m"
 kustomize_interval: "30m"
 
 bin_dir: "/usr/local/bin"
+github_pat: "{{ vault_github_pat }}"
 
