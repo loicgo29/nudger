@@ -1,0 +1,26 @@
+---
+# tasks/main.yml
+
+# 1. Toujours installer les libs Python en premier
+- import_tasks: 00_prereqs.yml
+
+# 2. Ensuite seulement poser kubeconfig et defaults
+- name: Set kubeconfig path (single source of truth)
+  set_fact:
+    kubeconfig_path: "/root/.kube/config"
+
+- name: Module defaults for kubeconfig
+  set_fact:
+    _module_defaults:
+      kubernetes.core.k8s:      { kubeconfig: "{{ kubeconfig_path }}" }
+      kubernetes.core.k8s_info: { kubeconfig: "{{ kubeconfig_path }}" }
+
+# 3. Puis continuer le flux normal
+- import_tasks: 01_install_cli.yml
+- import_tasks: 02_namespace.yml
+- import_tasks: 03_secret.yml
+- import_tasks: 04_install_controllers.yml
+- import_tasks: 05_git_repository.yml
+- import_tasks: 06_kustomizations.yml
+- import_tasks: 07_status.yml
+

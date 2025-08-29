@@ -1,0 +1,6 @@
+---
+- import_tasks: 00_checks.yml
+- import_tasks: 01_kustomizations.yml
+- import_tasks: 02_reconcile.yml
+- import_tasks: 03_status.yml
+

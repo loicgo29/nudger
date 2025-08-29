@@ -27,7 +27,7 @@ fi
 msg="$*"
 
 # Vérifie la convention (feat|fix|chore|docs|refactor|test|perf)
-if ! [[ "$msg" =~ ^(feat|fix|chore|docs|refactor|test|perf)(\([a-z0-9_-]+\))?:\ .+ ]]; then
+if ! [[ "$msg" =~ ^(BREAKING|feat|fix|chore|docs|refactor|test|perf)(\([a-z0-9_-]+\))?:\ .+ ]]; then
   echo "❌ Message invalide. Utilise la convention :"
   echo "   feat: ajout d'une nouvelle fonctionnalité"
   echo "   fix: correction d'un bug"

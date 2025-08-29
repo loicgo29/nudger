@@ -1,0 +1,32 @@
+---
+- name: Bootstrap Flux (secret + GitRepository + Kustomizations)
+  hosts: k8s_masters
+  become: true
+  vars:
+    kubeconfig_src: /etc/kubernetes/admin.conf
+    kubeconfig_path: /root/.kube/config
+  pre_tasks:
+    - file: { path: /root/.kube, state: directory, mode: '0700' }
+    - copy: { src: "{{ kubeconfig_src }}", dest: "{{ kubeconfig_path }}", remote_src: true, mode: '0600' }
+
+  module_defaults:
+    kubernetes.core.k8s:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.k8s_info:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.k8s_exec:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.helm:
+      kubeconfig: /etc/kubernetes/admin.conf
+    kubernetes.core.helm_repository:
+      kubeconfig: /etc/kubernetes/admin.conf
+
+  collections:
+    - kubernetes.core
+
+  vars_files:
+    - ../group_vars/vault.yml
+
+  roles:
+    - role: flux_bootstrap
+

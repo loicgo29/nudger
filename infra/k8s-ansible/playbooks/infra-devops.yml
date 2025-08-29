@@ -1,6 +1,0 @@
----
-- name: Préparation DevOps
-  hosts: all
-  roles:
-    - devops
-

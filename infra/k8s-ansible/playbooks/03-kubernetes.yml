@@ -1,5 +1,5 @@
 ---
-- name: Préparation containerd
+- name: Préparation kubernetes
   hosts: all
   roles:
     - kubernetes

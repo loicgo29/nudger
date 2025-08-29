@@ -20,6 +20,11 @@ users_k8s:
 ansible_python_interpreter: /usr/bin/python3
 docker_manage_daemon: false
 
+github_owner: "loicgo29"
+github_repo:  "nudger-gitops"   # ou le nom choisi
+github_branch: "main"
+git_auth_mode: "pat"          # tu utilises le PAT
+env: staging   # ou prod
 github_deploy_key_private: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           37666436626663363237646231353066626236613938363236623532336161343336323838353662

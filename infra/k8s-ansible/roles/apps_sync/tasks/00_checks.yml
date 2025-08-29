@@ -1,0 +1,31 @@
+---
+- name: Assert kubeconfig source exists and non-empty
+  stat:
+    path: "{{ kubeconfig_path | default('/root/.kube/config') }}"
+  register: kc
+- assert:
+    that:
+      - kc.stat.exists
+      - (kc.stat.size | int) > 0
+    fail_msg: "kubeconfig {{ kubeconfig_path }} introuvable/vide."
+
+- name: Quick API check
+  kubernetes.core.k8s_info:
+    kind: Namespace
+
+- name: Ensure flux-system namespace exists
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata: { name: "{{ flux_namespace | default('flux-system') }}" }
+
+- name: Check Flux controllers are running (best-effort)
+  command: >
+    kubectl -n {{ flux_namespace | default('flux-system') }} get deploy
+  environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+  register: _flux_deploys
+  changed_when: false
+  failed_when: false
+
