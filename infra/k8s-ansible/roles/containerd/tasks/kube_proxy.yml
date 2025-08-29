@@ -1,0 +1,39 @@
+# ----------------------------
+# kube-proxy
+# ----------------------------
+- name: Wait for apiserver /readyz (no Node Ready dependency)
+  ansible.builtin.command: >
+    curl -sf --cacert /etc/kubernetes/pki/ca.crt https://127.0.0.1:6443/readyz
+  register: apiready
+  retries: 60
+  delay: 2
+  until: apiready.rc == 0
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
+
+- name: Run kubeadm init phase addon kube-proxy
+  ansible.builtin.command: kubeadm init phase addon kube-proxy --v=4
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  register: kp_phase
+  changed_when: "'applied' in kp_phase.stdout or 'created' in kp_phase.stdout"
+  when: inventory_hostname == groups['k8s_masters'][0]
+  become: true
+
+- name: Rollout restart kube-proxy DS after secret update
+  ansible.builtin.command: kubectl -n kube-system rollout restart ds/kube-proxy
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  changed_when: true
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
+
+- name: Wait for kube-proxy rollout to complete
+  ansible.builtin.command: kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  register: kp_rollout
+  changed_when: false
+  failed_when: kp_rollout.rc != 0
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
