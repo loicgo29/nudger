@@ -1,0 +1,6 @@
+dependencies:
+- name: test-chart
+  repository: file://../test-chart
+  version: 0.1.0
+digest: sha256:c569d80eae5f575d509af4c50ec88b0f1029dfa8fd270459757bfbd06241c059
+generated: "2025-08-29T13:10:21.6728+02:00"
