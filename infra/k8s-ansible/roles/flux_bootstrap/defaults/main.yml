@@ -1,5 +1,6 @@
 # --- Cluster / Kubeconfig ---
 kubeconfig: "/etc/kubernetes/admin.conf"
+flux_kube_context: null
 flux_namespace: "flux-system"
 
 # --- Flux CLI ---

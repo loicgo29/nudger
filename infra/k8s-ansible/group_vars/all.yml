@@ -2,7 +2,7 @@
 #  KUBERNETES / CLUSTER BASE
 # ===========================
 # Version K8s cible (utile pour d’autres rôles). Le "v" est souvent superflu.
-k8s_version: "1.28.15"
+k8s_release: "v1.31"
 
 # Version kubectl à installer (doit matcher ta branche cluster)
 kubectl_version: "1.28.15"
