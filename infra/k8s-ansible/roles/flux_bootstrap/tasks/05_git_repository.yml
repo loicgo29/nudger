@@ -24,5 +24,8 @@
   environment: { KUBECONFIG: "{{ kubeconfig }}" }
   register: _reco_src
   changed_when: "'fetched revision' in (_reco_src.stdout | default(''))"
-  failed_when: false
+  failed_when: "_reco_src.rc != 0"
+
+- debug:
+    msg: "{{ reco_src.stdout | default('no output') }}"
 

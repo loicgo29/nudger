@@ -44,6 +44,11 @@ export USER DEPOT_GIT ID_SSH_PUB
 envsubst < $DIRHOME/create-VM/vps/cloud-init-template.yaml > $DIRHOME/create-VM/vps/cloud-init.yaml
 echo "✅ cloud-init.yaml généré"
 
+if hcloud server describe "$NAME" >/dev/null 2>&1; then
+  echo "Suppression du serveur $NAME existant..."
+  hcloud server delete "$NAME"
+fi
+
 # --- Création VM Hetzner ---
 echo "➡️ Création de la VM $NAME..."
 OUTPUT=$(hcloud server create \
