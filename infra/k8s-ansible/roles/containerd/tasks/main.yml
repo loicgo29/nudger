@@ -220,20 +220,35 @@
   become: true
   tags: k8s
 
-- name: Assert kubeadm is 1.31.x
+- name: Get kubeadm version (semver)
   ansible.builtin.command: kubeadm version -o short
   register: kubeadm_ver
   changed_when: false
-  failed_when: kubeadm_ver.rc != 0 or (kubeadm_ver.stdout is not regex('^v1\\.31\\.'))
-  become: true
-  tags: k8s
+- name: Use installed kubeadm version for template
+  ansible.builtin.set_fact:
+    kubeadm_semver: "{{ kubeadm_ver.stdout | trim }}"
 
+# On compare seulement X.Y
+- name: Ensure kubeadm minor matches requested release
+  ansible.builtin.assert:
+    that:
+      - "(kubeadm_ver.stdout
+          | trim
+          | regex_replace('^v', '')
+          | regex_replace('^(\\d+\\.\\d+).*', '\\1'))
+         ==
+         (k8s_release
+          | trim
+          | regex_replace('^v', '')
+          | regex_replace('^(\\d+\\.\\d+).*', '\\1'))"
+    fail_msg: "kubeadm {{ kubeadm_ver.stdout | trim }} ne matche pas la branche {{ k8s_release }}"
+    success_msg: "kubeadm {{ kubeadm_ver.stdout | trim }} matche bien {{ k8s_release }}"
 # ----------------------------
 # Init master
 # ----------------------------
 - name: Check if cluster already initialized
   ansible.builtin.stat:
-    path: "{{ kubeconfig_path }}"
+    path: "{{ kubeconfig_admin_path }}"
   register: kubeadm_config
   become: true
   tags: init
@@ -265,38 +280,15 @@
 - debug:
     var: kubeadm_cfg_before.stdout
   tags: init
+- name: Get kubeadm version (semver)
+  ansible.builtin.command: kubeadm version -o short
+  register: kubeadm_ver
+  changed_when: false
+  failed_when: kubeadm_ver.rc != 0
 
-# === FORCE un kubeadm-config.yaml minimal, compatible v1.31 (v1beta4) ===
-- name: Overwrite kubeadm-config.yaml with minimal v1beta4 (no extraArgs)
-  become: true
-  ansible.builtin.copy:
-    dest: /root/kubeadm-config.yaml
-    mode: '0644'
-    content: |
-      apiVersion: kubeadm.k8s.io/v1beta4
-      kind: ClusterConfiguration
-      kubernetesVersion: "{{ k8s_version | regex_replace('^v','') | regex_replace('^(\\d+\\.\\d+).*$', '\\1') }}"
-      {% if apiserver_endpoint | default('') | trim %}
-      controlPlaneEndpoint: "{{ apiserver_endpoint }}"
-      {% endif %}
-      networking:
-        podSubnet: "{{ pod_network_cidr }}"
-
-      ---
-      apiVersion: kubeadm.k8s.io/v1beta4
-      kind: InitConfiguration
-      localAPIEndpoint:
-        advertiseAddress: "{{ ansible_default_ipv4.address }}"
-      nodeRegistration:
-        criSocket: unix:///var/run/containerd/containerd.sock
-        kubeletExtraArgs:
-          - name: cgroup-driver
-            value: "systemd"
-
-      ---
-      apiVersion: kubelet.config.k8s.io/v1beta1
-      kind: KubeletConfiguration
-      cgroupDriver: "systemd"
+- name: Use installed kubeadm version for kubernetesVersion
+  ansible.builtin.set_fact:
+    kubeadm_semver: "{{ kubeadm_ver.stdout | trim }}"
 
 # (optionnel) re-montrer le rendu pour sanity check
 - name: Show new /root/kubeadm-config.yaml
@@ -314,7 +306,7 @@
 - name: Initialize control-plane (skip kube-proxy)
   ansible.builtin.command: kubeadm init --config=/root/kubeadm-config.yaml --skip-phases=addon/kube-proxy
   args:
-    creates: "{{ kubeconfig_path }}"
+    creates: "{{ kubeconfig_admin_path }}"
   when:
     - inventory_hostname == groups['k8s_masters'][0]
     - not kubeadm_config.stat.exists
@@ -335,7 +327,7 @@
 - name: Wait for API server /readyz to return ok
   ansible.builtin.command: kubectl get --raw=/readyz?verbose
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   register: apiready
   changed_when: false
   until: apiready.rc == 0 and ('ok' in apiready.stdout)
@@ -348,7 +340,7 @@
 - name: Check if kube-proxy DaemonSet already exists
   ansible.builtin.command: kubectl -n kube-system get ds kube-proxy -o name
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   register: kp_ds
   changed_when: false
   failed_when: false
@@ -358,7 +350,7 @@
 - name: Run kubeadm init phase addon kube-proxy
   ansible.builtin.command: kubeadm init phase addon kube-proxy --v=4
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   register: kp_phase
   changed_when: "'applied' in kp_phase.stdout or 'created' in kp_phase.stdout"
   when:
@@ -369,14 +361,39 @@
   become: true
   tags: kube_proxy
 
-- name: Wait kube-proxy rollout
-  ansible.builtin.command: kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
+# --- kube-proxy: inspecter clairement l'état avant d'attendre ---
+- name: Show kube-proxy DaemonSet status (quick view)
+  ansible.builtin.command: kubectl -n kube-system get ds kube-proxy -o wide
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   changed_when: false
-  when: inventory_hostname == groups['k8s_masters'][0]
-  become: true
-  tags: kube_proxy
+
+- name: Show kube-proxy pods
+  ansible.builtin.command: kubectl -n kube-system get pods -l k8s-app=kube-proxy -o wide
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  changed_when: false
+
+- name: Get kube-proxy DS numbers (json)
+  ansible.builtin.command: >
+    kubectl -n kube-system get ds kube-proxy
+    -o jsonpath='{.status.desiredNumberScheduled}:{.status.numberAvailable}:{.status.numberReady}'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  register: kp_nums
+  changed_when: false
+
+- name: Wait kube-proxy becomes available (polling instead of long blocking)
+  ansible.builtin.command: >
+    kubectl -n kube-system get ds kube-proxy
+    -o jsonpath='{.status.numberAvailable}'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  register: kp_ready
+  until: (kp_ready.stdout | int) > 0
+  retries: 36          # ~3 minutes (36 * 5s)
+  delay: 5
+  changed_when: false
 
 # ----------------------------
 # Kubeconfig pour l'user ansible
@@ -394,8 +411,8 @@
 
 - name: Copy admin.conf to ansible user home
   ansible.builtin.copy:
-    src: "{{ kubeconfig_path }}"
-    dest: "/home/{{ ansible_user | default('ansible') }}/.kube/config"
+    src: "{{ kubeconfig_admin_path }}"
+    dest:  "{{ kubeconfig }}"
     owner: "{{ ansible_user | default('ansible') }}"
     group: "{{ ansible_user | default('ansible') }}"
     mode: '0600'
@@ -421,7 +438,7 @@
   ansible.builtin.command:
     cmd: "kubectl apply -f {{ flannel_manifest_url }}"
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   register: flannel_apply
   changed_when: "'created' in flannel_apply.stdout or 'configured' in flannel_apply.stdout"
   become: true
@@ -432,7 +449,7 @@
   ansible.builtin.command: >
     kubectl get ds -A -l app=flannel -o jsonpath='{.items[0].metadata.namespace}'
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   register: flannel_ns_detect
   changed_when: false
   failed_when: flannel_ns_detect.rc != 0 or flannel_ns_detect.stdout | length == 0
@@ -445,7 +462,7 @@
     kubectl -n {{ flannel_ns_detect.stdout }}
     rollout status ds/kube-flannel-ds --timeout={{ flannel_wait_timeout }}
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
   register: flannel_rollout
   changed_when: false
   failed_when: flannel_rollout.rc != 0
@@ -467,4 +484,18 @@
   until: readyz.status == 200 and ('ok' in readyz.content)
   retries: 60
   delay: 2
+
+# (cluster mono-nœud) autoriser le scheduling sur le control-planeA
+- name: Also clear legacy master taint if present
+  ansible.builtin.command: >
+    kubectl taint nodes --all node-role.kubernetes.io/master-
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  when:
+    - inventory_hostname == groups['k8s_masters'][0]
+    - allow_scheduling_on_control_plane | default(false) | bool
+  register: taint_rm_legacy
+  failed_when: false
+  changed_when: taint_rm_legacy.rc == 0
+  tags: taints
 

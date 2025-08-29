@@ -8,7 +8,6 @@
   pre_tasks:
     - file: { path: /root/.kube, state: directory, mode: '0700' }
     - copy: { src: "{{ kubeconfig_src }}", dest: "{{ kubeconfig_path }}", remote_src: true, mode: '0600' }
-    - kubernetes.core.k8s_info: { kind: Namespace, kubeconfig: "{{ kubeconfig_path }}" }
 
   module_defaults:
     kubernetes.core.k8s:

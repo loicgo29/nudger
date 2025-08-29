@@ -12,4 +12,7 @@
   register: gr
   failed_when: false
 - ansible.builtin.debug: { var: gr.stdout }
+- name: Quick API check
+  kubernetes.core.k8s_info:
+    kind: Namespace
 
