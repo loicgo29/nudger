@@ -1,0 +1,26 @@
+# Flannel CNI install (après kubeadm init)
+
+- name: Apply Flannel CNI manifest
+  ansible.builtin.command: >
+    kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  register: flannel_apply
+  changed_when: "'created' in flannel_apply.stdout or 'configured' in flannel_apply.stdout"
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: flannel
+
+
+- name: Wait for Flannel DaemonSet to be ready
+  ansible.builtin.command: >
+    kubectl -n kube-flannel rollout status ds/kube-flannel-ds --timeout=3m
+  environment:
+    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+  register: flannel_rollout
+  changed_when: false
+  failed_when: flannel_rollout.rc != 0
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
+  tags: flannel
+

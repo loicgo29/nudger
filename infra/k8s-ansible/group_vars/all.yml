@@ -103,6 +103,8 @@ bin_dir: "/usr/local/bin"
 
 # Compat (si certains anciens tasks utilisent ce nom)
 kubeconfig_path: "{{ kubeconfig_admin_path }}"
+kubeconfig_user_path: "/home/{{ ansible_user }}/.kube/config"
+
 
 # Pour compat ascendante si certains rôles lisent directement cette var
 github_pat: "{{ vault_github_pat | default('') }}"
