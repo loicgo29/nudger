@@ -1,14 +1,14 @@
 ---
-# === Configuration Kubernetes ===
-k8s_version: "1.28.5"
-k8s_packages:
-  - kubelet
-  - kubeadm
-  - kubectl
-k8s_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[0:2] | join('.') }}/deb/ /"
-k8s_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[0:2] | join('.') }}/deb/Release.key"
+# === Kubernetes version (prends la 1.31.x dispo) ===
+k8s_version: "1.31.1"
 
-# === Runtime Containerd (recommandé) ===
+# Paquets K8s
+k8s_packages:
+  - kubeadm
+  - kubelet
+  - kubectl
+
+# === Containerd (config conseillée pour K8s) ===
 containerd_config: |
   version = 2
   [plugins."io.containerd.grpc.v1.cri"]
@@ -20,21 +20,17 @@ containerd_config: |
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
           SystemdCgroup = true
 
-# === Configuration Réseau ===
+# === Réseau ===
 pod_network_cidr: "10.244.0.0/16"
-flannel_manifest: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+flannel_wait_timeout: "5m"
 
-# === Optimisation Système ===
+# === Sysctl ===
 sysctl_params:
   net.bridge.bridge-nf-call-iptables: 1
   net.ipv4.ip_forward: 1
   vm.swappiness: 0
 
-# === onfig Flannel
-flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
-flannel_namespace: "kube-systeml"
-flannel_label_selector: "app=flannel"
+# === Kubeconfig ===
 kubeconfig_path: "/etc/kubernetes/admin.conf"
-flannel_wait_retries: 10
-flannel_wait_delay: 15
 

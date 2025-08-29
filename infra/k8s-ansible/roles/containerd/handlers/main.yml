@@ -1,13 +1,20 @@
 ---
 - name: Restart containerd
+  become: true
   ansible.builtin.systemd:
     name: containerd
     state: restarted
     enabled: true
-  become: true
 
-# Writes root's kubeconfig for convenience after init
+- name: Restart kubelet
+  become: true
+  ansible.builtin.systemd:
+    name: kubelet
+    state: restarted
+    enabled: true
+
 - name: Save kubeconfig file
+  become: true
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
     dest: /root/.kube/config
@@ -15,5 +22,4 @@
     owner: root
     group: root
     mode: '0600'
-  become: true
 

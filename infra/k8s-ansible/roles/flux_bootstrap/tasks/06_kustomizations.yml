@@ -20,12 +20,25 @@
   loop: "{{ gitops_envs }}"
   loop_control: { label: "{{ item }}" }
 
-- name: Reconcile {{ item }}-root
-  ansible.builtin.command: "{{ flux_bin }} -n {{ flux_namespace }} reconcile kustomization {{ item }}-root --timeout=5m"
-  environment: { KUBECONFIG: "{{ kubeconfig }}" }
+- name: Reconcile kustomizations
+  command: /usr/local/bin/flux -n flux-system reconcile kustomization {{ item }}-root --timeout=5m
+  register: _reco_all
   loop: "{{ gitops_envs }}"
-  loop_control: { label: "{{ item }}" }
-  register: _reco_ks
-  changed_when: "'applied revision' in (_reco_ks.results | map(attribute='stdout') | join(' '))"
+  changed_when: false   # on décide après
   failed_when: false
+
+- name: Fail if any reconcile failed
+  ansible.builtin.assert:
+    that: "item.rc == 0"
+    fail_msg: "reconcile {{ item.item }}-root a échoué: {{ item.stderr }}"
+  loop: "{{ _reco_all.results }}"
+
+- name: Mark changed if any applied revision
+  set_fact:
+    _flux_changed: true
+  when: "_reco_all.results | map(attribute='stderr') | join(' ') is search('applied revision')"
+
+- debug:
+    msg: "Flux a appliqué une révision"
+  when: _flux_changed | default(false)
 

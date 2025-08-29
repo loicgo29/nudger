@@ -1,10 +1,29 @@
 ---
-- name: Ensure {{ flux_namespace }} namespace exists
+- name: Ensure {{ flux_namespace | default('flux-system') }} namespace exists
   kubernetes.core.k8s:
-    kubeconfig: "{{ kubeconfig }}"
+    api_version: v1
+    kind: Namespace
+    name: "{{ flux_namespace | default('flux-system') }}"
     state: present
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata: { name: "{{ flux_namespace }}" }
+    kubeconfig: /etc/kubernetes/admin.conf   # explicite !
+  become: true
+  delegate_to: "{{ inventory_hostname }}"    # force sur l’hôte cible, pas localhost
+  run_once: false
 
+# roles/flux_bootstrap/tasks/02_kubeconfig.yml
+- name: Ensure /root/.kube exists
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: '0750'
+  become: true
+
+- name: Copy admin.conf as default kubeconfig
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
