@@ -42,6 +42,14 @@
     mode: '0755'
     owner: "{{ ansible_user_id | default(lookup('env','USER')) }}"
   tags: [user-env]
+- name: Ensure user bin directory exists
+  ansible.builtin.file:
+    path: "{{ansible_remote_tmp }}"
+    state: directory
+    mode: '0700'
+    owner: "{{ ansible_user_id | default(lookup('env','USER')) }}"
+  tags: [user-env]
+
 
 # ========== Ansible virtualenv ==========
 # Rationale: we enforce idempotence with `creates:` and remove a broken venv if activate is missing.
