@@ -13,4 +13,3 @@ apps_kustomizations:
     wait: true
     interval: 1m
     dependsOn: [ingress-nginx]
-

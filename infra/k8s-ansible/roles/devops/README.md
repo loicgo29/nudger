@@ -22,4 +22,3 @@ See `defaults/main.yml` for:
       vars:
         # Example: pin lazygit to a known version (skip GitHub API):
         # lazygit_version: "0.43.1"
-

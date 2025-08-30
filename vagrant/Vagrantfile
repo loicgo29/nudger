@@ -22,4 +22,3 @@ Vagrant.configure("2") do |config|
     qe.disksize = "80G"      # 80 Go, s'adapte si utilisation < 80 Go
   end
 end
-

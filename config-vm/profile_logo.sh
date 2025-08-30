@@ -100,18 +100,18 @@ if command -v kubectl &>/dev/null; then
     # Création du répertoire si inexistant
     COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
     mkdir -p "$COMPLETION_DIR"
-    
+
     # Génération du fichier de complétion
     KUBE_COMPLETION_FILE="$COMPLETION_DIR/kubectl"
     kubectl completion bash > "$KUBE_COMPLETION_FILE" 2>/dev/null
-    
+
     # Chargement sécurisé
     if [[ -f "$KUBE_COMPLETION_FILE" ]]; then
         source "$KUBE_COMPLETION_FILE"
         # Alias standard avec complétion
         alias k=kubectl
         complete -o default -F __start_kubectl k
-        
+
         # Alias supplémentaires utiles
         alias kg='kubectl get'
         alias kd='kubectl describe'

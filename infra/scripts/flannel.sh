@@ -20,4 +20,3 @@ echo "👉 Redémarrage des pods Flannel..."
 kubectl delete pod -n kube-flannel -l app=flannel
 
 echo "✅ Correction appliquée. Flannel devrait redémarrer correctement."
-

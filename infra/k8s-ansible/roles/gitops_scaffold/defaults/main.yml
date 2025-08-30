@@ -31,4 +31,3 @@ kustomize_interval: "30m"
 
 # Namespace Flux
 flux_namespace: "flux-system"
-

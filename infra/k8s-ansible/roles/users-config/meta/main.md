@@ -141,7 +141,7 @@ ansible-playbook -i inventory.ini playbooks/setup-k8s-users.yml
 
 ## Dépannage
 
-**`Permission denied (publickey)` lors du clone**  
+**`Permission denied (publickey)` lors du clone**
 - Vérifier que `~/.ssh/id_deploy_nudger` existe (par user), en `0600`, commence par `-----BEGIN OPENSSH PRIVATE KEY-----`.
 - Tester côté hôte :
   ```bash
@@ -149,13 +149,13 @@ ansible-playbook -i inventory.ini playbooks/setup-k8s-users.yml
   ```
 - S’assurer que la **clé publique** correspondante est bien une **Deploy key** du repo.
 
-**`Attempting to decrypt but no vault secrets found`**  
+**`Attempting to decrypt but no vault secrets found`**
 - Oubli de `--vault-id` / pas de `vault_identity_list` dans `ansible.cfg`.
 
-**Complétion kubectl**  
+**Complétion kubectl**
 - Mettre `kubectl_completion_enable: false` si `kubectl` absent sur l’hôte.
 
-**Prompt fingerprint GitHub**  
+**Prompt fingerprint GitHub**
 - Laissez `git_known_hosts_enable: true` (ou gardez `accept_newhostkey: true` dans la tâche `git`).
 
 ---
@@ -212,4 +212,3 @@ Lister les tags / tâches :
 ansible-playbook -i inventory.ini playbooks/setup-k8s-users.yml --list-tags
 ansible-playbook -i inventory.ini playbooks/setup-k8s-users.yml --list-tasks
 ```
-

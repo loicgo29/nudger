@@ -150,4 +150,3 @@
       - "Apps: {{ gitops_apps | join(', ') }}"
       - "Envs: {{ gitops_envs | join(', ') }}"
       - "Ingress overlays: {{ create_ingress_overlay }}"
-

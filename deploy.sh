@@ -28,4 +28,3 @@ cd "$SCRIPT_DIR/infra/k8s-ansible"
 ansible-playbook -i ./inventory.ini ./playbooks/nudger.yml
 
 echo "ssh -i ~/.ssh/id_vm_ed25519 dev-loic@$IP"
-

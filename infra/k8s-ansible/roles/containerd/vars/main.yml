@@ -28,4 +28,3 @@ sysctl_params:
 
 # === Kubeconfig ===
 kubeconfig_path: "/etc/kubernetes/admin.conf"
-

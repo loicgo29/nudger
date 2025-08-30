@@ -54,4 +54,3 @@ echo "✅ Branche locale '${branch#origin/}' supprimée (si elle existait)."
 done
 
 echo "🎉 Nettoyage terminé."
-

@@ -31,4 +31,3 @@ if command -v kubectl &> /dev/null; then
         complete -o default -F __start_kubectl k
     fi
 fi
-

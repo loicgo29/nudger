@@ -10,14 +10,14 @@
   failed_when: false
   loop: "{{ apps_kustomizations }}"
   loop_control: { label: "{{ item.name }}" }
-  tags: 
+  tags:
     - reconcile
 - name: Fail if any reconcile errored
   assert:
     that: "{{ item.rc == 0 }}"
     fail_msg: "reconcile {{ item.item.name }} a échoué: {{ item.stderr | default(item.stdout) }}"
   loop: "{{ _reco.results }}"
-  tags: 
+  tags:
     - reconcile
 - name: Wait Kustomization Ready (strict mode)
   kubernetes.core.k8s_info:
@@ -33,6 +33,5 @@
   delay: 5
   loop: "{{ apps_kustomizations }}"
   when: item.wait | default(true)
-  tags: 
+  tags:
     - reconcile
-

@@ -184,4 +184,3 @@ flux reconcile kustomization prod-root -n flux-system
 EOF
 
 echo "✅ Arbo GitOps générée dans ${TARGET_DIR}"
-

@@ -1,4 +1,4 @@
- vagrant halt 
+ vagrant halt
  vagrant destroy -f
 rm -rf .vagrant
 echo "lsof -i :50022"

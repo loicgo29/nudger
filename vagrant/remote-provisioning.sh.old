@@ -60,7 +60,7 @@ remote_provision() {
   while [ $attempt -lt $max_retries ]; do
     ((attempt++))
     log "Tentative de provisionnement $attempt/$max_retries..."
-    
+
     if sshpass -p "${CONFIG[SSH_PASS]}" \
       ssh -o StrictHostKeyChecking=no \
       -o ConnectTimeout=10 \
@@ -70,7 +70,7 @@ remote_provision() {
       success=true
       break
     fi
-    
+
     warn "Échec, nouvelle tentative dans $retry_delay secondes..."
     sleep $retry_delay
   done

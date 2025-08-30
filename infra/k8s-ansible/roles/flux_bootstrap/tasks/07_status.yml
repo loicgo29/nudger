@@ -15,4 +15,3 @@
 - name: Quick API check
   kubernetes.core.k8s_info:
     kind: Namespace
-

@@ -331,4 +331,3 @@
   when:
     - item.1.repo is defined
     - item.1.dest is defined
-

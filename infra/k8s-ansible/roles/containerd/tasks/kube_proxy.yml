@@ -1,13 +1,54 @@
 # ----------------------------
 # kube-proxy
 # ----------------------------
-- name: Wait for apiserver /readyz (no Node Ready dependency)
-  ansible.builtin.command: >
-    curl -sf --cacert /etc/kubernetes/pki/ca.crt https://127.0.0.1:6443/readyz
-  register: apiready
-  retries: 60
-  delay: 2
-  until: apiready.rc == 0
+# --- NEW: lire le manifest de l'apiserver ---
+- name: Read kube-apiserver manifest (for kube-proxy wait)
+  ansible.builtin.slurp:
+    path: /etc/kubernetes/manifests/kube-apiserver.yaml
+  register: apiman_kp
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
+
+# --- NEW: dériver l'hôte de probe ---
+# --- NEW: dériver l'hôte de probe ---
+- name: Derive apiserver probe host (kube-proxy wait)
+  ansible.builtin.set_fact:
+    apiserver_probe_host_kp: >-
+      {{
+        ((apiman_kp.content | b64decode)
+          | regex_search('(?<=--bind-address=)[0-9.]+')
+          | default(((apiman_kp.content | b64decode)
+                     | regex_search('(?<=--advertise-address=)[0-9.]+')), true)
+          | default(ansible_default_ipv4.address, true))
+        | regex_replace('[\\[\\]]','')
+      }}
+  when: inventory_hostname == groups['k8s_masters'][0]
+
+# --- NEW: attendre /readyz ---
+# --- NEW: attendre /readyz ---
+- name: Wait for apiserver /readyz (derived host, robust)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    HOSTS="{{ [apiserver_probe_host_kp, ansible_default_ipv4.address, '127.0.0.1'] | unique | join(' ') }}"
+    for i in $(seq 1 60); do
+      for h in $HOSTS; do
+        h_clean="$(printf '%s' "$h" | sed 's/[][]//g')"
+        if curl -sf \
+          --cacert /etc/kubernetes/pki/ca.crt \
+          --cert   /etc/kubernetes/pki/apiserver-kubelet-client.crt \
+          --key    /etc/kubernetes/pki/apiserver-kubelet-client.key \
+          "https://${h_clean}:6443/readyz" >/dev/null 2>&1; then
+          echo ok
+          exit 0
+        fi
+      done
+      sleep 2
+    done
+    exit 1
+  args: { executable: /bin/bash }
+  register: apiready_kp
+  retries: 1
+  delay: 0
   become: true
   when: inventory_hostname == groups['k8s_masters'][0]
 
@@ -128,4 +169,3 @@
     KUBECONFIG: "{{ kubeconfig_admin_path }}"
   changed_when: false
   become: true
-

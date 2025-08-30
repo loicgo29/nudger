@@ -1,6 +1,6 @@
 # 🧭 Bootstrap GitOps / Flux — Guide d’exploitation (nudger)
 
-Objectif : **raser la VM et remonter l’environnement** rapidement, de façon **idempotente**.  
+Objectif : **raser la VM et remonter l’environnement** rapidement, de façon **idempotente**.
 Ce README documente les playbooks et rôles Ansible listés par `scripts/cat.sh` et donne un **parcours recommandé** (install core, Kubernetes, Flux) + **pièges** à éviter.
 
 > Style : franc, sans blabla. Les commandes sont prêtes à copier/coller.
@@ -52,8 +52,8 @@ sudo apt-get install -y python3-kubernetes || true
 
 ## Inventaire & variables
 
-- **Inventaire** : groupe cible `k8s_masters` (ou `masters`, selon ton inventaire).  
-- **Variables globales** : `infra/k8s-ansible/group_vars/all.yml` (tu as déjà une version propre).  
+- **Inventaire** : groupe cible `k8s_masters` (ou `masters`, selon ton inventaire).
+- **Variables globales** : `infra/k8s-ansible/group_vars/all.yml` (tu as déjà une version propre).
 - **Secrets** : `group_vars/vault.yml` (non commité) — ex. `vault_github_pat`, clés SSH.
 
 Extraits utiles attendus :
@@ -88,36 +88,36 @@ github:
 
 > Ne mélange pas Docker **et** containerd. Choisis **une stack**.
 
-1) **Bootstrap DevOps (outillage, sys basics)**  
+1) **Bootstrap DevOps (outillage, sys basics)**
    ```bash
    ansible-playbook -i inventory.ini infra-devops.yml
    ```
 
-2) **Kubernetes (runtime + kubeadm + CNI)**  
+2) **Kubernetes (runtime + kubeadm + CNI)**
    Tu as deux chemins selon tes rôles :
-   - *Stack containerd* :  
+   - *Stack containerd* :
      ```bash
      ansible-playbook -i inventory.ini infra_containerd.yml
      ansible-playbook -i inventory.ini kubernetes-setup.yml
      ```
-   - *Stack docker* (si tu assumes Docker, sinon **évite**) :  
+   - *Stack docker* (si tu assumes Docker, sinon **évite**) :
      ```bash
      ansible-playbook -i inventory.ini infra_docker.yml
      ansible-playbook -i inventory.ini kubernetes-setup.yml
      ```
 
-3) **FluxCD (GitOps)**  
+3) **FluxCD (GitOps)**
    ```bash
    # Secrets fournis via group_vars/vault.yml
    ansible-playbook -i inventory.ini flux.yml
    ```
 
-4) (Optionnel) **Helm stack** (ingress-nginx, cert-manager, etc.)  
+4) (Optionnel) **Helm stack** (ingress-nginx, cert-manager, etc.)
    ```bash
    ansible-playbook -i inventory.ini helm.yml
    ```
 
-5) (Optionnel) **Users & clones Git**  
+5) (Optionnel) **Users & clones Git**
    ```bash
    ansible-playbook -i inventory.ini setup-k8s-users.yml
    ```
@@ -129,7 +129,7 @@ github:
 ### `clone_repo_git.yml` (via `playbooks/users_and_git.yml`)
 - Crée des **utilisateurs** + **groupes**.
 - Installe **authorized_keys**, **known_hosts (github.com)**.
-- Clone/pull les dépôts déclarés dans `users_k8s[*].git_repos` (dest, repo, branche).  
+- Clone/pull les dépôts déclarés dans `users_k8s[*].git_repos` (dest, repo, branche).
 - **Paramètres clés** : `shallow_clone`, `enforce_known_hosts`.
 
 **Ex variable `users_k8s` :**
@@ -233,7 +233,7 @@ ansible-playbook -i inventory.ini flux.yml
 
 **Ce que ça fait (rôle `flux_bootstrap`) :**
 - Installe le **CLI flux** (pinné) et applique les manifests avec `--export` (idempotent).
-- Crée le secret git **HTTPS+PAT** *ou* **SSH** (au choix).  
+- Crée le secret git **HTTPS+PAT** *ou* **SSH** (au choix).
 - Crée `GitRepository/gitops` → `https://github.com/loicgo29/nudger-gitops.git` (branche `main`).
 - Crée une **Kustomization root par env** (ex : `lab`) pointant `./clusters/<env>`, `timeout: 5m`.
 - `reconcile` source + kustomizations.
@@ -282,54 +282,53 @@ ansible-playbook -i inventory.ini clone_repo_git.yml
 
 ## Swap / conformité Kubernetes
 
-Tu as deux playbooks qui touchent au swap : `disable_swap.yml` et la logique dans `kubernetes-setup.yml`.  
+Tu as deux playbooks qui touchent au swap : `disable_swap.yml` et la logique dans `kubernetes-setup.yml`.
 **Choisis-en un**. Le plus simple : **laisse `kubernetes-setup.yml` faire** et ne lance pas `disable_swap.yml` à côté, pour éviter les surprises.
 
 ---
 
 ## Vault — ⚠️ artefacts sensibles
 
-`artifacts/master1/vault-init.json` contient des **clés d’unseal** et un **root_token**.  
+`artifacts/master1/vault-init.json` contient des **clés d’unseal** et un **root_token**.
 **C’est du secret en clair.** À **ne jamais** committer côté public ni copier sur une autre machine.
 
-- Stocke-le dans un coffre (1Password/Bitwarden/Vault…).  
+- Stocke-le dans un coffre (1Password/Bitwarden/Vault…).
 - Regénère des secrets si ce fichier a fuité.
 
 ---
 
 ## Dépannage rapide
 
-- **Flux bloque / “context deadline exceeded”**  
+- **Flux bloque / “context deadline exceeded”**
   → `spec.timeout: "5m"` dans la Kustomization + `--timeout=5m` côté CLI.
 
-- **“Found multiple kustomization files”**  
+- **“Found multiple kustomization files”**
   → garde **un seul** `kustomization.yaml` par dossier (supprime `Kustomization`, `.yml`, etc.).
 
-- **Repo GitOps “empty” / “path not found”**  
+- **Repo GitOps “empty” / “path not found”**
   → pousse au moins une `kustomization.yaml` sous `clusters/<env>` et relance :
   ```bash
   flux -n flux-system reconcile source git gitops && \
   flux -n flux-system reconcile kustomization cluster-lab
   ```
 
-- **Mono-nœud ⇒ Pods Pending**  
+- **Mono-nœud ⇒ Pods Pending**
   → dé-taint control-plane :
   ```bash
   kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
   ```
 
-- **Secrets Git**  
-  → PAT : vérifier `github.pat` côté `group_vars/vault.yml`.  
+- **Secrets Git**
+  → PAT : vérifier `github.pat` côté `group_vars/vault.yml`.
   → SSH : clés déployées + `known_hosts` (github.com).
 
 ---
 
 ## TL;DR
 
-1. `ansible-playbook infra-devops.yml`  
-2. `ansible-playbook infra_containerd.yml` **puis** `ansible-playbook kubernetes-setup.yml`  
-3. `ansible-playbook -i inventory.ini flux.yml`  
+1. `ansible-playbook infra-devops.yml`
+2. `ansible-playbook infra_containerd.yml` **puis** `ansible-playbook kubernetes-setup.yml`
+3. `ansible-playbook -i inventory.ini flux.yml`
 4. `flux -n flux-system tree kustomization cluster-lab`
 
 Tu veux faire plus propre ensuite (TLS, ingress, charts pinnés) ? ajoute `helm.yml` quand prêt.
-

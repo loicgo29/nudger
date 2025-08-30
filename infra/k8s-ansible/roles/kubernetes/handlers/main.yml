@@ -15,4 +15,3 @@
     enabled: true
   become: true
   listen: Restart kubelet
-

@@ -7,4 +7,3 @@ creer un utiliser nudger
 permet a cet utilisateur de lancer des commandes avec sudo : XXXX
 
 se connecter en nudger
-

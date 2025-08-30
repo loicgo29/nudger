@@ -4,4 +4,3 @@ collections:
     version: ">=6.7.0"
   - name: kubernetes.core
     version: ">=2.9.0"
-

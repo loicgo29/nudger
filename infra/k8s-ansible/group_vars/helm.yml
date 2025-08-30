@@ -31,4 +31,3 @@ cert_manager:
   chart_version: "v1.15.1"      # pin chart
   values:
     installCRDs: true           # indispensable pour CRDs
-

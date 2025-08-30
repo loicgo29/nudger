@@ -36,4 +36,3 @@ find "$DIR" -type f -name "*.*ml" -print0 |  while IFS= read -r -d '' f; do
   fi
   echo
 done
-

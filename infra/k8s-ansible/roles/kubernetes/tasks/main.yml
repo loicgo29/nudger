@@ -185,4 +185,3 @@
     enabled: true
   become: true
   tags: ['k8s', 'service']
-

@@ -41,4 +41,3 @@ common_apt_dependencies:
 
 # Where we store the converted GPG keyring.
 kubernetes_keyring_path: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-

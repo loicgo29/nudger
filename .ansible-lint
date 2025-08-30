@@ -1,0 +1,21 @@
+# .ansible-lint
+profile: production
+warn_list:
+  - experimental  # optionnel
+skip_list:
+  - yaml[line-length]    # si nécessaire
+  - schema[meta-incorrect]  # exemple, ajuste à ton contexte
+
+kinds:
+  # considère ces extensions comme YAML Ansible
+  - playbook: "**/playbooks/**/*.yml"
+  - tasks: "**/roles/**/tasks/**/*.yml"
+  - handlers: "**/roles/**/handlers/**/*.yml"
+  - vars: "**/group_vars/**/*.yml"
+  - defaults: "**/roles/**/defaults/**/*.yml"
+
+exclude_paths:
+  - ".venv/"
+  - ".tox/"
+  - "collections/"
+  - "**/templates/**"
