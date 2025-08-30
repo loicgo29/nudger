@@ -43,6 +43,7 @@
     owner: "{{ ansible_user_id | default(lookup('env','USER')) }}"
   tags: [user-env]
 
+
 # ========== Ansible virtualenv ==========
 # Rationale: we enforce idempotence with `creates:` and remove a broken venv if activate is missing.
 
@@ -86,115 +87,18 @@
     virtualenv_command: "python3 -m venv"
   tags: [venv]
 
-# ========== fzf (system install in /opt + user symlink) ==========
-# We keep fzf under /opt/fzf (root-owned), build binaries with ./install --bin, and expose to user via ~/bin symlink.
-# This avoids touching global PATH or user rc files unless you want key bindings.
 
-- name: Clone fzf into /opt/fzf
-  ansible.builtin.git:
-    repo: "https://github.com/junegunn/fzf.git"
-    dest: "/opt/fzf"
-    version: master
-    update: yes
-  tags: [fzf]
-
-- name: Build fzf binaries (idempotent with creates)
-  ansible.builtin.command: "./install --bin"
-  args:
-    chdir: "/opt/fzf"
-    creates: "/opt/fzf/bin/fzf"
-  tags: [fzf]
-
-- name: Symlink fzf into the user's bin
-  ansible.builtin.file:
-    src: /opt/fzf/bin/fzf
-    dest: "{{ bin_dir }}/fzf"
-    state: link
-    force: yes
-  tags: [fzf, user-env]
-
-# Optional: enable key bindings + completion for bash users.
-# NOTE: This touches the user's .bashrc; skip if you prefer a clean shell config.
-- name: Enable fzf key bindings and completion (bash)
-  ansible.builtin.lineinfile:
-    path: "{{ user_home }}/.bashrc"
-    regexp: 'fzf/shell/key-bindings\.bash'
-    line: 'source /opt/fzf/shell/key-bindings.bash && source /opt/fzf/shell/completion.bash'
-    insertafter: EOF
-    create: yes
-  tags: [fzf, user-env]
-
-# ========== lazygit ==========
-# Strategy:
-# 1) Detect existing binary under /opt/lazygit to avoid rework.
-# 2) Query GitHub Releases API for latest version (rate-limited if unauthenticated).
-# 3) Download, unarchive, and symlink into user's bin.
-# Tips:
-# - For CI, pass a GitHub token via `github_token` to avoid rate limits.
-# - Pin a specific version by setting lazygit_version and skipping the API call.
-
-- name: Check if lazygit is already present
-  ansible.builtin.stat:
-    path: /opt/lazygit/lazygit
-  register: lazygit_binary
-  tags: [lazygit]
-
-- name: Fetch latest lazygit release metadata from GitHub
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
-    return_content: yes
-    headers:
-      Accept: application/vnd.github+json
-      Authorization: "{{ ('Bearer ' ~ github_token) if (github_token | default('') | length) > 0 else omit }}"
-  register: lazygit_release
-  when: not lazygit_binary.stat.exists and (lazygit_version | default('') == '')
-  tags: [lazygit]
-
-- name: Set lazygit_version from API response
-  ansible.builtin.set_fact:
-    lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v','') }}"
-  when: not lazygit_binary.stat.exists and (lazygit_version | default('') == '')
-  tags: [lazygit]
-
-- name: Ensure /opt/lazygit exists
-  ansible.builtin.file:
-    path: /opt/lazygit
-    state: directory
-    mode: '0755'
-    owner: root
-    group: root
-  when: not lazygit_binary.stat.exists
-  tags: [lazygit]
-
-- name: Download lazygit {{ lazygit_version }}
-  ansible.builtin.get_url:
-    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
-    dest: /opt/lazygit/lazygit.tar.gz
-    mode: '0644'
-  when: not lazygit_binary.stat.exists
-  tags: [lazygit]
-
-- name: Unarchive lazygit (creates the binary)
-  ansible.builtin.unarchive:
-    src: /opt/lazygit/lazygit.tar.gz
-    dest: /opt/lazygit
-    remote_src: yes
-    creates: /opt/lazygit/lazygit
-  when: not lazygit_binary.stat.exists
-  tags: [lazygit]
-
-- name: Remove lazygit tarball
-  ansible.builtin.file:
-    path: /opt/lazygit/lazygit.tar.gz
-    state: absent
-  when: not lazygit_binary.stat.exists
-  tags: [lazygit]
-
-- name: Symlink lazygit into the user's bin
-  ansible.builtin.file:
-    src: /opt/lazygit/lazygit
-    dest: "{{ bin_dir }}/lazygit"
-    state: link
-    force: yes
-  tags: [lazygit, user-env]
+# roles/devops/tasks/fzf.yml
+- name: Install fzf under /opt/fzf if missing
+  become: true
+  block:
+    - git:
+        repo: https://github.com/junegunn/fzf.git
+        dest: /opt/fzf
+        version: master
+        update: yes
+    - command: ./install --bin
+      args:
+        chdir: /opt/fzf
+        creates: /opt/fzf/bin/fzf
 

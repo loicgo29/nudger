@@ -3,12 +3,41 @@
   hosts: k8s_masters
   become: true
   vars:
+    # Where to read the admin kubeconfig from, and where to place a root copy for CLI use
     kubeconfig_src: /etc/kubernetes/admin.conf
     kubeconfig_path: /root/.kube/config
-  pre_tasks:
-    - file: { path: /root/.kube, state: directory, mode: '0700' }
-    - copy: { src: "{{ kubeconfig_src }}", dest: "{{ kubeconfig_path }}", remote_src: true, mode: '0600' }
 
+    # Make sure Ansible uses the system Python with pip available
+    ansible_python_interpreter: /usr/bin/python3
+
+  # Ensure Python client libs are recent on the TARGET (since we run kubernetes.core on the node)
+  pre_tasks:
+    - name: Ensure python3-pip is present on target
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+
+    - name: Upgrade kubernetes python client (>=24.2.0) and PyYAML on target
+      ansible.builtin.pip:
+        name:
+          - "kubernetes>=24.2.0"
+          - "PyYAML>=6.0"
+        executable: pip3
+
+    - name: Ensure /root/.kube exists
+      ansible.builtin.file:
+        path: /root/.kube
+        state: directory
+        mode: "0700"
+
+    - name: Copy kubeconfig for root (so kubectl/flux CLI work)
+      ansible.builtin.copy:
+        src: "{{ kubeconfig_src }}"
+        dest: "{{ kubeconfig_path }}"
+        remote_src: true
+        mode: "0600"
+
+  # Default kubeconfig for all kubernetes.core modules used later
   module_defaults:
     kubernetes.core.k8s:
       kubeconfig: /etc/kubernetes/admin.conf

@@ -15,6 +15,7 @@
 #     ssh_public_key: "ssh-ed25519 AAAA... user@example"
 #     kubeconfig: /etc/kubernetes/admin.conf
 users_k8s: []
+tools_symlinks: []
 
 # Activer le déploiement d’alias bash communs
 bash_aliases_enable: true
@@ -34,7 +35,6 @@ kubectx_checkout_dir: "/opt/kubectx"
 # tools_symlinks:
 #   - { name: "lazygit", src: "/opt/lazygit/lazygit" }
 #   - { name: "fzf",     src: "/opt/fzf/bin/fzf" }
-tools_symlinks: []
 
 # Fallback kubeconfig si non précisé par utilisateur (utilisé par les tâches)
 kubeconfig_default_src: "/etc/kubernetes/admin.conf"

@@ -60,18 +60,20 @@
     regexp: '(?s)livenessProbe:.*?startupProbe:'
     replace: |
       livenessProbe:
-        tcpSocket: { port: 10259 }
+        tcpSocket:
+          port: 10259
         initialDelaySeconds: 10
         periodSeconds: 10
         timeoutSeconds: 15
         failureThreshold: 8
       startupProbe:
-        tcpSocket: { port: 10259 }
+        tcpSocket:
+          port: 10259
         initialDelaySeconds: 10
         periodSeconds: 10
         timeoutSeconds: 15
         failureThreshold: 24
-      startupProbe:
+    backup: true
   become: true
   when:
     - inventory_hostname == groups['k8s_masters'][0]
