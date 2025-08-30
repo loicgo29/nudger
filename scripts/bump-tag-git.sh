@@ -30,4 +30,3 @@ git tag -a "$new_tag" -m "Release $new_tag"
 git push origin "$new_tag"
 
 echo "✅ Tag $new_tag créé et poussé automatiquement !"
-

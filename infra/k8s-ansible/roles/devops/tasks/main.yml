@@ -101,4 +101,3 @@
       args:
         chdir: /opt/fzf
         creates: /opt/fzf/bin/fzf
-

@@ -35,4 +35,3 @@ gitops_envs:
 # URL Git selon mode (ne touche pas si tu gardes PAT)
 git_https_url: "https://github.com/{{ github_owner }}/{{ github_repo }}.git"
 git_ssh_url:   "git@github.com:{{ github_owner }}/{{ github_repo }}.git"
-

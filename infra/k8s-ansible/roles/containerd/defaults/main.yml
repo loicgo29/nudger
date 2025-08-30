@@ -28,4 +28,3 @@ flannel_wait_timeout: "5m"
 
 # Kubeconfig path on master (created by kubeadm init)
 kubeconfig_path: "/etc/kubernetes/admin.conf"
-

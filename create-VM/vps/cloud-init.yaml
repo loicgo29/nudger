@@ -1,4 +1,7 @@
 #cloud-config
+# yamllint disable rule:comments
+#cloud-config
+
 users:
   - name: ansible
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -15,5 +18,3 @@ packages:
 runcmd:
   # Installe les paquets utiles
   - apt-get update && apt-get install -y git curl vim openssh-client
-
-

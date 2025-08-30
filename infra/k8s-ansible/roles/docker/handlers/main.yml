@@ -8,4 +8,3 @@
     masked: false
   when: docker_manage_daemon | default(false)
   become: true
-

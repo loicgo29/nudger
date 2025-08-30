@@ -8,4 +8,3 @@
     kubernetes.core.k8s_info: { kubeconfig: "{{ kubeconfig_path }}" }
   roles:
     - role: apps_sync
-

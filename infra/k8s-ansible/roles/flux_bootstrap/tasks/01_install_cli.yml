@@ -32,4 +32,3 @@
     path: "{{ flux_bin }}"
     state: file
     mode: '0755'
-

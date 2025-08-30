@@ -33,4 +33,3 @@
     executable: pip3
   when: _apt_k8s is failed or _apt_k8s.rc|default(0) != 0
   become: true
-

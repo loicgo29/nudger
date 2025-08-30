@@ -41,4 +41,3 @@ else
 fi
 
 echo "✅ Branche '$branch_name' prête et suivie sur origin/$branch_name"
-

@@ -118,4 +118,3 @@
       when:
         - repo.repo is defined
         - repo.dest is defined
-

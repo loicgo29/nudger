@@ -31,4 +31,3 @@
           {{ (item.dependsOn | default([])) | map('community.general.dict_kv', 'name') | list }}
   loop: "{{ apps_kustomizations }}"
   loop_control: { label: "{{ item.name }}" }
-

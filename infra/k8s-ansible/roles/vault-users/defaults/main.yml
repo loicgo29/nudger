@@ -6,4 +6,3 @@ users_k8s:
     groups: root
   - name: dev-loic
     groups: sudo
-

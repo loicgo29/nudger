@@ -44,4 +44,3 @@
   register: _flux_deploys
   changed_when: false
   failed_when: false
-

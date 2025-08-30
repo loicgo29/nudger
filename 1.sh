@@ -138,4 +138,3 @@ flux reconcile kustomization prod-root -n flux-system
 EOF
 
 echo "✅ GitOps scaffold prêt dans ${TARGET_DIR}"
-

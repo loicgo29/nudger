@@ -15,7 +15,7 @@ spec:
   storageClassName: local-path
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path 
+  storageClassName: local-path
   hostPath:
     path: /mnt/data/mysql
     type: DirectoryOrCreate
@@ -163,7 +163,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: 
+  - host:
     http:
       paths:
       - path: /(.*)
@@ -173,4 +173,3 @@ spec:
             name: xwiki
             port:
               number: 8080
-

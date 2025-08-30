@@ -32,4 +32,3 @@ sleep 5
 kubectl get pods -n kube-flannel -o wide
 
 echo "✅ Script terminé. Flannel devrait être opérationnel."
-

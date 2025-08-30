@@ -41,4 +41,3 @@
 - debug:
     msg: "Flux a appliqué une révision"
   when: _flux_changed | default(false)
-

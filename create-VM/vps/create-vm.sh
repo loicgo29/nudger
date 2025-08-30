@@ -112,4 +112,3 @@ git clone --branch $BRANCH --single-branch $DEPOT_GIT ~/$REPO_NAME
 
 echo "✅ Déploiement Git terminé sur $VM_IP"
 echo "Tu peux te connecter avec: ssh -i ~/.ssh/$ID_SSH $USER@$VM_IP"
-

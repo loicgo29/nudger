@@ -38,4 +38,3 @@ kubectx_checkout_dir: "/opt/kubectx"
 
 # Fallback kubeconfig si non précisé par utilisateur (utilisé par les tâches)
 kubeconfig_default_src: "/etc/kubernetes/admin.conf"
-

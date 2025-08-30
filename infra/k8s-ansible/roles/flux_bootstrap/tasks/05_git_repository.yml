@@ -28,4 +28,3 @@
 
 - debug:
     msg: "{{ reco_src.stdout | default('no output') }}"
-

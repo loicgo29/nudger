@@ -21,4 +21,3 @@ fi
 echo "Redémarrage de kubelet..."
 systemctl restart kubelet
 systemctl status kubelet --no-pager
-

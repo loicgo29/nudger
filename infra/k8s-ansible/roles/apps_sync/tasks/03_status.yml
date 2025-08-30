@@ -37,4 +37,3 @@
       {{ (item.status.conditions | default([]) | selectattr('type','equalto','Ready') | list | first).status | default('Unknown') }}
       (reason={{ (item.status.conditions | default([]) | selectattr('type','equalto','Ready') | list | first).reason | default('') }})
   loop: "{{ _allks.resources | default([]) }}"
-

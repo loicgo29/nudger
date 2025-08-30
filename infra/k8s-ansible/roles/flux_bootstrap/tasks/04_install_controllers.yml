@@ -49,4 +49,3 @@
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
   changed_when: false
-

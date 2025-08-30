@@ -68,4 +68,3 @@
     set -e
     flux -n flux-system reconcile kustomization cluster-lab --with-source --timeout=5m
   environment: {KUBECONFIG: /root/.kube/config}
-

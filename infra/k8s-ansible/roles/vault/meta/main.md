@@ -170,5 +170,3 @@ curl -s http://127.0.0.1:8200/v1/sys/health | jq .   # si listener HTTP local au
 - Passer `key-shares` / `key-threshold` à des valeurs **saines**.
 - Supprimer/rotater le **root token** post-bootstrap, créer des policies + tokens dédiés CI/CD.
 - Éviter les artefacts persistants : garder les *unseal keys* dans un coffre séparé (HSM/secret manager).
-
-

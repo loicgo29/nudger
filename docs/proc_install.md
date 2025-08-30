@@ -78,7 +78,7 @@ echo "git branch --set-upstream-to=origin/fix/16082025 fix/16082025"
 ### configuration de la VM
 cd config-vm
 ./setup_ssh_ansible.sh
-./install_all_devops.sh 
+./install_all_devops.sh
 
 ### install profile LOGO
 source ~/ansible_venv/bin/activate
@@ -86,7 +86,7 @@ profile_logo.sh
 
 ### installation de l'infra
 cd nudger/infra/k8s-ansible
-ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml 
+ansible-playbook -i inventory.ini playbooks/kubernetes-setup.yml
 
 ### patcher br si reboot
 ./patch1.sh

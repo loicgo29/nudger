@@ -33,4 +33,3 @@ for ns in "${NAMESPACES[@]}"; do
 done
 
 echo "✅ Nettoyage terminé."
-

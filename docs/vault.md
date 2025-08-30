@@ -35,13 +35,13 @@ On crée une clé SSH spécifique au déploiement.
 ssh-keygen -t ed25519 -f id_deploy_nudger -C "flux-deploy-key" -N ""
 ```
 
-- `-t ed25519` : plus moderne et sécurisé que RSA  
-- `-f id_deploy_nudger` : nom de fichier  
-- `-C` : commentaire (optionnel)  
-- `-N ""` : pas de passphrase (sinon l’automatisation bloque)  
+- `-t ed25519` : plus moderne et sécurisé que RSA
+- `-f id_deploy_nudger` : nom de fichier
+- `-C` : commentaire (optionnel)
+- `-N ""` : pas de passphrase (sinon l’automatisation bloque)
 
-Résultat :  
-- `id_deploy_nudger` → **clé privée**  
+Résultat :
+- `id_deploy_nudger` → **clé privée**
 - `id_deploy_nudger.pub` → **clé publique**
 
 ---
@@ -65,14 +65,14 @@ ansible-vault encrypt id_deploy_nudger   --vault-password-file PATH/.vault_pass.
 ---
 
 ## 6. Ajouter la clé publique sur GitHub (Deploy Key)
-1. Va dans ton repo → **Settings** → **Deploy Keys**  
-2. Clique **Add deploy key**  
-   - Name : `flux-deploy-key`  
+1. Va dans ton repo → **Settings** → **Deploy Keys**
+2. Clique **Add deploy key**
+   - Name : `flux-deploy-key`
    - Copie-colle le contenu de :
      ```bash
      cat id_deploy_nudger.pub
      ```
-   - Si tu veux **push** avec cette clé → coche “Allow write access”.  
+   - Si tu veux **push** avec cette clé → coche “Allow write access”.
    - Sinon laisse décoché (pull-only).
 
 ---
@@ -89,8 +89,8 @@ Dans ton rôle `users-config`, tu pourras ensuite distribuer la clé privée (va
 ---
 
 ✅ À ce stade :
-- Tu as un mot de passe Vault centralisé (`.vault_pass.txt`).  
-- Tu as un fichier `group_vars/vault.yml` chiffré avec tes secrets.  
-- Tu as une paire de clés SSH (`id_deploy_nudger` + `.pub`).  
-- La clé privée est chiffrée avec Vault, la publique ajoutée sur GitHub.  
+- Tu as un mot de passe Vault centralisé (`.vault_pass.txt`).
+- Tu as un fichier `group_vars/vault.yml` chiffré avec tes secrets.
+- Tu as une paire de clés SSH (`id_deploy_nudger` + `.pub`).
+- La clé privée est chiffrée avec Vault, la publique ajoutée sur GitHub.
 - Les deux fichiers sont copiés dans `roles/users-config/files/` pour être provisionnés.

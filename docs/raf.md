@@ -71,5 +71,3 @@ sudo mv yq /usr/local/bin/
 kubectl get pods -n longhorn-system
 sudo systemctl enable --now iscsid
 helm install xwiki ./ -f minimal_values.yaml -n open4goods --create-namespace
-
-
