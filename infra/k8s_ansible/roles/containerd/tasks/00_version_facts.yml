@@ -1,0 +1,18 @@
+---
+# Normalise les variables version à partir de group_vars: k8s_release: "v1.31.1"
+- name: Derive k8s_version (strip leading v) from k8s_release if present
+  ansible.builtin.set_fact:
+    k8s_version: >-
+      {{
+        (k8s_release | default(k8s_version | default('1.31.2')))
+        | regex_replace('^v','')
+      }}
+
+- name: Derive k8s_minor from k8s_version (e.g., 1.31)
+  ansible.builtin.set_fact:
+    k8s_minor: "{{ (k8s_version.split('.')[0:2] | join('.')) }}"
+
+- name: Build repo/gpg URLs from k8s_minor
+  ansible.builtin.set_fact:
+    k8s_repo: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_minor }}/deb/"
+    k8s_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_minor }}/deb/Release.key"

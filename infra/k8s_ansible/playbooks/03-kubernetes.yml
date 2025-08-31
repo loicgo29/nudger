@@ -1,0 +1,7 @@
+---
+- name: Préparation kubernetes
+  hosts: all
+  roles:
+    - kubernetes
+  tags:
+    - "03"

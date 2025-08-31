@@ -1,0 +1,19 @@
+---
+# Kubernetes minor to track; repo URL is built from this.
+k8s_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+# pkgs.k8s.io uses per-minor repos and a keyring
+k8s_repo: >-
+  deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{
+  k8s_version.split('.')[0:2] | join('.') }}/deb/ /
+k8s_gpg_key: >-
+  https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[0:2] | join('.') }}/deb/Release.key
+# Networking (Flannel)
+pod_network_cidr: "10.244.0.0/16"
+flannel_manifest_url: "https://github.com/flannel-io/flannel/releases/download/v0.27.2/kube-flannel.yml"
+# Wait timeout for DaemonSet rollout (e.g., "5m", "180s")
+flannel_wait_timeout: "5m"
+# Kubeconfig path on master (created by kubeadm init)
+k8s_minor: "{{ (k8s_release | regex_search('^([0-9]+\\.[0-9]+)\\.', '\\1') | first) }}"

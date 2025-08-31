@@ -1,0 +1,1240 @@
+== uname -a ==
+Linux master1 5.15.0-151-generic #161-Ubuntu SMP Tue Jul 22 14:25:40 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+== date ==
+2025-08-31T09:25:34+00:00
+== uptime ==
+ 09:25:34 up 24 min,  1 user,  load average: 0.16, 0.12, 0.17
+== ip a ==
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 92:00:06:6c:50:6b brd ff:ff:ff:ff:ff:ff
+    altname enp1s0
+    inet 91.98.16.184/32 metric 100 scope global dynamic eth0
+       valid_lft 84910sec preferred_lft 84910sec
+    inet6 2a01:4f8:c0c:7ff7::1/64 scope global
+       valid_lft forever preferred_lft forever
+    inet6 fe80::9000:6ff:fe6c:506b/64 scope link
+       valid_lft forever preferred_lft forever
+3: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default
+    link/ether 0a:46:2c:b3:3b:70 brd ff:ff:ff:ff:ff:ff
+    inet 10.244.0.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::846:2cff:feb3:3b70/64 scope link
+       valid_lft forever preferred_lft forever
+4: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether 8e:0b:e4:95:49:31 brd ff:ff:ff:ff:ff:ff
+    inet 10.244.0.1/24 brd 10.244.0.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::8c0b:e4ff:fe95:4931/64 scope link
+       valid_lft forever preferred_lft forever
+5: veth17f46056@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 12:a1:d2:76:1b:4a brd ff:ff:ff:ff:ff:ff link-netns cni-2a2f9e3d-8e0f-3bae-2ae9-5bdce15f8d99
+    inet6 fe80::10a1:d2ff:fe76:1b4a/64 scope link
+       valid_lft forever preferred_lft forever
+6: veth3806fe2d@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 06:a0:20:ea:c7:36 brd ff:ff:ff:ff:ff:ff link-netns cni-f967f6a8-55b3-a7ad-f01c-80cb660a4549
+    inet6 fe80::6c0b:c9ff:fe70:bd2c/64 scope link
+       valid_lft forever preferred_lft forever
+7: vethcad29535@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether f2:56:9b:ed:75:2f brd ff:ff:ff:ff:ff:ff link-netns cni-69188192-8bc7-c5f9-9a2e-d7efb0bfb532
+    inet6 fe80::f056:9bff:feed:752f/64 scope link
+       valid_lft forever preferred_lft forever
+8: vethe947a3a2@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 3e:86:99:2c:e7:36 brd ff:ff:ff:ff:ff:ff link-netns cni-1f1a851c-5396-e90a-6039-4108fcd2d868
+    inet6 fe80::d8ad:d0ff:fe90:bba5/64 scope link
+       valid_lft forever preferred_lft forever
+9: vethc88dd05e@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether be:91:a3:3a:e0:70 brd ff:ff:ff:ff:ff:ff link-netns cni-194e5e71-6677-e2fe-40b7-2b36f1bd39a7
+    inet6 fe80::bc91:a3ff:fe3a:e070/64 scope link
+       valid_lft forever preferred_lft forever
+10: veth6b68a84b@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 12:aa:7c:b3:fa:46 brd ff:ff:ff:ff:ff:ff link-netns cni-030d4ccc-0e05-a272-b565-c9af37f9072c
+    inet6 fe80::10aa:7cff:feb3:fa46/64 scope link
+       valid_lft forever preferred_lft forever
+11: veth678c5762@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether fe:4d:a2:1c:b3:cb brd ff:ff:ff:ff:ff:ff link-netns cni-8eb6f11b-b546-f6ef-86ba-cd010a1702ed
+    inet6 fe80::fc4d:a2ff:fe1c:b3cb/64 scope link
+       valid_lft forever preferred_lft forever
+12: veth7aaf7ced@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 82:39:7a:4c:de:33 brd ff:ff:ff:ff:ff:ff link-netns cni-5eafb416-cb66-36ff-64f8-768c12cd3ceb
+    inet6 fe80::8039:7aff:fe4c:de33/64 scope link
+       valid_lft forever preferred_lft forever
+13: vethcf8a7ae3@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 2a:fb:7b:32:c5:6b brd ff:ff:ff:ff:ff:ff link-netns cni-516164e5-924f-24d7-a4eb-d0d13234a2c1
+    inet6 fe80::28fb:7bff:fe32:c56b/64 scope link
+       valid_lft forever preferred_lft forever
+== journalctl -xe (tail) ==
+░░
+░░ A stop job for unit user-runtime-dir@0.service has finished.
+░░
+░░ The job identifier is 4944 and the job result is done.
+Aug 31 09:19:41 master1 systemd[1]: Removed slice User Slice of UID 0.
+░░ Subject: A stop job for unit user-0.slice has finished
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A stop job for unit user-0.slice has finished.
+░░
+░░ The job identifier is 4946 and the job result is done.
+Aug 31 09:19:42 master1 kubelet[4739]: E0831 09:19:42.163442    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:19:56 master1 kubelet[4739]: E0831 09:19:56.163158    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:19:59 master1 kubelet[4739]: E0831 09:19:59.143672    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:20:03 master1 kubelet[4739]: E0831 09:20:03.163503    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:20:17 master1 kubelet[4739]: E0831 09:20:17.163897    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:20:19 master1 kubelet[4739]: E0831 09:20:19.143235    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:20:24 master1 kubelet[4739]: E0831 09:20:24.163941    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:20:26 master1 kubelet[4739]: E0831 09:20:26.163820    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:20:32 master1 kubelet[4739]: E0831 09:20:32.163263    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:20:36 master1 kubelet[4739]: E0831 09:20:36.162880    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:20:39 master1 kubelet[4739]: E0831 09:20:39.144733    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:20:59 master1 kubelet[4739]: E0831 09:20:59.143237    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:21:08 master1 kubelet[4739]: E0831 09:21:08.163610    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:10 master1 kubelet[4739]: E0831 09:21:10.164007    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:19 master1 kubelet[4739]: E0831 09:21:19.143366    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:21:24 master1 kubelet[4739]: E0831 09:21:24.163365    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:25 master1 kubelet[4739]: E0831 09:21:25.163637    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:32 master1 sshd[18336]: Connection from 81.65.116.151 port 3208 on 91.98.16.184 port 22 rdomain ""
+Aug 31 09:21:32 master1 sshd[18336]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:21:32 master1 sshd[18336]: Postponed publickey for root from 81.65.116.151 port 3208 ssh2 [preauth]
+Aug 31 09:21:32 master1 sshd[18336]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:21:32 master1 sshd[18336]: Accepted publickey for root from 81.65.116.151 port 3208 ssh2: ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0
+Aug 31 09:21:32 master1 sshd[18336]: pam_unix(sshd:session): session opened for user root(uid=0) by (uid=0)
+Aug 31 09:21:32 master1 systemd[1]: Created slice User Slice of UID 0.
+░░ Subject: A start job for unit user-0.slice has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit user-0.slice has finished successfully.
+░░
+░░ The job identifier is 4949.
+Aug 31 09:21:32 master1 systemd[1]: Starting User Runtime Directory /run/user/0...
+░░ Subject: A start job for unit user-runtime-dir@0.service has begun execution
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit user-runtime-dir@0.service has begun execution.
+░░
+░░ The job identifier is 4948.
+Aug 31 09:21:32 master1 systemd-logind[800]: New session 18 of user root.
+░░ Subject: A new session 18 has been created for user root
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A new session with the ID 18 has been created for the user root.
+░░
+░░ The leading process of the session is 18336.
+Aug 31 09:21:32 master1 systemd[1]: Finished User Runtime Directory /run/user/0.
+░░ Subject: A start job for unit user-runtime-dir@0.service has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit user-runtime-dir@0.service has finished successfully.
+░░
+░░ The job identifier is 4948.
+Aug 31 09:21:32 master1 systemd[1]: Starting User Manager for UID 0...
+░░ Subject: A start job for unit user@0.service has begun execution
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit user@0.service has begun execution.
+░░
+░░ The job identifier is 4947.
+Aug 31 09:21:32 master1 systemd[18353]: pam_unix(systemd-user:session): session opened for user root(uid=0) by (uid=0)
+Aug 31 09:21:32 master1 systemd[18353]: Queued start job for default target Main User Target.
+Aug 31 09:21:32 master1 systemd[18353]: Created slice User Application Slice.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 5.
+Aug 31 09:21:32 master1 systemd[18353]: Reached target Paths.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 16.
+Aug 31 09:21:32 master1 systemd[18353]: Reached target Timers.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 15.
+Aug 31 09:21:32 master1 systemd[18353]: Starting D-Bus User Message Bus Socket...
+░░ Subject: A start job for unit UNIT has begun execution
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has begun execution.
+░░
+░░ The job identifier is 4.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on GnuPG network certificate management daemon.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 9.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on GnuPG cryptographic agent and passphrase cache (access for web browsers).
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 11.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on GnuPG cryptographic agent and passphrase cache (restricted).
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 10.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on GnuPG cryptographic agent (ssh-agent emulation).
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 8.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on GnuPG cryptographic agent and passphrase cache.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 12.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on debconf communication socket.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 14.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on REST API socket for snapd user session agent.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 13.
+Aug 31 09:21:32 master1 systemd[18353]: Listening on D-Bus User Message Bus Socket.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 4.
+Aug 31 09:21:32 master1 systemd[18353]: Reached target Sockets.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 3.
+Aug 31 09:21:32 master1 systemd[18353]: Reached target Basic System.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 2.
+Aug 31 09:21:32 master1 systemd[1]: Started User Manager for UID 0.
+░░ Subject: A start job for unit user@0.service has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit user@0.service has finished successfully.
+░░
+░░ The job identifier is 4947.
+Aug 31 09:21:32 master1 systemd[1]: Started Session 18 of User root.
+░░ Subject: A start job for unit session-18.scope has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit session-18.scope has finished successfully.
+░░
+░░ The job identifier is 5032.
+Aug 31 09:21:32 master1 systemd[18353]: Reached target Main User Target.
+░░ Subject: A start job for unit UNIT has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit UNIT has finished successfully.
+░░
+░░ The job identifier is 1.
+Aug 31 09:21:32 master1 systemd[18353]: Startup finished in 123ms.
+░░ Subject: User manager start-up is now complete
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The user manager instance for user 0 has been started. All services queued
+░░ for starting have been started. Note that other services might still be starting
+░░ up or be started at any later time.
+░░
+░░ Startup of the manager took 123486 microseconds.
+Aug 31 09:21:33 master1 sshd[18336]: Starting session: shell on pts/0 for root from 81.65.116.151 port 3208 id 0
+Aug 31 09:21:38 master1 kubelet[4739]: E0831 09:21:38.163180    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:39 master1 kubelet[4739]: E0831 09:21:39.143415    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:21:52 master1 kubelet[4739]: E0831 09:21:52.163997    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:56 master1 kubelet[4739]: E0831 09:21:56.163744    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:58 master1 kubelet[4739]: E0831 09:21:58.163218    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:21:59 master1 kubelet[4739]: E0831 09:21:59.143316    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:22:19 master1 kubelet[4739]: E0831 09:22:19.142901    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:22:30 master1 kubelet[4739]: E0831 09:22:30.163640    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:22:33 master1 kubelet[4739]: E0831 09:22:33.163975    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:22:35 master1 kubelet[4739]: E0831 09:22:35.163713    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:22:39 master1 kubelet[4739]: E0831 09:22:39.144097    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:22:46 master1 kubelet[4739]: E0831 09:22:46.163632    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:22:52 master1 kubelet[4739]: E0831 09:22:52.164205    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:22:59 master1 kubelet[4739]: E0831 09:22:59.143792    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:23:08 master1 kubelet[4739]: E0831 09:23:08.163601    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:23:19 master1 kubelet[4739]: E0831 09:23:19.142165    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:23:19 master1 kubelet[4739]: E0831 09:23:19.164382    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:23:26 master1 kubelet[4739]: E0831 09:23:26.163791    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:23:39 master1 kubelet[4739]: E0831 09:23:39.144079    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:23:41 master1 kubelet[4739]: E0831 09:23:41.163736    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:23:59 master1 kubelet[4739]: E0831 09:23:59.143827    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:23:59 master1 kubelet[4739]: E0831 09:23:59.163983    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:03 master1 kubelet[4739]: E0831 09:24:03.164016    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:09 master1 kubelet[4739]: E0831 09:24:09.164355    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:11 master1 kubelet[4739]: E0831 09:24:11.164124    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:19 master1 kubelet[4739]: E0831 09:24:19.142450    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:24:21 master1 kubelet[4739]: E0831 09:24:21.163832    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:25 master1 kubelet[4739]: E0831 09:24:25.163491    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:29 master1 kubelet[4739]: E0831 09:24:29.164013    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:24:39 master1 kubelet[4739]: E0831 09:24:39.143671    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.863485304Z" level=info msg="StopContainer for \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" with timeout 30 (s)"
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.864092112Z" level=info msg="Stop container \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" with signal terminated"
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.895480685Z" level=info msg="received exit event container_id:\"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\"  id:\"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\"  pid:7924  exit_status:2  exited_at:{seconds:1756632284  nanos:895144946}"
+Aug 31 09:24:44 master1 systemd[1]: run-containerd-io.containerd.runtime.v2.task-k8s.io-69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a-rootfs.mount: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The unit run-containerd-io.containerd.runtime.v2.task-k8s.io-69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a-rootfs.mount has successfully entered the 'dead' state.
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.942049742Z" level=info msg="shim disconnected" id=69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a namespace=k8s.io
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.942119332Z" level=warning msg="cleaning up after shim disconnected" id=69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a namespace=k8s.io
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.942131922Z" level=info msg="cleaning up dead shim" namespace=k8s.io
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.961320173Z" level=info msg="StopContainer for \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" returns successfully"
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.961886572Z" level=info msg="StopPodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.961924442Z" level=info msg="Container to stop \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" must be in running or unknown state, current state \"CONTAINER_EXITED\""
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.961963771Z" level=info msg="Container to stop \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\" must be in running or unknown state, current state \"CONTAINER_EXITED\""
+Aug 31 09:24:44 master1 systemd[1]: run-containerd-io.containerd.grpc.v1.cri-sandboxes-f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db-shm.mount: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The unit run-containerd-io.containerd.grpc.v1.cri-sandboxes-f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db-shm.mount has successfully entered the 'dead' state.
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.973520196Z" level=info msg="received exit event container_id:\"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\"  id:\"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\"  pid:5620  exit_status:137  exited_at:{seconds:1756632284  nanos:973293906}"
+Aug 31 09:24:44 master1 systemd[1]: run-containerd-io.containerd.runtime.v2.task-k8s.io-f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db-rootfs.mount: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The unit run-containerd-io.containerd.runtime.v2.task-k8s.io-f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db-rootfs.mount has successfully entered the 'dead' state.
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.995130650Z" level=info msg="shim disconnected" id=f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db namespace=k8s.io
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.995187489Z" level=warning msg="cleaning up after shim disconnected" id=f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db namespace=k8s.io
+Aug 31 09:24:44 master1 containerd[6733]: time="2025-08-31T09:24:44.995195639Z" level=info msg="cleaning up dead shim" namespace=k8s.io
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.009337096Z" level=info msg="TearDown network for sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" successfully"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.009394226Z" level=info msg="StopPodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" returns successfully"
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197000    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"etc-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-etc-ca-certificates\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197048    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"kubeconfig\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-kubeconfig\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197071    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"usr-local-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-usr-local-share-ca-certificates\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197094    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"flexvolume-dir\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-flexvolume-dir\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197117    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"k8s-certs\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-k8s-certs\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197137    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"usr-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-usr-share-ca-certificates\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197159    4739 reconciler_common.go:159] "operationExecutor.UnmountVolume started for volume \"ca-certs\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-ca-certs\") pod \"436361ed275cd572be3d0c781dbf718c\" (UID: \"436361ed275cd572be3d0c781dbf718c\") "
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197484    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-k8s-certs" (OuterVolumeSpecName: "k8s-certs") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "k8s-certs". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197505    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-kubeconfig" (OuterVolumeSpecName: "kubeconfig") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "kubeconfig". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197514    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-flexvolume-dir" (OuterVolumeSpecName: "flexvolume-dir") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "flexvolume-dir". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197535    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-usr-local-share-ca-certificates" (OuterVolumeSpecName: "usr-local-share-ca-certificates") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "usr-local-share-ca-certificates". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197541    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-usr-share-ca-certificates" (OuterVolumeSpecName: "usr-share-ca-certificates") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "usr-share-ca-certificates". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197560    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-ca-certs" (OuterVolumeSpecName: "ca-certs") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "ca-certs". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.197579    4739 operation_generator.go:803] UnmountVolume.TearDown succeeded for volume "kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-etc-ca-certificates" (OuterVolumeSpecName: "etc-ca-certificates") pod "436361ed275cd572be3d0c781dbf718c" (UID: "436361ed275cd572be3d0c781dbf718c"). InnerVolumeSpecName "etc-ca-certificates". PluginName "kubernetes.io/host-path", VolumeGidValue ""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298078    4739 reconciler_common.go:293] "Volume detached for volume \"usr-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-usr-share-ca-certificates\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298112    4739 reconciler_common.go:293] "Volume detached for volume \"ca-certs\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-ca-certs\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298127    4739 reconciler_common.go:293] "Volume detached for volume \"etc-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-etc-ca-certificates\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298137    4739 reconciler_common.go:293] "Volume detached for volume \"flexvolume-dir\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-flexvolume-dir\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298147    4739 reconciler_common.go:293] "Volume detached for volume \"kubeconfig\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-kubeconfig\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298157    4739 reconciler_common.go:293] "Volume detached for volume \"usr-local-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-usr-local-share-ca-certificates\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.298167    4739 reconciler_common.go:293] "Volume detached for volume \"k8s-certs\" (UniqueName: \"kubernetes.io/host-path/436361ed275cd572be3d0c781dbf718c-k8s-certs\") on node \"master1\" DevicePath \"\""
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.349900    4739 scope.go:117] "RemoveContainer" containerID="69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.351700104Z" level=info msg="RemoveContainer for \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\""
+Aug 31 09:24:45 master1 systemd[1]: Removed slice libcontainer container kubepods-burstable-pod436361ed275cd572be3d0c781dbf718c.slice.
+░░ Subject: A stop job for unit kubepods-burstable-pod436361ed275cd572be3d0c781dbf718c.slice has finished
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A stop job for unit kubepods-burstable-pod436361ed275cd572be3d0c781dbf718c.slice has finished.
+░░
+░░ The job identifier is 5118 and the job result is done.
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.357724    4739 scope.go:117] "RemoveContainer" containerID="323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.357490226Z" level=info msg="RemoveContainer for \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" returns successfully"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.359208011Z" level=info msg="RemoveContainer for \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\""
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.364225336Z" level=info msg="RemoveContainer for \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\" returns successfully"
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.364492    4739 scope.go:117] "RemoveContainer" containerID="69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.364760374Z" level=error msg="ContainerStatus for \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" failed" error="rpc error: code = NotFound desc = an error occurred when try to find container \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\": not found"
+Aug 31 09:24:45 master1 kubelet[4739]: E0831 09:24:45.365037    4739 log.go:32] "ContainerStatus from runtime service failed" err="rpc error: code = NotFound desc = an error occurred when try to find container \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\": not found" containerID="69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a"
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.365076    4739 pod_container_deletor.go:53] "DeleteContainer returned error" containerID={"Type":"containerd","ID":"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a"} err="failed to get container status \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\": rpc error: code = NotFound desc = an error occurred when try to find container \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\": not found"
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.365104    4739 scope.go:117] "RemoveContainer" containerID="323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.365406592Z" level=error msg="ContainerStatus for \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\" failed" error="rpc error: code = NotFound desc = an error occurred when try to find container \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": not found"
+Aug 31 09:24:45 master1 kubelet[4739]: E0831 09:24:45.365629    4739 log.go:32] "ContainerStatus from runtime service failed" err="rpc error: code = NotFound desc = an error occurred when try to find container \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": not found" containerID="323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74"
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.365668    4739 pod_container_deletor.go:53] "DeleteContainer returned error" containerID={"Type":"containerd","ID":"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74"} err="failed to get container status \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": rpc error: code = NotFound desc = an error occurred when try to find container \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": not found"
+Aug 31 09:24:47 master1 kubelet[4739]: I0831 09:24:47.166728    4739 kubelet_volumes.go:163] "Cleaned up orphaned pod volumes dir" podUID="436361ed275cd572be3d0c781dbf718c" path="/var/lib/kubelet/pods/436361ed275cd572be3d0c781dbf718c/volumes"
+Aug 31 09:24:57 master1 sshd[19333]: Connection from 81.65.116.151 port 4568 on 91.98.16.184 port 22 rdomain ""
+Aug 31 09:24:57 master1 sshd[19333]: Failed publickey for root from 81.65.116.151 port 4568 ssh2: ED25519 SHA256:Hoh1nr9y7aWoyIvENawvzl6aB4CHKYLQ8fICH9/yUqw
+Aug 31 09:24:57 master1 sshd[19333]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:24:57 master1 sshd[19333]: Postponed publickey for root from 81.65.116.151 port 4568 ssh2 [preauth]
+Aug 31 09:24:57 master1 sshd[19333]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:24:57 master1 sshd[19333]: Accepted publickey for root from 81.65.116.151 port 4568 ssh2: ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0
+Aug 31 09:24:57 master1 sshd[19333]: pam_unix(sshd:session): session opened for user root(uid=0) by (uid=0)
+Aug 31 09:24:57 master1 systemd-logind[800]: New session 20 of user root.
+░░ Subject: A new session 20 has been created for user root
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A new session with the ID 20 has been created for the user root.
+░░
+░░ The leading process of the session is 19333.
+Aug 31 09:24:57 master1 systemd[1]: Started Session 20 of User root.
+░░ Subject: A start job for unit session-20.scope has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit session-20.scope has finished successfully.
+░░
+░░ The job identifier is 5119.
+Aug 31 09:24:57 master1 sshd[19333]: Starting session: command for root from 81.65.116.151 port 4568 id 0
+Aug 31 09:24:57 master1 sshd[19333]: Received disconnect from 81.65.116.151 port 4568:11: disconnected by user
+Aug 31 09:24:57 master1 sshd[19333]: Disconnected from user root 81.65.116.151 port 4568
+Aug 31 09:24:57 master1 sshd[19333]: pam_unix(sshd:session): session closed for user root
+Aug 31 09:24:57 master1 systemd[1]: session-20.scope: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The unit session-20.scope has successfully entered the 'dead' state.
+Aug 31 09:24:57 master1 systemd-logind[800]: Session 20 logged out. Waiting for processes to exit.
+Aug 31 09:24:57 master1 systemd-logind[800]: Removed session 20.
+░░ Subject: Session 20 has been terminated
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A session with the ID 20 has been terminated.
+Aug 31 09:24:58 master1 sshd[19414]: Connection from 81.65.116.151 port 3927 on 91.98.16.184 port 22 rdomain ""
+Aug 31 09:24:58 master1 sshd[19414]: Failed publickey for root from 81.65.116.151 port 3927 ssh2: ED25519 SHA256:Hoh1nr9y7aWoyIvENawvzl6aB4CHKYLQ8fICH9/yUqw
+Aug 31 09:24:58 master1 sshd[19414]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:24:58 master1 sshd[19414]: Postponed publickey for root from 81.65.116.151 port 3927 ssh2 [preauth]
+Aug 31 09:24:58 master1 sshd[19414]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:24:58 master1 sshd[19414]: Accepted publickey for root from 81.65.116.151 port 3927 ssh2: ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0
+Aug 31 09:24:58 master1 sshd[19414]: pam_unix(sshd:session): session opened for user root(uid=0) by (uid=0)
+Aug 31 09:24:58 master1 systemd-logind[800]: New session 21 of user root.
+░░ Subject: A new session 21 has been created for user root
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A new session with the ID 21 has been created for the user root.
+░░
+░░ The leading process of the session is 19414.
+Aug 31 09:24:58 master1 systemd[1]: Started Session 21 of User root.
+░░ Subject: A start job for unit session-21.scope has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit session-21.scope has finished successfully.
+░░
+░░ The job identifier is 5205.
+Aug 31 09:24:58 master1 sshd[19414]: Starting session: subsystem 'sftp' for root from 81.65.116.151 port 3927 id 0
+Aug 31 09:24:58 master1 sshd[19414]: Received disconnect from 81.65.116.151 port 3927:11: disconnected by user
+Aug 31 09:24:58 master1 sshd[19414]: Disconnected from user root 81.65.116.151 port 3927
+Aug 31 09:24:58 master1 sshd[19414]: pam_unix(sshd:session): session closed for user root
+Aug 31 09:24:58 master1 systemd[1]: session-21.scope: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The unit session-21.scope has successfully entered the 'dead' state.
+Aug 31 09:24:58 master1 systemd-logind[800]: Session 21 logged out. Waiting for processes to exit.
+Aug 31 09:24:58 master1 systemd-logind[800]: Removed session 21.
+░░ Subject: Session 21 has been terminated
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A session with the ID 21 has been terminated.
+Aug 31 09:24:58 master1 sshd[19475]: Connection from 81.65.116.151 port 3568 on 91.98.16.184 port 22 rdomain ""
+Aug 31 09:24:59 master1 sshd[19475]: Failed publickey for root from 81.65.116.151 port 3568 ssh2: ED25519 SHA256:Hoh1nr9y7aWoyIvENawvzl6aB4CHKYLQ8fICH9/yUqw
+Aug 31 09:24:59 master1 kubelet[4739]: E0831 09:24:59.143075    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:24:59 master1 sshd[19475]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:24:59 master1 sshd[19475]: Postponed publickey for root from 81.65.116.151 port 3568 ssh2 [preauth]
+Aug 31 09:24:59 master1 sshd[19475]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:24:59 master1 sshd[19475]: Accepted publickey for root from 81.65.116.151 port 3568 ssh2: ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0
+Aug 31 09:24:59 master1 sshd[19475]: pam_unix(sshd:session): session opened for user root(uid=0) by (uid=0)
+Aug 31 09:24:59 master1 systemd-logind[800]: New session 22 of user root.
+░░ Subject: A new session 22 has been created for user root
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A new session with the ID 22 has been created for the user root.
+░░
+░░ The leading process of the session is 19475.
+Aug 31 09:24:59 master1 systemd[1]: Started Session 22 of User root.
+░░ Subject: A start job for unit session-22.scope has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit session-22.scope has finished successfully.
+░░
+░░ The job identifier is 5291.
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.261993029Z" level=info msg="StopPodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262128519Z" level=info msg="TearDown network for sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" successfully"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262185799Z" level=info msg="StopPodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" returns successfully"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262618997Z" level=info msg="RemovePodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262647597Z" level=info msg="Forcibly stopping sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262707517Z" level=info msg="TearDown network for sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" successfully"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.267758811Z" level=warning msg="Failed to get podSandbox status for container event for sandboxID \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\": an error occurred when try to find sandbox: not found. Sending the event with nil podSandboxStatus."
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.267839051Z" level=info msg="RemovePodSandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" returns successfully"
+Aug 31 09:24:59 master1 sshd[19475]: Starting session: command for root from 81.65.116.151 port 3568 id 0
+Aug 31 09:24:59 master1 sshd[19475]: Received disconnect from 81.65.116.151 port 3568:11: disconnected by user
+Aug 31 09:24:59 master1 sshd[19475]: Disconnected from user root 81.65.116.151 port 3568
+Aug 31 09:24:59 master1 sshd[19475]: pam_unix(sshd:session): session closed for user root
+Aug 31 09:24:59 master1 systemd[1]: session-22.scope: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ The unit session-22.scope has successfully entered the 'dead' state.
+Aug 31 09:24:59 master1 systemd-logind[800]: Session 22 logged out. Waiting for processes to exit.
+Aug 31 09:24:59 master1 systemd-logind[800]: Removed session 22.
+░░ Subject: Session 22 has been terminated
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A session with the ID 22 has been terminated.
+Aug 31 09:25:08 master1 kubelet[4739]: E0831 09:25:08.163528    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:19 master1 kubelet[4739]: E0831 09:25:19.142432    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:25:20 master1 kubelet[4739]: E0831 09:25:20.163667    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:23 master1 kubelet[4739]: E0831 09:25:23.163684    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:25 master1 kubelet[4739]: E0831 09:25:25.163705    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:25 master1 kubelet[4739]: E0831 09:25:25.164022    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:29 master1 kubelet[4739]: E0831 09:25:29.163609    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:34 master1 sshd[19667]: Connection from 81.65.116.151 port 3334 on 91.98.16.184 port 22 rdomain ""
+Aug 31 09:25:34 master1 sshd[19667]: Failed publickey for root from 81.65.116.151 port 3334 ssh2: ED25519 SHA256:Hoh1nr9y7aWoyIvENawvzl6aB4CHKYLQ8fICH9/yUqw
+Aug 31 09:25:34 master1 sshd[19667]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:25:34 master1 sshd[19667]: Postponed publickey for root from 81.65.116.151 port 3334 ssh2 [preauth]
+Aug 31 09:25:34 master1 sshd[19667]: Accepted key ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0 found at /root/.ssh/authorized_keys:1
+Aug 31 09:25:34 master1 sshd[19667]: Accepted publickey for root from 81.65.116.151 port 3334 ssh2: ED25519 SHA256:zjEYtZcdV5arRBnYKc26FouyVe2Jr4h1Wwj+OHfKln0
+Aug 31 09:25:34 master1 sshd[19667]: pam_unix(sshd:session): session opened for user root(uid=0) by (uid=0)
+Aug 31 09:25:34 master1 systemd-logind[800]: New session 23 of user root.
+░░ Subject: A new session 23 has been created for user root
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░ Documentation: sd-login(3)
+░░
+░░ A new session with the ID 23 has been created for the user root.
+░░
+░░ The leading process of the session is 19667.
+Aug 31 09:25:34 master1 systemd[1]: Started Session 23 of User root.
+░░ Subject: A start job for unit session-23.scope has finished successfully
+░░ Defined-By: systemd
+░░ Support: http://www.ubuntu.com/support
+░░
+░░ A start job for unit session-23.scope has finished successfully.
+░░
+░░ The job identifier is 5377.
+Aug 31 09:25:34 master1 sshd[19667]: Starting session: command for root from 81.65.116.151 port 3334 id 0
+== systemctl --failed ==
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+0 loaded units listed.
+== dmesg (tail) ==
+[    1.978768] usb 1-1: new high-speed USB device number 2 using xhci_hcd
+[    2.003028] ata5: SATA link down (SStatus 0 SControl 300)
+[    2.010676] ata2: SATA link down (SStatus 0 SControl 300)
+[    2.013662] ata3: SATA link down (SStatus 0 SControl 300)
+[    2.016721] ata4: SATA link down (SStatus 0 SControl 300)
+[    2.020199] ata6: SATA link down (SStatus 0 SControl 300)
+[    2.023813] ata1: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+[    2.027119] ata1.00: ATAPI: QEMU DVD-ROM, 2.5+, max UDMA/100
+[    2.029942] ata1.00: applying bridge limits
+[    2.032546] ata1.00: configured for UDMA/100
+[    2.035553] scsi 1:0:0:0: CD-ROM            QEMU     QEMU DVD-ROM     2.5+ PQ: 0 ANSI: 5
+[    2.075471] sr 1:0:0:0: [sr0] scsi3-mmc drive: 4x/4x cd/rw xa/form2 tray
+[    2.078565] cdrom: Uniform CD-ROM driver Revision: 3.20
+[    2.108025] sr 1:0:0:0: Attached scsi CD-ROM sr0
+[    2.108352] sr 1:0:0:0: Attached scsi generic sg1 type 5
+[    2.120032] virtio_net virtio1 enp1s0: renamed from eth0
+[    2.128533] [drm] pci: virtio-vga detected at 0000:00:01.0
+[    2.131921] virtio-pci 0000:00:01.0: vgaarb: deactivate vga console
+[    2.143899] Console: switching to colour dummy device 80x25
+[    2.147269] usb 1-1: New USB device found, idVendor=0627, idProduct=0001, bcdDevice= 0.00
+[    2.147968] [drm] features: -virgl +edid -resource_blob -host_visible
+[    2.151163] usb 1-1: New USB device strings: Mfr=1, Product=3, SerialNumber=10
+[    2.156611] [drm] number of scanouts: 1
+[    2.156818] usb 1-1: Product: QEMU USB Tablet
+[    2.158049] [drm] number of cap sets: 0
+[    2.159907] usb 1-1: Manufacturer: QEMU
+[    2.163190] usb 1-1: SerialNumber: 28754-0000:00:02.1:00.0-1
+[    2.165917] [drm] Initialized virtio_gpu 0.1.0 0 for virtio0 on minor 0
+[    2.173978] virtio_gpu virtio0: [drm] drm_plane_enable_fb_damage_clips() not called
+[    2.173993] Console: switching to colour frame buffer device 160x50
+[    2.181380] hid: raw HID events driver (C) Jiri Kosina
+[    2.195164] virtio_gpu virtio0: [drm] fb0: virtio_gpudrmfb frame buffer device
+[    2.196335] usbcore: registered new interface driver usbhid
+[    2.199989] usbhid: USB HID core driver
+[    2.204362] input: QEMU QEMU USB Tablet as /devices/pci0000:00/0000:00:02.1/0000:02:00.0/usb1/1-1/1-1:1.0/0003:0627:0001.0001/input/input5
+[    2.209427] hid-generic 0003:0627:0001.0001: input,hidraw0: USB HID v0.01 Mouse [QEMU QEMU USB Tablet] on usb-0000:02:00.0-1/input0
+[    2.506740] raid6: avx2x4   gen() 37454 MB/s
+[    2.574716] raid6: avx2x4   xor()  4427 MB/s
+[    2.642724] raid6: avx2x2   gen() 47985 MB/s
+[    2.710730] raid6: avx2x2   xor() 36483 MB/s
+[    2.778726] raid6: avx2x1   gen() 40614 MB/s
+[    2.846733] raid6: avx2x1   xor() 30238 MB/s
+[    2.914731] raid6: sse2x4   gen() 22621 MB/s
+[    2.982732] raid6: sse2x4   xor()  2355 MB/s
+[    3.050733] raid6: sse2x2   gen() 16202 MB/s
+[    3.118725] raid6: sse2x2   xor() 12061 MB/s
+[    3.186722] raid6: sse2x1   gen()  8008 MB/s
+[    3.254727] raid6: sse2x1   xor()  7737 MB/s
+[    3.255311] raid6: using algorithm avx2x2 gen() 47985 MB/s
+[    3.255999] raid6: .... xor() 36483 MB/s, rmw enabled
+[    3.256661] raid6: using avx2x2 recovery algorithm
+[    3.258933] xor: automatically using best checksumming function   avx
+[    3.262354] async_tx: api initialized (async)
+[    3.361153] Btrfs loaded, crc32c=crc32c-intel, zoned=yes, fsverity=yes
+[    3.479721] EXT4-fs (sda1): mounted filesystem with ordered data mode. Opts: (null). Quota mode: none.
+[    3.630492] systemd[1]: Inserted module 'autofs4'
+[    3.653957] systemd[1]: systemd 249.11-0ubuntu3.16 running in system mode (+PAM +AUDIT +SELINUX +APPARMOR +IMA +SMACK +SECCOMP +GCRYPT +GNUTLS +OPENSSL +ACL +BLKID +CURL +ELFUTILS +FIDO2 +IDN2 -IDN +IPTC +KMOD +LIBCRYPTSETUP +LIBFDISK +PCRE2 -PWQUALITY -P11KIT -QRENCODE +BZIP2 +LZ4 +XZ +ZLIB +ZSTD -XKBCOMMON +UTMP +SYSVINIT default-hierarchy=unified)
+[    3.668325] systemd[1]: Detected virtualization kvm.
+[    3.670911] systemd[1]: Detected architecture x86-64.
+[    3.673961] systemd[1]: Hostname set to <Ubuntu-2204-jammy-64-minimal>.
+[    3.677047] systemd[1]: Initializing machine ID from VM UUID.
+[    3.678637] systemd[1]: Installed transient /etc/machine-id file.
+[    3.870586] systemd[1]: Configuration file /run/systemd/system/netplan-ovs-cleanup.service is marked world-inaccessible. This has no effect as configuration data is accessible via APIs without restrictions. Proceeding anyway.
+[    3.909474] systemd[1]: /lib/systemd/system/snapd.service:23: Unknown key name 'RestartMode' in section 'Service', ignoring.
+[    4.000198] systemd[1]: Queued start job for default target Graphical Interface.
+[    4.005045] systemd[1]: Created slice Slice /system/modprobe.
+[    4.011740] systemd[1]: Created slice Slice /system/serial-getty.
+[    4.017227] systemd[1]: Created slice Slice /system/systemd-fsck.
+[    4.021849] systemd[1]: Created slice User and Session Slice.
+[    4.025954] systemd[1]: Started Forward Password Requests to Wall Directory Watch.
+[    4.030906] systemd[1]: Set up automount Arbitrary Executable File Formats File System Automount Point.
+[    4.035981] systemd[1]: Reached target Slice Units.
+[    4.039639] systemd[1]: Reached target Mounting snaps.
+[    4.043322] systemd[1]: Reached target Mounted snaps.
+[    4.046975] systemd[1]: Reached target Swaps.
+[    4.050307] systemd[1]: Reached target Local Verity Protected Volumes.
+[    4.054868] systemd[1]: Listening on Device-mapper event daemon FIFOs.
+[    4.059369] systemd[1]: Listening on LVM2 poll daemon socket.
+[    4.063602] systemd[1]: Listening on multipathd control socket.
+[    4.068006] systemd[1]: Listening on Syslog Socket.
+[    4.071664] systemd[1]: Listening on fsck to fsckd communication Socket.
+[    4.076186] systemd[1]: Listening on initctl Compatibility Named Pipe.
+[    4.080429] systemd[1]: Listening on Journal Audit Socket.
+[    4.083974] systemd[1]: Listening on Journal Socket (/dev/log).
+[    4.087674] systemd[1]: Listening on Journal Socket.
+[    4.091032] systemd[1]: Listening on Network Service Netlink Socket.
+[    4.095744] systemd[1]: Listening on udev Control Socket.
+[    4.099677] systemd[1]: Listening on udev Kernel Socket.
+[    4.104089] systemd[1]: Mounting Huge Pages File System...
+[    4.108418] systemd[1]: Mounting POSIX Message Queue File System...
+[    4.112766] systemd[1]: Mounting Kernel Debug File System...
+[    4.116783] systemd[1]: Mounting Kernel Trace File System...
+[    4.121652] systemd[1]: Starting Journal Service...
+[    4.125663] systemd[1]: Starting Set the console keyboard layout...
+[    4.130395] systemd[1]: Starting Create List of Static Device Nodes...
+[    4.135296] systemd[1]: Starting Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling...
+[    4.141836] systemd[1]: Condition check resulted in LXD - agent being skipped.
+[    4.142845] systemd[1]: Starting Load Kernel Module configfs...
+[    4.156614] systemd[1]: Starting Load Kernel Module drm...
+[    4.165279] systemd[1]: Starting Load Kernel Module efi_pstore...
+[    4.172572] systemd[1]: Starting Load Kernel Module fuse...
+[    4.179721] systemd[1]: Condition check resulted in OpenVSwitch configuration for cleanup being skipped.
+[    4.186467] systemd[1]: Condition check resulted in File System Check on Root Device being skipped.
+[    4.194411] systemd[1]: Starting Load Kernel Modules...
+[    4.205496] systemd[1]: Starting Remount Root and Kernel File Systems...
+[    4.208775] EXT4-fs (sda1): re-mounted. Opts: (null). Quota mode: none.
+[    4.214859] systemd[1]: Starting Coldplug All udev Devices...
+[    4.224579] systemd[1]: Mounted Huge Pages File System.
+[    4.230478] systemd[1]: Mounted POSIX Message Queue File System.
+[    4.236775] systemd[1]: Mounted Kernel Debug File System.
+[    4.242259] systemd[1]: Started Journal Service.
+[    4.288474] systemd-journald[412]: Received client request to flush runtime journal.
+[    4.302019] alua: device handler registered
+[    4.306412] emc: device handler registered
+[    4.318935] rdac: device handler registered
+[    4.789560] audit: type=1400 audit(1756630842.028:2): apparmor="STATUS" operation="profile_load" profile="unconfined" name="lsb_release" pid=606 comm="apparmor_parser"
+[    4.789892] audit: type=1400 audit(1756630842.028:3): apparmor="STATUS" operation="profile_load" profile="unconfined" name="nvidia_modprobe" pid=607 comm="apparmor_parser"
+[    4.789896] audit: type=1400 audit(1756630842.028:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="nvidia_modprobe//kmod" pid=607 comm="apparmor_parser"
+[    4.798573] audit: type=1400 audit(1756630842.036:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="ubuntu_pro_apt_news" pid=614 comm="apparmor_parser"
+[    4.804502] audit: type=1400 audit(1756630842.044:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/bin/man" pid=616 comm="apparmor_parser"
+[    4.804505] audit: type=1400 audit(1756630842.044:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="man_filter" pid=616 comm="apparmor_parser"
+[    4.804506] audit: type=1400 audit(1756630842.044:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="man_groff" pid=616 comm="apparmor_parser"
+[    4.810795] audit: type=1400 audit(1756630842.052:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-client.action" pid=608 comm="apparmor_parser"
+[    4.810799] audit: type=1400 audit(1756630842.052:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-helper" pid=608 comm="apparmor_parser"
+[    5.467529] kauditd_printk_skb: 14 callbacks suppressed
+[    5.467534] audit: type=1400 audit(1756630842.708:25): apparmor="DENIED" operation="exec" profile="/{,usr/}sbin/dhclient" name="/usr/bin/true" pid=641 comm="dhclient" requested_mask="x" denied_mask="x" fsuid=0 ouid=0
+[    5.482898] audit: type=1400 audit(1756630842.724:26): apparmor="DENIED" operation="capable" profile="/{,usr/}sbin/dhclient" pid=637 comm="dhclient" capability=21  capname="sys_admin"
+[    5.538250] audit: type=1400 audit(1756630842.776:27): apparmor="DENIED" operation="exec" profile="/{,usr/}sbin/dhclient" name="/usr/bin/true" pid=642 comm="isc-worker0000" requested_mask="x" denied_mask="x" fsuid=0 ouid=0
+[    5.675735] virtio_net virtio1 eth0: renamed from enp1s0
+[    8.920014] EXT4-fs (sda1): resizing filesystem from 1085696 to 19934715 blocks
+[    9.235146] EXT4-fs (sda1): resized filesystem to 19934715
+[    9.944291] loop0: detected capacity change from 0 to 8
+[   10.109038] audit: type=1400 audit(1756630847.348:28): apparmor="STATUS" operation="profile_replace" profile="unconfined" name="/usr/lib/snapd/snap-confine" pid=881 comm="apparmor_parser"
+[   10.128562] audit: type=1400 audit(1756630847.368:29): apparmor="STATUS" operation="profile_replace" profile="unconfined" name="/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" pid=881 comm="apparmor_parser"
+[  144.597103] bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+[  144.599578] Bridge firewalling registered
+[  196.370036] audit: type=1400 audit(1756631034.253:30): apparmor="STATUS" operation="profile_load" profile="unconfined" name="cri-containerd.apparmor.d" pid=4521 comm="apparmor_parser"
+[  196.393042] audit: type=1400 audit(1756631034.277:31): apparmor="STATUS" operation="profile_replace" info="same as current profile, skipping" profile="unconfined" name="cri-containerd.apparmor.d" pid=4536 comm="apparmor_parser"
+[  196.393324] audit: type=1400 audit(1756631034.277:32): apparmor="STATUS" operation="profile_replace" info="same as current profile, skipping" profile="unconfined" name="cri-containerd.apparmor.d" pid=4538 comm="apparmor_parser"
+[  196.410684] audit: type=1400 audit(1756631034.293:33): apparmor="STATUS" operation="profile_replace" info="same as current profile, skipping" profile="unconfined" name="cri-containerd.apparmor.d" pid=4540 comm="apparmor_parser"
+[  404.299282] cni0: port 1(veth17f46056) entered blocking state
+[  404.299286] cni0: port 1(veth17f46056) entered disabled state
+[  404.299314] device veth17f46056 entered promiscuous mode
+[  404.300002] cni0: port 1(veth17f46056) entered blocking state
+[  404.300004] cni0: port 1(veth17f46056) entered forwarding state
+[  404.300059] cni0: port 1(veth17f46056) entered disabled state
+[  404.302449] IPv6: ADDRCONF(NETDEV_CHANGE): veth17f46056: link becomes ready
+[  404.302473] cni0: port 1(veth17f46056) entered blocking state
+[  404.302474] cni0: port 1(veth17f46056) entered forwarding state
+[  404.579414] cni0: port 2(veth3806fe2d) entered blocking state
+[  404.579418] cni0: port 2(veth3806fe2d) entered disabled state
+[  404.579449] device veth3806fe2d entered promiscuous mode
+[  404.579483] cni0: port 2(veth3806fe2d) entered blocking state
+[  404.579484] cni0: port 2(veth3806fe2d) entered forwarding state
+[  404.582129] IPv6: ADDRCONF(NETDEV_CHANGE): veth3806fe2d: link becomes ready
+[  404.641018] cni0: port 3(vethcad29535) entered blocking state
+[  404.641023] cni0: port 3(vethcad29535) entered disabled state
+[  404.646544] device vethcad29535 entered promiscuous mode
+[  404.646573] cni0: port 3(vethcad29535) entered blocking state
+[  404.646575] cni0: port 3(vethcad29535) entered forwarding state
+[  404.665176] IPv6: ADDRCONF(NETDEV_CHANGE): vethcad29535: link becomes ready
+[  404.855940] cni0: port 4(vethe947a3a2) entered blocking state
+[  404.855944] cni0: port 4(vethe947a3a2) entered disabled state
+[  404.856065] device vethe947a3a2 entered promiscuous mode
+[  404.856178] cni0: port 4(vethe947a3a2) entered blocking state
+[  404.856181] cni0: port 4(vethe947a3a2) entered forwarding state
+[  404.860104] IPv6: ADDRCONF(NETDEV_CHANGE): vethe947a3a2: link becomes ready
+[  405.080099] cni0: port 5(vethc88dd05e) entered blocking state
+[  405.080107] cni0: port 5(vethc88dd05e) entered disabled state
+[  405.083423] device vethc88dd05e entered promiscuous mode
+[  405.083682] cni0: port 5(vethc88dd05e) entered blocking state
+[  405.083689] cni0: port 5(vethc88dd05e) entered forwarding state
+[  405.090128] IPv6: ADDRCONF(NETDEV_CHANGE): vethc88dd05e: link becomes ready
+[  408.311678] cni0: port 6(veth6b68a84b) entered blocking state
+[  408.311683] cni0: port 6(veth6b68a84b) entered disabled state
+[  408.313432] device veth6b68a84b entered promiscuous mode
+[  408.318061] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+[  408.318096] IPv6: ADDRCONF(NETDEV_CHANGE): veth6b68a84b: link becomes ready
+[  408.318137] cni0: port 6(veth6b68a84b) entered blocking state
+[  408.318140] cni0: port 6(veth6b68a84b) entered forwarding state
+[  422.616671] cni0: port 7(veth678c5762) entered blocking state
+[  422.616677] cni0: port 7(veth678c5762) entered disabled state
+[  422.616899] device veth678c5762 entered promiscuous mode
+[  422.635918] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+[  422.635971] IPv6: ADDRCONF(NETDEV_CHANGE): veth678c5762: link becomes ready
+[  422.636026] cni0: port 7(veth678c5762) entered blocking state
+[  422.636029] cni0: port 7(veth678c5762) entered forwarding state
+[  481.717406] cni0: port 8(veth7aaf7ced) entered blocking state
+[  481.717414] cni0: port 8(veth7aaf7ced) entered disabled state
+[  481.717541] device veth7aaf7ced entered promiscuous mode
+[  481.732061] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+[  481.732121] IPv6: ADDRCONF(NETDEV_CHANGE): veth7aaf7ced: link becomes ready
+[  481.732168] cni0: port 8(veth7aaf7ced) entered blocking state
+[  481.732172] cni0: port 8(veth7aaf7ced) entered forwarding state
+[  481.764893] cni0: port 9(vethcf8a7ae3) entered blocking state
+[  481.764898] cni0: port 9(vethcf8a7ae3) entered disabled state
+[  481.765017] device vethcf8a7ae3 entered promiscuous mode
+[  481.765171] cni0: port 9(vethcf8a7ae3) entered blocking state
+[  481.765175] cni0: port 9(vethcf8a7ae3) entered forwarding state
+[  481.779309] IPv6: ADDRCONF(NETDEV_CHANGE): vethcf8a7ae3: link becomes ready
+== kubelet status ==
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: active (running) since Sun 2025-08-31 09:03:59 UTC; 21min ago
+       Docs: https://kubernetes.io/docs/
+   Main PID: 4739 (kubelet)
+      Tasks: 13 (limit: 4532)
+     Memory: 41.6M
+        CPU: 31.657s
+     CGroup: /system.slice/kubelet.service
+             └─4739 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --cgroup-driver=systemd --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock --pod-infra-container-image=registry.k8s.io/pause:3.10
+
+Aug 31 09:24:45 master1 kubelet[4739]: I0831 09:24:45.365668    4739 pod_container_deletor.go:53] "DeleteContainer returned error" containerID={"Type":"containerd","ID":"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74"} err="failed to get container status \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": rpc error: code = NotFound desc = an error occurred when try to find container \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": not found"
+Aug 31 09:24:47 master1 kubelet[4739]: I0831 09:24:47.166728    4739 kubelet_volumes.go:163] "Cleaned up orphaned pod volumes dir" podUID="436361ed275cd572be3d0c781dbf718c" path="/var/lib/kubelet/pods/436361ed275cd572be3d0c781dbf718c/volumes"
+Aug 31 09:24:59 master1 kubelet[4739]: E0831 09:24:59.143075    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:25:08 master1 kubelet[4739]: E0831 09:25:08.163528    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:19 master1 kubelet[4739]: E0831 09:25:19.142432    4739 file.go:187] "Could not process manifest file" err="/etc/kubernetes/manifests/kube-controller-manager.yaml: couldn't parse as pod(yaml: line 46: mapping values are not allowed in this context), please check config file" path="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+Aug 31 09:25:20 master1 kubelet[4739]: E0831 09:25:20.163667    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:23 master1 kubelet[4739]: E0831 09:25:23.163684    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:25 master1 kubelet[4739]: E0831 09:25:25.163705    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:25 master1 kubelet[4739]: E0831 09:25:25.164022    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+Aug 31 09:25:29 master1 kubelet[4739]: E0831 09:25:29.163609    4739 dns.go:153] "Nameserver limits exceeded" err="Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 2a01:4ff:ff00::add:2 2a01:4ff:ff00::add:1 185.12.64.2"
+== containerd status ==
+● containerd.service - containerd container runtime
+     Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2025-08-31 09:05:15 UTC; 20min ago
+       Docs: https://containerd.io
+   Main PID: 6733 (containerd)
+      Tasks: 187
+     Memory: 1.2G
+        CPU: 21.535s
+     CGroup: /system.slice/containerd.service
+             ├─ 5020 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 38a3fbc9a70576550c99d2cdc58cf60591e236502cc16171bbd6cbdc8c4a8fe6 -address /run/containerd/containerd.sock
+             ├─ 5413 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id f06a8a1d089a28314eb91cb0b91870d5b80f1494d26ed6442b9c9e8e4bfb81ed -address /run/containerd/containerd.sock
+             ├─ 5679 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id c8e57fdb43c9dd944393a239a1e6ebe4080723d25f81d64dda5e300e9018bf2b -address /run/containerd/containerd.sock
+             ├─ 6733 /usr/bin/containerd
+             ├─ 9847 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id ec8452bca2c068d37d050e810ef44fe75a79b12da3155c3fb10d88edffc35066 -address /run/containerd/containerd.sock
+             ├─ 9933 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id ac73e4d0359cb623fa6325bfda467a3f9a3e3dd5704130dce8ce8b6b97748711 -address /run/containerd/containerd.sock
+             ├─12536 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 2f3356eaaf9de1b4e45a33128db3ca0a7c373522125c449dc4c5abe36f4eb587 -address /run/containerd/containerd.sock
+             ├─12659 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 1a98a67e396228dc9825a9d56866555c2b3025ff433cd0ffdbae61b2a96365f4 -address /run/containerd/containerd.sock
+             ├─12743 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 80b629b1c84be1b3d17ffce9faf5500bbaf78e73a2e3b12b9151d8cba01e6df2 -address /run/containerd/containerd.sock
+             ├─12825 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 7559f1a00a19f78682a3785461267b4ffb0487724a89ff18133b7ca6842a7216 -address /run/containerd/containerd.sock
+             ├─12909 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 1bdb879863a889fc26efba36900e672674c9fd675639d68e51c68c1f80f39f02 -address /run/containerd/containerd.sock
+             ├─13047 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 8cb14c737446e1f6f44435a758298291417d20d3cbe907e8aa7d8a126c7cd945 -address /run/containerd/containerd.sock
+             ├─13472 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id f3763d3a487a3f790417d0405e78efa3b10190441bc8d081508613d32ef65ca0 -address /run/containerd/containerd.sock
+             ├─14179 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 09b3189ebc6e088922c56b87eb28fafb25c9622d39da4439ba0790616163f2dc -address /run/containerd/containerd.sock
+             └─14226 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 2522f3a5a0c765e304fcd3a776ebc2cf817e8853ed681ab3c853711f430b00a6 -address /run/containerd/containerd.sock
+
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.364760374Z" level=error msg="ContainerStatus for \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\" failed" error="rpc error: code = NotFound desc = an error occurred when try to find container \"69cac177e4fbe88d0e2ff294ab070fc8f748d90ca78062eae671bb1a4f9f6a7a\": not found"
+Aug 31 09:24:45 master1 containerd[6733]: time="2025-08-31T09:24:45.365406592Z" level=error msg="ContainerStatus for \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\" failed" error="rpc error: code = NotFound desc = an error occurred when try to find container \"323e77a54f14bfb882092e7ef8501e8a6bfed0154190f7aee0489df962990f74\": not found"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.261993029Z" level=info msg="StopPodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262128519Z" level=info msg="TearDown network for sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" successfully"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262185799Z" level=info msg="StopPodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" returns successfully"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262618997Z" level=info msg="RemovePodSandbox for \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262647597Z" level=info msg="Forcibly stopping sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\""
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.262707517Z" level=info msg="TearDown network for sandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" successfully"
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.267758811Z" level=warning msg="Failed to get podSandbox status for container event for sandboxID \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\": an error occurred when try to find sandbox: not found. Sending the event with nil podSandboxStatus."
+Aug 31 09:24:59 master1 containerd[6733]: time="2025-08-31T09:24:59.267839051Z" level=info msg="RemovePodSandbox \"f53b7987f8f9b3cb3db0969cf1df566a6b3c3c2908a448585ac4568888ca34db\" returns successfully"
+== ss -ltnp ==
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess
+LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*    users:(("systemd-resolve",pid=669,fd=14))
+LISTEN 0      4096       127.0.0.1:8200       0.0.0.0:*    users:(("vault",pid=9025,fd=7))
+LISTEN 0      4096       127.0.0.1:10248      0.0.0.0:*    users:(("kubelet",pid=4739,fd=20))
+LISTEN 0      4096       127.0.0.1:10249      0.0.0.0:*    users:(("kube-proxy",pid=9901,fd=19))
+LISTEN 0      4096       127.0.0.1:8201       0.0.0.0:*    users:(("vault",pid=9025,fd=10))
+LISTEN 0      4096       127.0.0.1:10259      0.0.0.0:*    users:(("kube-scheduler",pid=9561,fd=3))
+LISTEN 0      4096       127.0.0.1:2381       0.0.0.0:*    users:(("etcd",pid=9987,fd=14))
+LISTEN 0      4096       127.0.0.1:2379       0.0.0.0:*    users:(("etcd",pid=9987,fd=8))
+LISTEN 0      4096       127.0.0.1:39775      0.0.0.0:*    users:(("containerd",pid=6733,fd=72))
+LISTEN 0      4096    91.98.16.184:2380       0.0.0.0:*    users:(("etcd",pid=9987,fd=7))
+LISTEN 0      4096    91.98.16.184:2379       0.0.0.0:*    users:(("etcd",pid=9987,fd=9))
+LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=923,fd=3))
+LISTEN 0      4096               *:10250            *:*    users:(("kubelet",pid=4739,fd=11))
+LISTEN 0      4096               *:10256            *:*    users:(("kube-proxy",pid=9901,fd=20))
+LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=923,fd=4))
+LISTEN 0      4096               *:6443             *:*    users:(("kube-apiserver",pid=5465,fd=3))
+== manifest kube-apiserver ==
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubeadm.kubernetes.io/kube-apiserver.advertise-address.endpoint: 91.98.16.184:6443
+  creationTimestamp: null
+  labels:
+    component: kube-apiserver
+    tier: control-plane
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - --advertise-address=91.98.16.184
+    - --allow-privileged=true
+    - --authorization-mode=Node,RBAC
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --enable-admission-plugins=NodeRestriction
+    - --enable-bootstrap-token-auth=true
+    - --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+    - --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+    - --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+    - --etcd-servers=https://91.98.16.184:2379
+    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+    - --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+    - --requestheader-allowed-names=front-proxy-client
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
+    - --secure-port=6443
+    - --service-account-issuer=https://kubernetes.default.svc.cluster.local
+    - --service-account-key-file=/etc/kubernetes/pki/sa.pub
+    - --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
+    - --service-cluster-ip-range=10.96.0.0/12
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+    - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+    image: registry.k8s.io/kube-apiserver:v1.31.1
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 91.98.16.184
+        path: /livez
+        port: 6443
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    name: kube-apiserver
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        host: 91.98.16.184
+        path: /readyz
+        port: 6443
+        scheme: HTTPS
+      periodSeconds: 1
+      timeoutSeconds: 15
+    resources:
+      requests:
+        cpu: 250m
+    startupProbe:
+      failureThreshold: 24
+      httpGet:
+        host: 91.98.16.184
+        path: /livez
+        port: 6443
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    volumeMounts:
+    - mountPath: /etc/ssl/certs
+      name: ca-certs
+      readOnly: true
+    - mountPath: /etc/ca-certificates
+      name: etc-ca-certificates
+      readOnly: true
+    - mountPath: /etc/kubernetes/pki
+      name: k8s-certs
+      readOnly: true
+    - mountPath: /usr/local/share/ca-certificates
+      name: usr-local-share-ca-certificates
+      readOnly: true
+    - mountPath: /usr/share/ca-certificates
+      name: usr-share-ca-certificates
+      readOnly: true
+  hostNetwork: true
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+  - hostPath:
+      path: /etc/ssl/certs
+      type: DirectoryOrCreate
+    name: ca-certs
+  - hostPath:
+      path: /etc/ca-certificates
+      type: DirectoryOrCreate
+    name: etc-ca-certificates
+  - hostPath:
+      path: /etc/kubernetes/pki
+      type: DirectoryOrCreate
+    name: k8s-certs
+  - hostPath:
+      path: /usr/local/share/ca-certificates
+      type: DirectoryOrCreate
+    name: usr-local-share-ca-certificates
+  - hostPath:
+      path: /usr/share/ca-certificates
+      type: DirectoryOrCreate
+    name: usr-share-ca-certificates
+status: {}
+== manifest etcd.yaml ==
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubeadm.kubernetes.io/etcd.advertise-client-urls: https://91.98.16.184:2379
+  creationTimestamp: null
+  labels:
+    component: etcd
+    tier: control-plane
+  name: etcd
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - etcd
+    - --advertise-client-urls=https://91.98.16.184:2379
+    - --cert-file=/etc/kubernetes/pki/etcd/server.crt
+    - --client-cert-auth=true
+    - --data-dir=/var/lib/etcd
+    - --experimental-initial-corrupt-check=true
+    - --experimental-watch-progress-notify-interval=5s
+    - --initial-advertise-peer-urls=https://91.98.16.184:2380
+    - --initial-cluster=master1=https://91.98.16.184:2380
+    - --key-file=/etc/kubernetes/pki/etcd/server.key
+    - --listen-client-urls=https://127.0.0.1:2379,https://91.98.16.184:2379
+    - --listen-metrics-urls=http://127.0.0.1:2381
+    - --listen-peer-urls=https://91.98.16.184:2380
+    - --name=master1
+    - --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+    - --peer-client-cert-auth=true
+    - --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+    - --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+    - --snapshot-count=10000
+    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+    image: registry.k8s.io/etcd:3.5.15-0
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /livez
+        port: 2381
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    name: etcd
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        host: 127.0.0.1
+        path: /readyz
+        port: 2381
+        scheme: HTTP
+      periodSeconds: 1
+      timeoutSeconds: 15
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+    startupProbe:
+      failureThreshold: 24
+      httpGet:
+        host: 127.0.0.1
+        path: /readyz
+        port: 2381
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    volumeMounts:
+    - mountPath: /var/lib/etcd
+      name: etcd-data
+    - mountPath: /etc/kubernetes/pki/etcd
+      name: etcd-certs
+  hostNetwork: true
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/pki/etcd
+      type: DirectoryOrCreate
+    name: etcd-certs
+  - hostPath:
+      path: /var/lib/etcd
+      type: DirectoryOrCreate
+    name: etcd-data
+status: {}
+== manifest kube-scheduler.yaml ==
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: kube-scheduler
+    tier: control-plane
+  name: kube-scheduler
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-scheduler
+    - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --bind-address=127.0.0.1
+    - --kubeconfig=/etc/kubernetes/scheduler.conf
+    - --leader-elect=true
+    image: registry.k8s.io/kube-scheduler:v1.31.1
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    name: kube-scheduler
+    resources:
+      requests:
+        cpu: 100m
+    startupProbe:
+      failureThreshold: 24
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    volumeMounts:
+    - mountPath: /etc/kubernetes/scheduler.conf
+      name: kubeconfig
+      readOnly: true
+  hostNetwork: true
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/scheduler.conf
+      type: FileOrCreate
+    name: kubeconfig
+status: {}
+== manifest ikube-controller-manager ==
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: kube-controller-manager
+    tier: control-plane
+  name: kube-controller-manager
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-controller-manager
+    - --allocate-node-cidrs=true
+    - --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --bind-address=127.0.0.1
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --cluster-cidr=10.244.0.0/16
+    - --cluster-name=kubernetes
+    - --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+    - --cluster-signing-key-file=/etc/kubernetes/pki/ca.key
+    - --controllers=*,bootstrapsigner,tokencleaner
+    - --kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --leader-elect=true
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --root-ca-file=/etc/kubernetes/pki/ca.crt
+    - --service-account-private-key-file=/etc/kubernetes/pki/sa.key
+    - --service-cluster-ip-range=10.96.0.0/12
+    - --use-service-account-credentials=true
+    image: registry.k8s.io/kube-controller-manager:v1.31.1
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+  tcpSocket: { port: 10257 }
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 15
+  failureThreshold: 8
+startupProbe:
+  tcpSocket: { port: 10257 }
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 15
+  failureThreshold: 24
+
+      failureThreshold: 24
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10257
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+    volumeMounts:
+    - mountPath: /etc/ssl/certs
+      name: ca-certs
+      readOnly: true
+    - mountPath: /etc/ca-certificates
+      name: etc-ca-certificates
+      readOnly: true
+    - mountPath: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+      name: flexvolume-dir
+    - mountPath: /etc/kubernetes/pki
+      name: k8s-certs
+      readOnly: true
+    - mountPath: /etc/kubernetes/controller-manager.conf
+      name: kubeconfig
+      readOnly: true
+    - mountPath: /usr/local/share/ca-certificates
+      name: usr-local-share-ca-certificates
+      readOnly: true
+    - mountPath: /usr/share/ca-certificates
+      name: usr-share-ca-certificates
+      readOnly: true
+  hostNetwork: true
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+  - hostPath:
+      path: /etc/ssl/certs
+      type: DirectoryOrCreate
+    name: ca-certs
+  - hostPath:
+      path: /etc/ca-certificates
+      type: DirectoryOrCreate
+    name: etc-ca-certificates
+  - hostPath:
+      path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+      type: DirectoryOrCreate
+    name: flexvolume-dir
+  - hostPath:
+      path: /etc/kubernetes/pki
+      type: DirectoryOrCreate
+    name: k8s-certs
+  - hostPath:
+      path: /etc/kubernetes/controller-manager.conf
+      type: FileOrCreate
+    name: kubeconfig
+  - hostPath:
+      path: /usr/local/share/ca-certificates
+      type: DirectoryOrCreate
+    name: usr-local-share-ca-certificates
+  - hostPath:
+      path: /usr/share/ca-certificates
+      type: DirectoryOrCreate
+    name: usr-share-ca-certificates
+status: {}

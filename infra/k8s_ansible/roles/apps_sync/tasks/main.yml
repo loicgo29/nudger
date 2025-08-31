@@ -1,0 +1,5 @@
+---
+- ansible.builtin.import_tasks: 00_checks.yml
+- ansible.builtin.import_tasks: 01_kustomizations.yml
+- ansible.builtin.import_tasks: 02_reconcile.yml
+- ansible.builtin.import_tasks: 03_status.yml

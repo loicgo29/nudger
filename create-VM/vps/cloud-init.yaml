@@ -1,20 +1,38 @@
 #cloud-config
-# yamllint disable rule:comments
-#cloud-config
+ssh_pwauth: false
+chpasswd:
+  expire: false
+disable_root: false
+
+# Injecte nos host keys pour pouvoir pinner côté client
+write_files:
+  - path: /etc/ssh/ssh_host_ed25519_key
+    permissions: '0600'
+    owner: root:root
+    encoding: b64
+    content: LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNDVEVCUDhJNi9nMkdubFFIc2JBYnVJMGpqL0xnWkEwQmRqSHBncVpNL1B6Z0FBQUxCeUl0NkpjaUxlCmlRQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQ1RFQlA4STYvZzJHbmxRSHNiQWJ1STBqai9MZ1pBMEJkakhwZ3FaTS9QemcKQUFBRUFOWFp5UUFLaDJ4OVpISXd3OTJWWXpmOExFcnVMditWV1Iva3F4NFEzeHNwTVFFL3dqcitEWWFlVkFleHNCdTRqUwpPUDh1QmtEUUYyTWVtQ3BrejgvT0FBQUFLV3h2YVdObmIzVnliV1ZzYjI1QVRXRmpRbTl2YTBGcGNpMXBZV3h0WVMweU1ECkl5TG14dlkyRnNBUUlEQkE9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
+  - path: /etc/ssh/ssh_host_ed25519_key.pub
+    permissions: '0644'
+    owner: root:root
+    content: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJMQE/wjr+DYaeVAexsBu4jSOP8uBkDQF2MemCpkz8/O loicgourmelon@MacBookAir-ialma-2022.local
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    permissions: '0644'
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin prohibit-password
+      PubkeyAuthentication yes
+      Protocol 2
+      KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org
+      Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com
+      HostKeyAlgorithms ssh-ed25519
+      LogLevel VERBOSE
 
 users:
-  - name: ansible
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: sudo
+  - name: root
     shell: /bin/bash
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIqKTlRSzPT86KSpW6rBpSqUbRrtCvi48K/L+FzaBjzc loicgourmelon@gmail.com
 
-packages:
-  - git
-  - curl
-  - vim
-  - openssh-client
 runcmd:
-  # Installe les paquets utiles
-  - apt-get update && apt-get install -y git curl vim openssh-client
+  - systemctl restart ssh
+  - timedatectl set-ntp true
