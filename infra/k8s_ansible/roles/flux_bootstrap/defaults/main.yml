@@ -19,8 +19,8 @@ ssh_key_private_path: "k8s_ansible/secrets/deploy_key"
 ssh_key_public_path: "k8s_ansible/secrets/deploy_key.pub"
 # Secret et intervals
 git_secret_name: "gitops-credentials"
-git_sync_interval: "15m"
-kustomize_interval: "30m"
+git_sync_interval: "1m"
+kustomize_interval: "1m"
 # Environnements cibles (répertoires attendus dans le repo Git: ./gitops/clusters/<env>)
 gitops_envs:
   - "staging"
