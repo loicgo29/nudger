@@ -1,9 +1,0 @@
----
-- name: Ensure {{ flux_namespace | default('flux-system') }} namespace exists
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ flux_namespace | default('flux-system') }}"
-    state: present
-  become: true
-  run_once: false

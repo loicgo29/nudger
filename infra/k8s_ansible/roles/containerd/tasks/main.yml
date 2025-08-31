@@ -1,0 +1,9 @@
+---
+- ansible.builtin.import_tasks: 00_version_facts.yml
+- ansible.builtin.import_tasks: prep.yml
+- ansible.builtin.import_tasks: containerd.yml
+- ansible.builtin.import_tasks: k8s_packages.yml
+- ansible.builtin.import_tasks: init_master.yml
+- ansible.builtin.import_tasks: flannel.yml
+- ansible.builtin.import_tasks: kube_proxy.yml
+- ansible.builtin.import_tasks: kubeconfig_user.yml

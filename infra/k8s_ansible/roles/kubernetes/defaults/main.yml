@@ -1,0 +1,32 @@
+---
+# defaults/main.yml (du rôle containerd)
+manage_k8s_apt: false
+# Commente les lignes swap dans /etc/fstab (recommandé pour K8s)
+disable_swap_comment_fstab: true
+# Crée un service systemd de secours pour s'assurer que le swap est off au boot
+disable_swap_create_systemd_unit: true
+disable_swap_unit_name: "disable-swap.service"
+# Ajuste vm.swappiness (0 = minimiser l'usage de swap)
+disable_swap_set_sysctl: true
+disable_swap_sysctl_value: 0
+# Kubernetes minor to track; repo/key derive from this.
+k8s_minor: "1.28"
+# Construct pkgs.k8s.io repository and key from k8s_minor.
+kubernetes_repo: >-
+  deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{
+  k8s_minor }}/deb/ /
+kubernetes_gpg_key_url: >-
+  https://pkgs.k8s.io/core:/stable:/v{{ k8s_minor }}/deb/Release.key
+# Packages to install & hold. Keep them minimal here; runtime is handled elsewhere.
+kubernetes_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+# “Common” apt deps. Put duplicates here rather than doing brittle include_vars.
+common_apt_dependencies:
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+# Where we store the converted GPG keyring.
+kubernetes_keyring_path: /etc/apt/keyrings/kubernetes-archive-keyring.gpg

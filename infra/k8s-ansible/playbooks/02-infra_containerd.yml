@@ -1,5 +1,0 @@
----
-- name: Préparation containerd
-  hosts: all
-  roles:
-    - containerd

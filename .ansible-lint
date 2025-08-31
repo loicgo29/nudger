@@ -1,10 +1,11 @@
+---
 # .ansible-lint
 profile: production
 warn_list:
-  - experimental  # optionnel
+  - experimental # optionnel
 skip_list:
-  - yaml[line-length]    # si nécessaire
-  - schema[meta-incorrect]  # exemple, ajuste à ton contexte
+  - yaml[line-length] # si nécessaire
+  - schema[meta-incorrect] # exemple, ajuste à ton contexte
 
 kinds:
   # considère ces extensions comme YAML Ansible

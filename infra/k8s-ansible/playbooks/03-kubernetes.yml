@@ -1,5 +1,0 @@
----
-- name: Préparation kubernetes
-  hosts: all
-  roles:
-    - kubernetes

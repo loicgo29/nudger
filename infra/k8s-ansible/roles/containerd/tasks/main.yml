@@ -1,8 +1,0 @@
----
-- import_tasks: prep.yml
-- import_tasks: containerd.yml
-- import_tasks: k8s_packages.yml
-- import_tasks: init_master.yml
-- import_tasks: flannel.yml
-- import_tasks: kube_proxy.yml
-- import_tasks: kubeconfig_user.yml

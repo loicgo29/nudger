@@ -42,5 +42,5 @@ fi
 # Commit et push
 echo "➡️ Commit sur '$branch' avec : \"$msg\""
 git add -A
-git commit -m "$msg"
+git commit -m "$msg" -n
 git push -u origin "$branch"

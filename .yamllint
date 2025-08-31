@@ -1,17 +1,12 @@
+---
 extends: default
+
 rules:
-  truthy:
-    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
-  indentation:
-    indent-sequences: consistent
-  line-length:
-    max: 160
-    level: warning
-  document-start: disable
-  new-lines:
-    type: unix
-ignore: |
-  .tox/
-  .venv/
-  **/.cache/
-  **/templates/**        # fichiers Jinja2 souvent faux-positifs
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
