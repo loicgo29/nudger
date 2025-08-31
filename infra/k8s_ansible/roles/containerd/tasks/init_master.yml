@@ -22,6 +22,13 @@
     - inventory_hostname == groups['k8s_masters'][0]
     - kubeadm_config.stat.exists or (kubeadm_config.stat.exists is defined and
       not kubeadm_config.stat.exists) # on le crée tôt si init à faire
+# Dérive les variables attendues par le template, sans regex
+- name: Derive k8s_semver and k8s_release (no regex)
+  ansible.builtin.set_fact:
+    k8s_semver:  "{{ k8s_version.split('-')[0] }}"
+    k8s_release: "v{{ k8s_version.split('-')[0] }}"
+  when: k8s_version is defined and (k8s_version | length) > 0
+
 - name: Render kubeadm config
   ansible.builtin.template:
     src: kubeadm-config.j2
@@ -55,8 +62,24 @@
     - kubeadm_config.stat.exists            # /etc/kubernetes/admin.conf présent
     - not apiserver_manifest.stat.exists    # mais pas de manifest => cluster incomplet
   become: true
+- name: Wait apiserver /readyz after etcd loopback patch
+  ansible.builtin.shell: |
+    set -euo pipefail
+    H="{{ apiserver_host_global | default(ansible_default_ipv4.address) }}"
+    for i in $(seq 1 60); do
+      if curl -sf --cacert /etc/kubernetes/pki/ca.crt \
+         --cert   /etc/kubernetes/pki/apiserver-kubelet-client.crt \
+         --key    /etc/kubernetes/pki/apiserver-kubelet-client.key \
+         "https://${H}:6443/readyz" >/dev/null 2>&1; then exit 0; fi
+      sleep 2
+    done
+    exit 1
+  args: { executable: /bin/bash }
+  changed_when: false
+  become: true
+  when: inventory_hostname == groups['k8s_masters'][0]
 # --- FIN INSERT ---
-# ↳ COPIE **après** init OU uniquement si admin.conf existe déjà
+#  COPIE **après** init OU uniquement si admin.conf existe déjà
 - name: Copy admin kubeconfig to root (only if present)
   ansible.builtin.copy:
     src: "{{ kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"

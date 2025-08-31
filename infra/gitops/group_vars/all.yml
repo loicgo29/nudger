@@ -1,3 +1,4 @@
+---
 # Versions
 kubectl_version: "1.28.15"
 flux_version: "2.3.0"

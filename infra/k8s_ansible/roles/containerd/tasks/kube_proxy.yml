@@ -164,8 +164,8 @@
   environment: { KUBECONFIG: "{{ kubeconfig_admin_path }}" }
   when: inventory_hostname == groups['k8s_masters'][0]
 - name: Wait for kube-proxy rollout
-  ansible.builtin.command: kubectl -n kube-system rollout status ds/kube-proxy
-    --timeout=3m
+  ansible.builtin.command: >
+    kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
   environment: { KUBECONFIG: "{{ kubeconfig_admin_path }}" }
   when: inventory_hostname == groups['k8s_masters'][0]
 # (3) S’assurer que le DS aura bien quelque chose à programmer

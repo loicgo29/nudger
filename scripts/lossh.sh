@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INV_FILE="${INV_FILE:-inventory.ini}"
+INV_FILE="${INV_FILE:-/Users/loicgourmelon/Devops/nudger/infra/k8s_ansible/inventory.ini}"
 HOST="${1:-master1}"
 
 if [[ ! -f "$INV_FILE" ]]; then

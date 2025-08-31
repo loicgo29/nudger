@@ -1,43 +1,70 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./new-feature.sh <feature_name> <type>
-# ex: ./new-feature.sh xwiki feat
+# Usage: ./new-feature.sh <feature_name> <type> [--pr=draft|open|never]
+# ex:    ./new-feature.sh xwiki feat --pr=draft
+feature="${1:?feature manquant}"
+type="${2:?type manquant (feat|fix|chore|...)}"
+pr_mode="${3:---pr=draft}"
+pr_mode="${pr_mode#--pr=}"  # draft|open|never
 
-feature="$1"
-type="$2"
 today=$(date +%Y%m%d)
 branch_name="${type}/${today}-${feature}"
-base_branch="main"
+base_branch="${BASE_BRANCH:-main}"
+remote="${REMOTE:-origin}"
 
-# Met à jour la branche principale
+# Sanity: gh CLI ?
+if ! command -v gh >/dev/null 2>&1; then
+  echo "⚠️  gh non trouvé. Installe gh ou exporte --pr=never" >&2
+  pr_mode="never"
+fi
+
+# Mise à jour base
 echo "🔄 Mise à jour de $base_branch..."
+git fetch "$remote" "$base_branch"
 git checkout "$base_branch"
-git pull origin "$base_branch"
+git pull --ff-only "$remote" "$base_branch"
 
-# Création de la nouvelle branche
+# Création branche (idempotent)
 echo "🌱 Création de la branche '$branch_name'..."
-git checkout -b "$branch_name"
+git checkout -B "$branch_name"
 
-# Si aucun commit, faire un commit initial vide
+# Commit vide si rien (optionnel)
 if [ -z "$(git diff --staged --name-only)" ] && [ -z "$(git diff --name-only)" ]; then
-    echo "⚠️ Aucun changement détecté, création d'un commit vide..."
-    git commit --allow-empty -m "Initial commit for $branch_name"
+  echo "ℹ️ Aucun changement pour l'instant."
 fi
 
-# Push de la branche
-git push -u origin "$branch_name"
+# Push
+git push -u "$remote" "$branch_name"
 
-# Création de la PR uniquement s'il y a au moins un commit
-if [ -n "$(git rev-list "$base_branch"..HEAD)" ]; then
-    echo "🚀 Création de la Pull Request..."
+# PR logic
+case "$pr_mode" in
+  never) echo "🛑 PR non créée (--pr=never)"; exit 0 ;;
+  draft|open)
+    if ! gh auth status >/dev/null 2>&1; then
+      echo "⚠️  gh non authentifié → PR skip"; exit 0
+    fi
+    # Skip si PR existe déjà
+    if gh pr view "$branch_name" --head "$branch_name" >/dev/null 2>&1; then
+      echo "ℹ️  PR existe déjà pour $branch_name, on ne recrée pas."; exit 0
+    fi
+    # Titre/description
+    title="$branch_name"
+    body="Branche créée automatiquement le $today pour *$feature*"
+    # Si aucun commit au-delà de base, crée quand même en Draft (visibilité)
+    range_commits=$(git rev-list "$remote/$base_branch"..HEAD || true)
+    extra_args=()
+    [ "$pr_mode" = "draft" ] && extra_args+=(--draft)
+    echo "🚀 Création de la Pull Request ($pr_mode)…"
     gh pr create \
-        --base "$base_branch" \
-        --head "$branch_name" \
-        --title "$branch_name" \
-        --body "Branche créée automatiquement le $today pour *$feature*"
-else
-    echo "⚠️ Pas de commit sur la branche, PR non créée."
-fi
+      --base "$base_branch" \
+      --head "$branch_name" \
+      --title "$title" \
+      --body "$body" \
+      "${extra_args[@]}"
+    ;;
+  *)
+    echo "❌ --pr doit être draft|open|never"; exit 2 ;;
+esac
 
-echo "✅ Branche '$branch_name' prête et suivie sur origin/$branch_name"
+echo "✅ Branche '$branch_name' poussée et PR ($pr_mode) créée si applicable."
