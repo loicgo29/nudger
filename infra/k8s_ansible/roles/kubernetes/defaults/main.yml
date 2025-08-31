@@ -1,5 +1,5 @@
 ---
-# defaults/main.yml (du rôle containerd)
+# defaults/main.yml 
 manage_k8s_apt: false
 # Commente les lignes swap dans /etc/fstab (recommandé pour K8s)
 disable_swap_comment_fstab: true
@@ -9,19 +9,23 @@ disable_swap_unit_name: "disable-swap.service"
 # Ajuste vm.swappiness (0 = minimiser l'usage de swap)
 disable_swap_set_sysctl: true
 disable_swap_sysctl_value: 0
-# Kubernetes minor to track; repo/key derive from this.
-k8s_minor: "1.28"
-# Construct pkgs.k8s.io repository and key from k8s_minor.
-kubernetes_repo: >-
-  deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{
-  k8s_minor }}/deb/ /
-kubernetes_gpg_key_url: >-
-  https://pkgs.k8s.io/core:/stable:/v{{ k8s_minor }}/deb/Release.key
-# Packages to install & hold. Keep them minimal here; runtime is handled elsewhere.
-kubernetes_packages:
-  - kubelet
-  - kubeadm
-  - kubectl
+## Versioning
+# Option 1 (recommandé) : pinner une version complète via group_vars (ex: 1.31.12-1.1)
+# En déduire le minor si k8s_version est fourni, sinon défaut explicite.
+# Extrait "1.31" de "1.31.12-1.1"
+k8s_minor: >-
+  {{ (k8s_version | regex_replace('^([0-9]+\\.[0-9]+).*', '\\1'))
+     if (k8s_version is defined)
+     else '1.31' }}
+
+## Repos pkgs.k8s.io (par minor)
+kubernetes_packages: "{{ kubernetes_packages
+  | default([
+      'kubeadm=' ~ (k8s_version if k8s_version is defined else k8s_minor ~ '.*'),
+      'kubelet=' ~ (k8s_version if k8s_version is defined else k8s_minor ~ '.*'),
+      'kubectl=' ~ (k8s_version if k8s_version is defined else k8s_minor ~ '.*')
+    ])
+}}"
 # “Common” apt deps. Put duplicates here rather than doing brittle include_vars.
 common_apt_dependencies:
   - ca-certificates
@@ -30,3 +34,5 @@ common_apt_dependencies:
   - lsb-release
 # Where we store the converted GPG keyring.
 kubernetes_keyring_path: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+## Garde-fous
+_k8s_minor_valid: "{{ (k8s_minor is string) and (k8s_minor is match('^[0-9]+\\.[0-9]+$')) }}"

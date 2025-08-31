@@ -74,3 +74,8 @@ KN="$OUT_DIR/known_hosts"
 echo "[$IP]:22 $HOST_PUB_STR" >> "$KN"
 echo "✅ known_hosts écrit: $KN"
 echo "$IP"
+KN="$OUT_DIR/known_hosts"
+printf '[%s]:22 %s\n' "$IP" "$HOST_PUB_STR" >> "$KN"
+echo "✅ known_hosts écrit: $KN"
+
+echo "⏳ Attente SSH prêt (auth clé) sur $IP ..."

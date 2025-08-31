@@ -3,7 +3,6 @@
 #  KUBERNETES / CLUSTER BASE
 # ===========================
 # Version K8s cible (utile pour d’autres rôles). Le "v" est souvent superflu.
-k8s_release: "v1.31.1"
 # CIDR du réseau pods (Flannel par défaut)
 pod_network_cidr: "10.244.0.0/16"
 # Sous-réseau des Services (kubeadm ClusterConfiguration.networking.serviceSubnet)
@@ -89,3 +88,9 @@ kubeconfig_path: "{{ kubeconfig_admin_path }}"
 kubeconfig_user_path: "/home/{{ ansible_user }}/.kube/config"
 # Pour compat ascendante si certains rôles lisent directement cette var
 github_pat: "{{ vault_github_pat | default('') }}"
+k8s_version: "1.31.12-1.1"
+kubernetes_packages:
+  - "kubeadm={{ k8s_version }}"
+  - "kubelet={{ k8s_version }}"
+  - "kubectl={{ k8s_version }}"
+
