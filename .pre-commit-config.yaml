@@ -11,14 +11,12 @@ repos:
         args: [--unsafe] # autorise les anchors/aliases YAML avancés
       - id: mixed-line-ending
         args: [--fix=lf]
-
   # Formatage Python si tu as du code Python (facultatif)
   - repo: https://github.com/psf/black
     rev: 24.4.2
     hooks:
       - id: black
         language_version: python3
-
   # Lint YAML (plus strict que check-yaml)
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
@@ -26,7 +24,6 @@ repos:
       - id: yamllint
         files: \.(yml|yaml)$
         args: ["-c", ".yamllint"]
-
   # Lint Ansible
   - repo: https://github.com/ansible/ansible-lint
     rev: v24.7.0
@@ -37,7 +34,8 @@ repos:
         args:
           - "-c"
           - ".ansible-lint"
-
+        files: ^(ansible/|playbooks/|roles/|group_vars/|host_vars/|infra/k8s_ansible/).*
+        language_version: /Users/loicgourmelon/.pyenv/versions/3.11.9/bin/python3.11
   # (Optionnel) Détecter des secrets/clé privées qui fuitent
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
@@ -46,7 +44,14 @@ repos:
         args: ["--baseline", ".secrets.baseline"]
         exclude: >
           (?x)(
+
+
+
+
             ^group_vars/vault\.yml$|
             ^roles/.*/files/.*\.vault$|
             ^roles/.*/files/id_.*   # tes clés privées vaultées
           )
+
+default_language_version:
+  python: /Users/loicgourmelon/.pyenv/versions/3.11.9/bin/python3.11
