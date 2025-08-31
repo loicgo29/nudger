@@ -1,7 +1,7 @@
 # GitOps (single-repo)
 - GitRepository -> https://REPLACE_ME (branch main)
 - Envs: lab
-- Flux sync: GitRepository=15m, Kustomization=1m
+- Flux sync: GitRepository=1m, Kustomization=1m
 - Apps: nudger-xwiki
 
 ## Reconcile (exemples)
