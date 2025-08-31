@@ -17,6 +17,9 @@ kinds:
 
 exclude_paths:
   - ".venv/"
-  - ".tox/"
-  - "collections/"
   - "**/templates/**"
+  - .git
+  - .ansible
+  - infra/k8s_ansible/.ansible/collections
+  - create-VM/vps/cloud-init.yaml
+  - **/*.log

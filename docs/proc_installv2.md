@@ -5,7 +5,7 @@ cd nudger
 ./config-vm/setup_ssh_ansible.sh
 source ~/ansible_venv/bin/activate
 
-===========
+
 Pour générer ton mot de passe hashé (mode Linux standard) :
 # avec openssl
 openssl passwd -6
