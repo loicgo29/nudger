@@ -35,6 +35,8 @@ repos:
           - "-c"
           - ".ansible-lint"
         files: ^(ansible/|playbooks/|roles/|group_vars/|host_vars/|infra/k8s_ansible/).*
+        exclude: ^(create-VM/|scripts/|k8s-apps/).*
+
         language_version: /Users/loicgourmelon/.pyenv/versions/3.11.9/bin/python3.11
   # (Optionnel) Détecter des secrets/clé privées qui fuitent
   - repo: https://github.com/Yelp/detect-secrets
