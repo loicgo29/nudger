@@ -20,7 +20,7 @@ create_ingress_overlay: true
 ingress_class: "nginx"
 domain_base: "example.com"
 # Intervalles Flux
-sync_interval: "15m"
-kustomize_interval: "30m"
+sync_interval: "1m"
+kustomize_interval: "1m"
 # Namespace Flux
 flux_namespace: "flux-system"
