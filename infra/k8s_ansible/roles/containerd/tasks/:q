@@ -14,7 +14,7 @@
 
 - name: Copy admin.conf to ansible user home
   ansible.builtin.copy:
-    src: "{{ kubeconfig_admin_path }}"
+    src: "{{ containerd_kubeconfig_admin_path }}"
     dest:  "{{ kubeconfig }}"
     owner: "{{ ansible_user | default('ansible') }}"
     group: "{{ ansible_user | default('ansible') }}"

@@ -17,10 +17,4 @@ containerd_config: |
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
           SystemdCgroup = true
 # === Sysctl ===
-sysctl_params:
-  net.bridge.bridge-nf-call-iptables: 1
-  net.ipv4.ip_forward: 1
-  vm.swappiness: 0
 # === Kubeconfig ===
-kubeconfig_path: "/etc/kubernetes/admin.conf"
-kubeconfig_admin_path: "{{ kubeconfig_path | default('/etc/kubernetes/admin.conf') }}"

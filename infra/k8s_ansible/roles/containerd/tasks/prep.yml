@@ -13,7 +13,7 @@
     sysctl_set: true
     state: present
     reload: true
-  loop: "{{ sysctl_params | dict2items }}"
+  loop: "{{ containerd_sysctl_params | dict2items }}"
   become: true
   tags: [preflight]
 - name: Disable swap immediately
