@@ -6,3 +6,4 @@ infra/k8s-ansible/playbooks/artifacts/
 out/
 infra/gitops/
 *.log
+.ansible/

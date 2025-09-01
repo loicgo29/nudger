@@ -47,6 +47,26 @@
   changed_when: false
   become: true
   when: inventory_hostname == groups['k8s_masters'][0]
+- name: Wait for kube-apiserver container to be running
+  shell: |
+    set -euo pipefail
+    for i in $(seq 1 60); do
+      if crictl ps --name kube-apiserver | grep -q Running; then exit 0; fi
+      sleep 2
+    done
+    echo "kube-apiserver not running"; exit 1
+  args: { executable: /bin/bash }
+
+- name: Debug bundle for control-plane failure
+  shell: |
+    echo "=== kubelet ==="; systemctl status --no-pager kubelet || true
+    echo "=== kubelet logs ==="; journalctl -u kubelet -n 300 --no-pager || true
+    echo "=== apiserver container ==="; crictl ps -a | grep kube-apiserver || true
+    APISRV_ID=$(crictl ps -a --name kube-apiserver -q | head -n1); [ -n "$APISRV_ID" ] && crictl logs "$APISRV_ID" | tail -n 300 || true
+    echo "=== apiserver manifest ==="; sed -n '1,200p' /etc/kubernetes/manifests/kube-apiserver.yaml || true
+    echo "=== etcd ==="; crictl ps -a | grep etcd || true
+    ETCD_ID=$(crictl ps -a --name etcd -q | head -n1); [ -n "$ETCD_ID" ] && crictl logs "$ETCD_ID" | tail -n 200 || true
+
 - name: Ensure kube-apiserver is listening on 6443 right now
   ansible.builtin.shell: ss -ltn | awk '{print $4}' | grep -qE '(^|:|])6443$'
   args: { executable: /bin/bash }

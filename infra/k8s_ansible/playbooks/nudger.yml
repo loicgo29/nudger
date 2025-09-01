@@ -13,8 +13,8 @@
   import_playbook: 03-B-k8s-users.yml
 #- name: 03-C-clone_repo_git.yml
 #  import_playbook: 03-C-clone_repo_git.yml
-- name: 04-gitops_scaffold.yml
-  import_playbook: 04-gitops_scaffold.yml
+#- name: 04-gitops_scaffold.yml
+#  import_playbook: 04-gitops_scaffold.yml
 - name: 05-flux.yml
   import_playbook: 05-flux.yml
 - name: 06-sync_apps.yml
