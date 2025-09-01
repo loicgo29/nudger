@@ -39,7 +39,7 @@ repos:
           bash -lc '
             set -euo pipefail
             ansible-galaxy collection install
-              -r infra/k8s_ansible/collections/requirements.yml
+              -r infra/k8s_ansible/requirements.yml
               -p infra/k8s_ansible/collections
           '
 

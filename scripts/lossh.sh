@@ -54,4 +54,5 @@ if [[ -n "$key" ]]; then
 fi
 
 echo "→ SSH vers ${user}@${ip} ${key:+(clé: $key)}"
+echo "${ssh_args[@]} -o StrictHostKeyChecking=accept-new ${user}@${ip}"
 exec ssh "${ssh_args[@]}" -o StrictHostKeyChecking=accept-new "${user}@${ip}"
