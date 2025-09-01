@@ -225,4 +225,3 @@ EOT
 header "Fin"
 say "Mode: $([[ \"$DRY_RUN\" == 1 ]] && echo DRY-RUN || echo EXECUTION RÉELLE)"
 say "📄 Détail des suppressions listé dans: ${LOG_FILE}"
-

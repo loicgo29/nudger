@@ -4,7 +4,7 @@
 # ----------------------------
 - name: Check if cluster already initialized
   ansible.builtin.stat:
-    path: "{{ kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
+    path: "{{ containerd_kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
   register: kubeadm_config
   become: true
 - name: Default apiserver_endpoint if undefined
@@ -41,7 +41,7 @@
     kubeadm init --config=/root/kubeadm-config.yaml --skip-phases=addon/kube-proxy
 
   args:
-    creates: "{{ kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
+    creates: "{{ containerd_kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
   when:
     - inventory_hostname == groups['k8s_masters'][0]
     - not kubeadm_config.stat.exists
@@ -82,7 +82,7 @@
 #  COPIE **après** init OU uniquement si admin.conf existe déjà
 - name: Copy admin kubeconfig to root (only if present)
   ansible.builtin.copy:
-    src: "{{ kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
+    src: "{{ containerd_kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
     dest: /root/.kube/config
     remote_src: true
     owner: root
@@ -98,7 +98,7 @@
 # - name: Regenerate admin kubeconfig if missing
 #   command: kubeadm init phase kubeconfig admin
 #   args:
-#     creates: "{{ kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
+#     creates: "{{ containerd_kubeconfig_admin_path | default('/etc/kubernetes/admin.conf') }}"
 #   when:
 #     - inventory_hostname == groups['k8s_masters'][0]
 #     - not kubeadm_config.stat.exists
@@ -199,7 +199,7 @@
   become: true
   when:
     - inventory_hostname == groups['k8s_masters'][0]
-    - kubeadm_config.stat.exists or (kubeconfig_admin_path is defined) # après init
+    - kubeadm_config.stat.exists or (containerd_kubeconfig_admin_path is defined) # après init
 - name: Patch probes kube-scheduler to TCP
   ansible.builtin.replace:
     path: /etc/kubernetes/manifests/kube-scheduler.yaml

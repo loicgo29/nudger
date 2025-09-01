@@ -9,15 +9,15 @@ networking:
 apiServer:
   certSANs:
     - "127.0.0.1"
-    - "{{ ansible_default_ipv4.address }}"
-    - "{{ inventory_hostname }}"
-    - "{{ ansible_fqdn | default(inventory_hostname) }}"
+    - "{{ ansible_default_ipv4.address }}"                 # IP privée du nœud
+    - "{{ inventory_hostname }}"                           # hostname court (si résolu)
+    - "{{ ansible_fqdn | default(inventory_hostname) }}"  # FQDN (si résolu)
+    - "{{ apiserver_endpoint.split(':')[0] }}"            # VIP/DNS si tu en as un
+    - "{{ apiserver_host_global | default(ansible_default_ipv4.address) }}"
+    - "91.99.58.109"                                      # IP publique si tu l’utilises vraiment
   extraArgs:
     - name: etcd-servers
       value: "https://{{ ansible_default_ipv4.address }}:2379"
-    # (facultatif, si tu tenais à l’avoir)
-    # - name: authorization-mode
-    #   value: "Node,RBAC"
 ---
 # InitConfiguration
 apiVersion: kubeadm.k8s.io/v1beta4

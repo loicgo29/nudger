@@ -8,11 +8,11 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-yaml
-        args: [--unsafe] # autorise les anchors/aliases YAML avancés
+        args: [--unsafe]  # autorise les anchors/aliases YAML avancés
       - id: mixed-line-ending
         args: [--fix=lf]
 
-  # Formatage Python si tu as du code Python (facultatif)
+  # Formatage Python (si besoin)
   - repo: https://github.com/psf/black
     rev: 24.4.2
     hooks:
@@ -26,27 +26,47 @@ repos:
       - id: yamllint
         files: \.(yml|yaml)$
         args: ["-c", ".yamllint"]
+        exclude: ^k8s-apps/
+
+  # Hook local pour installer les collections Galaxy nécessaires à Ansible
+  - repo: local
+    hooks:
+      - id: galaxy-collections
+        name: ansible-galaxy collection install
+        language: system
+        pass_filenames: false
+        entry: >
+          bash -lc '
+            set -euo pipefail
+            ansible-galaxy collection install
+              -r infra/k8s_ansible/collections/requirements.yml
+              -p infra/k8s_ansible/collections
+          '
 
   # Lint Ansible
   - repo: https://github.com/ansible/ansible-lint
-    rev: v24.7.0
+    rev: v24.6.1
     hooks:
       - id: ansible-lint
+        pass_filenames: false
+        args: ["-p", "infra/k8s_ansible"]
+        entry: bash -lc 'ANSIBLE_CONFIG=$PWD/ansible.cfg ansible-lint -p infra/k8s_ansible'
         additional_dependencies:
-          - "ansible>=9.0.0"
-        args:
-          - "-c"
-          - ".ansible-lint"
+          - ansible==9.3.0
+        language_version: python3
 
-  # (Optionnel) Détecter des secrets/clé privées qui fuitent
+  # (Optionnel) Détection de secrets
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
-        exclude: >
+        exclude: |
           (?x)(
             ^group_vars/vault\.yml$|
             ^roles/.*/files/.*\.vault$|
-            ^roles/.*/files/id_.*   # tes clés privées vaultées
+            ^roles/.*/files/id_.*
           )
+
+default_language_version:
+  python: /Users/loicgourmelon/.pyenv/versions/3.11.9/bin/python3.11

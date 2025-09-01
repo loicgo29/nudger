@@ -1,6 +1,5 @@
 ---
-# defaults/main.yml 
-manage_k8s_apt: false
+# defaults/main.yml
 # Commente les lignes swap dans /etc/fstab (recommandé pour K8s)
 disable_swap_comment_fstab: true
 # Crée un service systemd de secours pour s'assurer que le swap est off au boot
@@ -34,5 +33,3 @@ common_apt_dependencies:
   - lsb-release
 # Where we store the converted GPG keyring.
 kubernetes_keyring_path: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-## Garde-fous
-_k8s_minor_valid: "{{ (k8s_minor is string) and (k8s_minor is match('^[0-9]+\\.[0-9]+$')) }}"

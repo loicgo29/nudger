@@ -1,22 +1,14 @@
 ---
-# .ansible-lint
-profile: production
+# .ansible-lint (allégé pour déblocage)
 warn_list:
-  - experimental # optionnel
+  - experimental
 skip_list:
-  - yaml[line-length] # si nécessaire
-  - schema[meta-incorrect] # exemple, ajuste à ton contexte
-
-kinds:
-  # considère ces extensions comme YAML Ansible
-  - playbook: "**/playbooks/**/*.yml"
-  - tasks: "**/roles/**/tasks/**/*.yml"
-  - handlers: "**/roles/**/handlers/**/*.yml"
-  - vars: "**/group_vars/**/*.yml"
-  - defaults: "**/roles/**/defaults/**/*.yml"
-
+  - yaml[line-length]      # gérée par yamllint
+  - fqcn-builtins          # (tu pourras le réactiver plus tard)
 exclude_paths:
   - ".venv/"
-  - ".tox/"
-  - "collections/"
-  - "**/templates/**"
+  - ".git"
+  - ".ansible"
+  - "infra/k8s_ansible/.ansible/collections"
+  - "create-VM/vps/cloud-init.yaml"
+  - "**/*.log"

@@ -10,7 +10,8 @@ kubectl create secret generic xwiki-mysql-auth \
   --from-literal=mysql-user='xwiki' \
   --from-literal=mysql-password='xwiki' \
   --from-literal=mysql-database='xwiki'
-===== LONGHORN
+
+LONGHORN
 
 sudo mkdir -p /var/lib/longhorn/engine-binaries
 sudo chown -R 1000000000:1000000000 /var/lib/longhorn/engine-binaries
@@ -38,7 +39,7 @@ helm upgrade --install longhorn longhorn/longhorn \
 
 kubectl label node vagrant longhorn.io/node=ready
 
-============= KUSOTIMSE
+KUSOTIMSE
 Récupère la dernière version (exemple v5.4.1) :
 
 VERSION=5.4.1

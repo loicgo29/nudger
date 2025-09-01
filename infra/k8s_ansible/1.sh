@@ -23,4 +23,3 @@ find "$dir" -type f \( -name '*.yml' -o -name '*.yaml' \) | while read -r file; 
 done
 
 echo "✅ Terminé. (des backups .bak ont été créés à côté de chaque fichier modifié)"
-

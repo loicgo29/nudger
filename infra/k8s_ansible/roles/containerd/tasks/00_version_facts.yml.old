@@ -33,5 +33,3 @@
     k8s_repo: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_minor }}/deb/"
     k8s_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_minor }}/deb/Release.key"
   when: k8s_minor is defined
-
-

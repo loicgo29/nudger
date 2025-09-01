@@ -53,20 +53,20 @@
 - name: Run kubeadm init phase addon kube-proxy
   ansible.builtin.command: kubeadm init phase addon kube-proxy --v=4
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   register: kp_phase
   changed_when: "'applied' in kp_phase.stdout or 'created' in kp_phase.stdout"
   when: inventory_hostname == groups['k8s_masters'][0]
   become: true
 - name: Rollout restart kube-proxy
   ansible.builtin.command: kubectl -n kube-system rollout restart ds/kube-proxy
-  environment: { KUBECONFIG: "{{ kubeconfig_admin_path }}" }
+  environment: { KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}" }
   when: inventory_hostname == groups['k8s_masters'][0]
 # Attendre qu'au moins 1 nœud existe
 - name: Wait for nodes to show up
   ansible.builtin.command: kubectl get nodes --no-headers
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   register: nodes_list
   changed_when: false
   retries: 60
@@ -76,7 +76,7 @@
 - name: Wait for all nodes Ready
   ansible.builtin.command: kubectl wait --for=condition=Ready nodes --all --timeout=5m
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   register: nodes_ready
   changed_when: false
 # (2) Vérifier le kubeconfig du secret kube-proxy (évite 127.0.0.1)
@@ -84,7 +84,7 @@
 - name: Get cluster server URL from admin kubeconfig
   ansible.builtin.shell: |
     set -euo pipefail
-    kubectl config view --kubeconfig="{{ kubeconfig_admin_path }}" --minify \
+    kubectl config view --kubeconfig="{{ containerd_kubeconfig_admin_path }}" --minify \
       -o jsonpath='{.clusters[0].cluster.server}'
   args: { executable: /bin/bash }
   register: cluster_server_url
@@ -152,7 +152,7 @@
   args:
     executable: /bin/bash
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
     APISERVER: "https://{{ apiserver_endpoint | default(ansible_default_ipv4.address ~ ':6443') }}"
   register: kp_norm
   changed_when: "'created' in kp_norm.stdout or 'configured' in kp_norm.stdout"
@@ -161,18 +161,18 @@
 
 - name: Rollout restart kube-proxy
   ansible.builtin.command: kubectl -n kube-system rollout restart ds/kube-proxy
-  environment: { KUBECONFIG: "{{ kubeconfig_admin_path }}" }
+  environment: { KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}" }
   when: inventory_hostname == groups['k8s_masters'][0]
 - name: Wait for kube-proxy rollout
   ansible.builtin.command: >
     kubectl -n kube-system rollout status ds/kube-proxy --timeout=3m
-  environment: { KUBECONFIG: "{{ kubeconfig_admin_path }}" }
+  environment: { KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}" }
   when: inventory_hostname == groups['k8s_masters'][0]
 # (3) S’assurer que le DS aura bien quelque chose à programmer
 - name: Check kube-proxy DS desired > 0
   ansible.builtin.command: kubectl -n kube-system get ds kube-proxy -o jsonpath='{.status.desiredNumberScheduled}'
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   register: kp_desired
   changed_when: false
 
@@ -180,7 +180,7 @@
   ansible.builtin.shell: |
     kubectl -n kube-system get ds kube-proxy -o jsonpath='{.status.numberReady}/{.status.desiredNumberScheduled}'
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   register: kp_counts
   changed_when: false
   retries: 60
@@ -199,7 +199,7 @@
     kubectl -n kube-system get ds kube-proxy -o jsonpath='{.status.numberReady}/{.status.desiredNumberScheduled}'
 
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   register: kp_counts
   changed_when: false
   retries: 60
@@ -214,6 +214,6 @@
     kubectl -n kube-system rollout status ds/kube-proxy --timeout=6m
 
   environment:
-    KUBECONFIG: "{{ kubeconfig_admin_path }}"
+    KUBECONFIG: "{{ containerd_kubeconfig_admin_path }}"
   changed_when: false
   become: true
