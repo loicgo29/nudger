@@ -31,3 +31,26 @@ if command -v kubectl &> /dev/null; then
         complete -o default -F __start_kubectl k
     fi
 fi
+# --- fzf + Ctrl-R pour BASH ---
+# Ne s'applique qu'à Bash
+[ -n "$BASH_VERSION" ] || return 0
+
+# Charge les bindings fournis par le paquet fzf (Ubuntu/Debian)
+if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+  . /usr/share/doc/fzf/examples/key-bindings.bash
+fi
+
+# Variante installateur (si ~/.fzf.bash existe)
+[ -f ~/.fzf.bash ] && . ~/.fzf.bash
+
+# Fallback : si Ctrl-R n'est pas lié, on crée un widget fzf pour l'historique
+if ! bind -P 2>/dev/null | grep -q '"\C-r"'; then
+  __fzf_history__() {
+    local cmd
+    cmd="$(HISTTIMEFORMAT= history | sed 's/^ *[0-9]\+ *//' | tac | fzf +s --height=40% --reverse)"
+    [[ -n "$cmd" ]] || return
+    READLINE_LINE="$cmd"
+    READLINE_POINT=${#READLINE_LINE}
+  }
+  bind -x '"\C-r": __fzf_history__'
+fi
