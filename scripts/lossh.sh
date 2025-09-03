@@ -1,58 +1,59 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Inventaire + hôte
 INV_FILE="${INV_FILE:-/Users/loicgourmelon/Devops/nudger/infra/k8s_ansible/inventory.ini}"
 HOST="${1:-master1}"
 
+# Sanity checks
 if [[ ! -f "$INV_FILE" ]]; then
   echo "Inventory introuvable: $INV_FILE" >&2
   exit 1
 fi
 
-# Extrait la ligne de l'hôte (ignore commentaires et lignes vides)
-line="$(awk -v h="$HOST" '
-  /^[[:space:]]*#/ { next }
-  /^[[:space:]]*$/ { next }
-  $1 == h { print; exit }
-' "$INV_FILE")"
+# Récupère ansible_host / ansible_user / ansible_ssh_private_key_file pour l'hôte
+# - ignore commentaires & lignes vides
+# - match sur 1ère colonne == HOST
+# - gère a=b, retire quotes éventuelles
+read -r ip user key <<EOF
+$(awk -v h="$HOST" '
+  /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
+  $1 == h {
+    for (i=2;i<=NF;i++) {
+      n=split($i,a,"=")
+      if (n==2) {
+        # retire quotes "..." ou '\''...'\'' en bord
+        gsub(/^"/,"",a[2]); gsub(/"$/,"",a[2]);
+        gsub(/^'\''/,"",a[2]); gsub(/'\''$/,"",a[2]);
+        if (a[1]=="ansible_host") host=a[2];
+        else if (a[1]=="ansible_user") user=a[2];
+        else if (a[1]=="ansible_ssh_private_key_file" || a[1]=="ansible_private_key_file") key=a[2];
+      }
+    }
+    # valeurs par défaut côté awk si non trouvées
+    if (user=="") user="root";
+    print host "\t" user "\t" key;
+    exit
+  }
+' "$INV_FILE")
+EOF
 
-if [[ -z "${line:-}" ]]; then
-  echo "Hôte '$HOST' introuvable dans $INV_FILE" >&2
+# Vérifs
+if [[ -z "${ip:-}" ]]; then
+  echo "Hôte '$HOST' introuvable dans $INV_FILE ou ansible_host manquant." >&2
   exit 1
 fi
+user="${user:-root}"
+key="${key:-}"
 
-# Parse les paires key=value (gère chemins avec / et ~)
-declare -A kv
-# shellcheck disable=SC2206
-parts=($line) # split sur espaces
-for p in "${parts[@]}"; do
-  # ne garder que les segments contenant '=' (les autres sont le nom d'hôte ou groupes)
-  if [[ "$p" == *"="* ]]; then
-    k="${p%%=*}"
-    v="${p#*=}"
-    # retire d'éventuelles quotes
-    v="${v%\"}"; v="${v#\"}"
-    v="${v%\'}"; v="${v#\'}"
-    kv["$k"]="$v"
-  fi
-done
+# Expand ~ au début du chemin de clé si présent (sans eval)
+case "$key" in
+  "~/"*) key="${HOME}${key#\~}";;
+esac
 
-ip="${kv[ansible_host]:-}"
-user="${kv[ansible_user]:-root}"
-key="${kv[ansible_ssh_private_key_file]:-}"
-
-if [[ -z "$ip" ]]; then
-  echo "ansible_host manquant pour $HOST" >&2
-  exit 1
-fi
-
-ssh_args=()
-if [[ -n "$key" ]]; then
-  # expand ~ si présent
-  eval key_expanded="$key"
-  ssh_args+=(-i "$key_expanded")
-fi
+# Args SSH
+ssh_args=(-o StrictHostKeyChecking=accept-new)
+[[ -n "$key" ]] && ssh_args+=(-i "$key")
 
 echo "→ SSH vers ${user}@${ip} ${key:+(clé: $key)}"
-echo "${ssh_args[@]} -o StrictHostKeyChecking=accept-new ${user}@${ip}"
-exec ssh "${ssh_args[@]}" -o StrictHostKeyChecking=accept-new "${user}@${ip}"
+exec ssh "${ssh_args[@]}" "${user}@${ip}"
