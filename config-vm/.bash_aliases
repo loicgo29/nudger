@@ -21,3 +21,7 @@ alias vu='vagrant up'
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias gitq='git add . && git commit -m "clean" && git push'
+alias cash='$HOME/nudger/scripts/cat.sh'
+alias cdn='cd $HOME/nudger'
+alias cdo='cd $HOME/nudger-gitops'
+
