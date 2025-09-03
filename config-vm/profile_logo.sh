@@ -1,125 +1,105 @@
-#!/bin/bash
+# --- optional aliases
+[ -f ~/nudger/config-vm/.bash_aliases ] && . ~/nudger/config-vm/.bash_aliases
 
-###############################################################
-#  SCRIPT BASH AVEC SYNTAXE CORRECTE
-###############################################################
-
-# Installation de bash (normalement déjà présent)
-if ! command -v bash >/dev/null; then
-    echo "🔹 Installation de bash..."
-    sudo apt update && sudo apt install -y bash
+# --- bash-completion core (if installed)
+if [ -f /usr/share/bash-completion/bash_completion ]; then
+  . /usr/share/bash-completion/bash_completion
+elif [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
 fi
 
-# ASCII art + configuration
-clear
+# --- kubectl completion + alias k
+if command -v kubectl >/dev/null 2>&1; then
+  COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
+  KUBE_COMPLETION_FILE="$COMPLETION_DIR/kubectl"
+  mkdir -p "$COMPLETION_DIR"
+  if [[ ! -f "$KUBE_COMPLETION_FILE" || "$(command -v kubectl)" -nt "$KUBE_COMPLETION_FILE" ]]; then
+    kubectl completion bash > "$KUBE_COMPLETION_FILE" 2>/dev/null || true
+  fi
+  [ -f "$KUBE_COMPLETION_FILE" ] && . "$KUBE_COMPLETION_FILE"
+  alias k='kubectl'
+  complete -o default -F __start_kubectl k
+fi
 
-# Configuration de l'environnement
-export KUBECONFIG="$HOME/.kube/config"
+# --- fzf (single source)
+if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+  . /usr/share/doc/fzf/examples/key-bindings.bash
+elif [ -f ~/.fzf.bash ]; then
+  . ~/.fzf.bash
+fi
 
-# Configuration de l'historique (équivalent Bash)
-HISTCONTROL=ignoredups:erasedups
-HISTSIZE=100000
-HISTFILESIZE=200000
-# Faire une copie de sauvegarde de votre .bashrc actuel
-cp ~/.bashrc ~/.bashrc.backup
+# --- git minimal aliases + safe helpers
+if command -v git >/dev/null 2>&1; then
+  alias g='git'
+  alias gs='git status -sb'
+  alias glg='git log --oneline --graph --decorate --date=relative'
+  alias gfa='git fetch --all --prune'
+  alias gpl='git pull --ff-only'
+  alias gsw='git switch'
+  alias gswc='git switch -c'
+  alias grs='git restore'
+  alias grst='git restore --staged'
+  alias gcm='git commit -m'
+  alias gca='git add -A && git commit -m'
+  gpup() { git push -u origin "$(git branch --show-current)"; }
 
-# Copier le nouveau .bashrc
-cp ~/nudger/config-vm/.bashrc ~/.bashrc
-cp ~/nudger/config-vm/.bash_aliases ~/.bash_aliases
-# Alias
-alias ll='ls -laFh --color=auto'
-alias la='ls -A'
-alias l='ls -larth'
-alias gl='git log'
-alias gst='git status'
-alias gg='git log --oneline --all --graph --name-status'
-alias s='sudo -s'
-alias h='helm'
-alias k='kubectl'
-alias kcc='kubectl config current-context'
-alias kg='kubectl get'
-alias kga='kubectl get all --all-namespaces'
-alias kgp='kubectl get pods'
-alias kgs='kubectl get services'
-alias kn='kubens'
-alias ksgp='kubectl get pods -n kube-system'
-alias kss='kubectl get services -n kube-system'
-alias kuc='kubectl config use-context'
-alias kx='kubectx'
-alias vu='vagrant up'
+  # protected branches for force push / delete
+  _git_protected_regex='^(main|master|prod|production|release/.+)$'
+  gpf() {
+    local cur; cur="$(git branch --show-current 2>/dev/null)"
+    [[ "$cur" =~ $_git_protected_regex ]] && { echo "no force on $cur"; return 1; }
+    git push --force-with-lease "$@"
+  }
+  gbD() {
+    local b="$1"
+    [ -n "$b" ] || { echo "usage: gbD <branch>"; return 1; }
+    [[ "$b" =~ $_git_protected_regex ]] && { echo "protected: $b"; return 1; }
+    git branch -D "$b"
+  }
 
+  # completion for git aliases (if _git is available)
+  if type _git >/dev/null 2>&1; then
+    complete -o bashdefault -o default -F _git g
+    complete -o bashdefault -o default -F _git gs
+    complete -o bashdefault -o default -F _git glg
+    complete -o bashdefault -o default -F _git gsw
+    complete -o bashdefault -o default -F _git gswc
+    complete -o bashdefault -o default -F _git grs
+    complete -o bashdefault -o default -F _git grst
+    complete -o bashdefault -o default -F _git gcm
+    complete -o bashdefault -o default -F _git gca
+  fi
+fi
 
-echo "✅ Environnement bash complètement configuré !"
-#!/bin/bash
-# Fichier : ~/profile_logo.sh
-# Rôle : Affiche un logo et configure l'env Kubernetes pour Vagrant
+# --- Starship (prompt) ---
+if command -v starship >/dev/null 2>&1; then
+  export STARSHIP_CONFIG="/root/nudger/config-vm/starship.toml"
+  eval "$(starship init bash)"
+fi
 
-# Couleur verte
-echo -e '\033[0;32m'
-cat << "EOF"
-██╗░░░░░░█████╗░░██████╗░░█████╗░
-██║░░░░░██╔══██╗██╔════╝░██╔══██╗
-██║░░░░░██║░░██║██║░░██╗░██║░░██║
-██║░░░░░██║░░██║██║░░╚██╗██║░░██║
-███████╗╚█████╔╝╚██████╔╝╚█████╔╝
-╚══════╝░╚════╝░░╚═════╝░░╚════╝░
-EOF
-echo -e '\033[0m'
+# --- Zoxide (no eval/init): cd wrapper + j/ji + completion
+if command -v zoxide >/dev/null 2>&1; then
+  export _ZO_DATA_DIR="$HOME/.local/share/zoxide"
 
-# Variables d'env spécifiques à Kubernetes
-export KUBECONFIG="/home/vagrant/.kube/config"
-
-# Historique optimisé pour Bash
-HISTCONTROL=ignoredups:erasedups
-HISTSIZE=100000
-HISTFILESIZE=200000
-
-# Alias Kubernetes
-alias k='kubectl'
-alias kcc='kubectl config current-context'
-alias kg='kubectl get'
-alias kga='kubectl get all --all-namespaces'
-alias kgp='kubectl get pods'
-alias kgs='kubectl get services'
-alias ksgp='kubectl get pods -n kube-system'
-alias kss='kubectl get services -n kube-system'
-alias kuc='kubectl config use-context'
-
-# Autres alias utiles
-alias ll='ls -laFh --color=auto'
-alias la='ls -A'
-alias l='ls -larth'
-alias gl='git log'
-alias gst='git status'
-alias gg='git log --oneline --all --graph --name-status'
-alias s='sudo -s'
-alias vu='vagrant up'
-
-# Configuration fiable de la complétion kubectl
-if command -v kubectl &>/dev/null; then
-    # Création du répertoire si inexistant
-    COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
-    mkdir -p "$COMPLETION_DIR"
-
-    # Génération du fichier de complétion
-    KUBE_COMPLETION_FILE="$COMPLETION_DIR/kubectl"
-    kubectl completion bash > "$KUBE_COMPLETION_FILE" 2>/dev/null
-
-    # Chargement sécurisé
-    if [[ -f "$KUBE_COMPLETION_FILE" ]]; then
-        source "$KUBE_COMPLETION_FILE"
-        # Alias standard avec complétion
-        alias k=kubectl
-        complete -o default -F __start_kubectl k
-
-        # Alias supplémentaires utiles
-        alias kg='kubectl get'
-        alias kd='kubectl describe'
-        alias kn='kubectl config set-context --current --namespace'
+  # feed DB on each cd (robust)
+  cd() {
+    if builtin cd "$@"; then
+      zoxide add "$(pwd -L)" >/dev/null 2>&1 || true
+      return 0
     else
-        echo "Warning: Échec de génération de la complétion kubectl" >&2
+      return $?
     fi
-fi
-echo "source ~/.bashrc "
+  }
 
-export EDITOR=vim
+  # jump commands
+  j()  { local d; d="$(zoxide query -- "$@")"  || return; [ -d "$d" ] && builtin cd "$d"; }
+  ji() { local d; d="$(zoxide query -i -- "$@")" || return; [ -d "$d" ] && builtin cd "$d"; }
+
+  # completion for j/ji (list known paths)
+  _j_complete() {
+    local cur; COMPREPLY=(); cur="${COMP_WORDS[COMP_CWORD]}"
+    mapfile -t COMPREPLY < <(zoxide query -l -- "$cur" 2>/dev/null)
+  }
+  complete -o dirnames -F _j_complete j
+  complete -o dirnames -F _j_complete ji
+fi
