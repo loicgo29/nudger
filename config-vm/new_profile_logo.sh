@@ -114,6 +114,7 @@ alias grst='git restore --staged'
 # Commits rapides
 alias gcm='git commit -m'
 alias gca='git add -A && git commit -m'
+alias gitq='git add -A && git commit -m "quick" && git push'
 
 # Push avec upstream auto
 gpup() { git push -u origin "$(git branch --show-current)"; }
