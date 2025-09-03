@@ -56,4 +56,11 @@ ssh_args=(-o StrictHostKeyChecking=accept-new)
 [[ -n "$key" ]] && ssh_args+=(-i "$key")
 
 echo "→ SSH vers ${user}@${ip} ${key:+(clé: $key)}"
-exec ssh "${ssh_args[@]}" "${user}@${ip}"
+remote_profile="~/nudger/config-vm/profile_logo.sh"
+
+# On ouvre un bash interactif, en sourçant le profil s’il existe
+# # Force l'allocation d'un TTY (-tt) et ouvre UN seul bash interactif
+ssh_args+=(-t -t)
+
+exec ssh "${ssh_args[@]}" "${user}@${ip}" \
+  '[[ -f ~/nudger/config-vm/profile_logo.sh ]] && source ~/nudger/config-vm/profile_logo.sh&& cd nudger; exec bash -i'
