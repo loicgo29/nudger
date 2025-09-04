@@ -73,7 +73,8 @@ fi
 
 # --- Starship (prompt) ---
 if command -v starship >/dev/null 2>&1; then
-  export STARSHIP_CONFIG="/root/nudger/config-vm/starship.toml"
+  cp  /root/nudger/config-vm/starship.toml ~/.config/starship.toml
+  export STARSHIP_CONFIG="~/.config/starship.toml"
   eval "$(starship init bash)"
 fi
 
