@@ -1,0 +1,23 @@
+---
+- name: Configure remote.origin.fetch to get all branches (git_repos)
+  become: true
+  become_user: "{{ item.0.name }}"
+  ansible.builtin.command: >
+    git -C {{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}
+    config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+  changed_when: false
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.0.name }} -> {{ item.1.repo }}"
+  when: git_auth_mode == 'ssh'
+
+- name: Fetch all branches (prune) for each repo (git_repos)
+  become: true
+  become_user: "{{ item.0.name }}"
+  ansible.builtin.command: >
+    git -C {{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}
+    fetch --all --prune
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.0.name }} -> {{ item.1.repo }}"
+  when: git_auth_mode == 'ssh'

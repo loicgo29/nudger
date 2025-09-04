@@ -1,372 +1,56 @@
 ---
-# NOTE: System-level changes use become: true where needed (/opt, /usr/local/bin, etc.)
+# Orchestrateur lisible + tags par blocs
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 0) Hygiene: controller tmp dirs (optional)
-# Create root's remote tmp up-front (prevents Ansible warning on first run).
-- name: Pre-create remote tmp for root (quiet the warning)
-  become: true
-  ansible.builtin.file:
-    path: /tmp/.ansible-root
-    state: directory
-    owner: root
-    group: root
-    mode: "0700"
-# ──────────────────────────────────────────────────────────────────────────────
-# 1) Groups then users
-# Ensure all groups referenced by users_k8s exist before creating users.
-- name: Ensure groups referenced by users_k8s exist
-  ansible.builtin.group:
-    name: "{{ item }}"
-    state: present
-  loop: "{{ users_k8s | map(attribute='groups') | select('defined') | list | flatten
-    | unique }}"
-  when: (users_k8s | length) > 0
-# Create users with optional password hash and group membership.
-- name: Ensure users exist with requested properties
-  become: true
-  ansible.builtin.user:
-    name: "{{ item.name }}"
-    password: "{{ item.password | default(omit) }}"
-    groups: "{{ item.groups | default([]) | join(',') }}"
-    shell: /bin/bash
-    create_home: true
-    state: present
-  loop: "{{ users_k8s }}"
-# Optional: create per-user remote tmp AFTER users exist to avoid chown failures.
-- name: Pre-create remote tmp for managed users (after user creation)
-  become: true
-  ansible.builtin.file:
-    path: "/tmp/.ansible-{{ item.name }}"
-    state: directory
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0700"
-  loop: "{{ users_k8s }}"
-# ──────────────────────────────────────────────────────────────────────────────
-# 2) Sudoers (opt-in)
-# Only set NOPASSWD for users explicitly requesting it (principle of least privilege).
-- name: Configure passwordless sudo when requested
-  become: true
-  ansible.builtin.copy:
-    dest: "/etc/sudoers.d/{{ item.name }}"
-    content: "{{ item.name }} ALL=(ALL) NOPASSWD:ALL\n"
-    owner: root
-    group: root
-    mode: "0440"
-    validate: "visudo -cf %s"
-  loop: "{{ users_k8s }}"
-  when: item.sudo_nopass | default(false)
-# ──────────────────────────────────────────────────────────────────────────────
-# 3) SSH authorized_keys
-- name: Ensure ~/.ssh exists for each user
-  become: true
-  ansible.builtin.file:
-    path: "/home/{{ item.name }}/.ssh"
-    state: directory
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0700"
-  loop: "{{ users_k8s }}"
-# If you pass a list (ssh_public_keys: []), add them all.
-- name: Add SSH authorized keys (list)
-  become: true
-  ansible.builtin.authorized_key:
-    user: "{{ item.0.name }}"
-    key: "{{ item.1 }}"
-    state: present
-  loop: "{{ users_k8s | subelements('ssh_public_keys', skip_missing=True) }}"
-  loop_control:
-    label: "{{ item.0.name }}"
-# If you pass a single key (ssh_public_key: "ssh-ed25519 ..."), add it.
-- name: Add SSH authorized key (single)
-  become: true
-  ansible.builtin.authorized_key:
-    user: "{{ item.name }}"
-    key: "{{ item.ssh_public_key }}"
-    state: present
-  loop: "{{ users_k8s }}"
-  when: item.ssh_public_key is defined and (item.ssh_public_key | length) > 0
-# ──────────────────────────────────────────────────────────────────────────────
-# 4) kubeconfig per user
-- name: Ensure ~/.kube exists
-  become: true
-  ansible.builtin.file:
-    path: "/home/{{ item.name }}/.kube"
-    state: directory
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0700"
-  loop: "{{ users_k8s }}"
-# Copy an existing kubeconfig when provided (kubeconfig or kubeconfig_src).
-- name: Copy kubeconfig when provided (kubeconfig or kubeconfig_src)
-  become: true
-  ansible.builtin.copy:
-    src: "{{ item.kubeconfig_src | default(item.kubeconfig) }}"
-    dest: "/home/{{ item.name }}/.kube/config"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0600"
-    remote_src: true
-  loop: "{{ users_k8s }}"
-  when: (item.kubeconfig_src | default(item.kubeconfig | default(''))) | length
-    > 0
-# OR render via template when explicitly requested.
-- name: Render kubeconfig from template when requested
-  become: true
-  ansible.builtin.template:
-    src: "kubeconfig.j2"
-    dest: "/home/{{ item.name }}/.kube/config"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0600"
-  loop: "{{ users_k8s }}"
-  vars:
-    user_name: "{{ item.name }}"
-  when: item.kubeconfig_template | default(false)
-# Ensure KUBECONFIG is exported for interactive shells.
-- name: Ensure KUBECONFIG in .bashrc
-  become: true
-  ansible.builtin.lineinfile:
-    path: "/home/{{ item.name }}/.bashrc"
-    regexp: "^[ \\t]*export KUBECONFIG="
-    line: "export KUBECONFIG=$HOME/.kube/config"
-    create: true
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0644"
-  loop: "{{ users_k8s }}"
-# ──────────────────────────────────────────────────────────────────────────────
-# 5) Bash aliases (optional quality-of-life)
-- name: Deploy bash aliases file
-  become: true
-  ansible.builtin.copy:
-    src: "bash_aliases"
-    dest: "/home/{{ item.name }}/{{ bash_aliases_file }}"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0644"
-  loop: "{{ users_k8s }}"
-  when: bash_aliases_enable | default(true)
-- name: Ensure .bash_aliases is sourced in .bashrc (idempotent)
-  become: true
-  ansible.builtin.lineinfile:
-    path: "/home/{{ item.name }}/{{ bashrc_file }}"
-    regexp: "^[ \\t]*source\\s+~/.bash_aliases"
-    line: "source ~/.bash_aliases"
-    create: true
-    state: present
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0644"
-  loop: "{{ users_k8s }}"
-  when: bash_aliases_enable | default(true)
-# ──────────────────────────────────────────────────────────────────────────────
-# 6) kubectl completion per user (generate once)
-- name: Ensure bash-completion dir exists for each user
-  become: true
-  ansible.builtin.file:
-    path: "/home/{{ item.name }}/.local/share/bash-completion/completions"
-    state: directory
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0700"
-  loop: "{{ users_k8s }}"
-  when: kubectl_completion_enable | default(true)
-- name: Generate kubectl completion file (idempotent via creates)
-  become: true
-  become_user: "{{ item.name }}"
-  ansible.builtin.shell: >
-    kubectl completion bash > /home/{{ item.name }}/.local/share/bash-completion/completions/kubectl
+- name: 00 | hygiene
+  ansible.builtin.include_tasks: 00_hygiene.yml
+  tags: [always, hygiene]
 
-  args:
-    creates: "/home/{{ item.name }}/.local/share/bash-completion/completions/kubectl"
-  loop: "{{ users_k8s }}"
-  when: kubectl_completion_enable | default(true)
-# ──────────────────────────────────────────────────────────────────────────────
-# 7) ~/bin and symlinks to pre-installed tools (e.g., /opt/fzf, /opt/lazygit)
-- name: Ensure per-user ~/bin exists
-  become: true
-  ansible.builtin.file:
-    path: "/home/{{ item.name }}/bin"
-    state: directory
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0755"
-  loop: "{{ users_k8s }}"
-# Probe each tool's source path on the remote; only link if it exists.
-- name: Stat tool binaries on remote hosts (per user/tool pair)
-  ansible.builtin.stat:
-    path: "{{ item.1.src }}"
-  register: tools_stat
-  loop: "{{ users_k8s | product(tools_symlinks | default([])) | list }}"
-  loop_control:
-    label: "{{ item.0.name }} <- {{ item.1.name }}"
-- name: Symlink tools into per-user ~/bin (only if src exists on remote)
-  become: true
-  ansible.builtin.file:
-    src: "{{ item.item.1.src }}"
-    dest: "/home/{{ item.item.0.name }}/bin/{{ item.item.1.name }}"
-    state: link
-    force: true
-    owner: "{{ item.item.0.name }}"
-    group: "{{ item.item.0.name }}"
-  loop: "{{ tools_stat.results | default([]) }}"
-  when: item.stat.exists
-  loop_control:
-    label: "{{ item.item.0.name }} <- {{ item.item.1.name }}"
-# Optional: fzf key bindings + completion for bash users (only touches .bashrc).
-- name: Enable fzf key bindings + completion (bash)
-  become: true
-  ansible.builtin.lineinfile:
-    path: "/home/{{ item.name }}/.bashrc"
-    regexp: "fzf/shell/key-bindings\\.bash"
-    line: "source /opt/fzf/shell/key-bindings.bash && source /opt/fzf/shell/completion.bash"
-    insertafter: EOF
-    create: true
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0644"
-  loop: "{{ users_k8s }}"
-# ──────────────────────────────────────────────────────────────────────────────
-# 8) Git: clone/update user-declared repositories
-- name: Ensure git is installed
-  become: true
-  ansible.builtin.package:
-    name: git
-    state: present
-# Harden known_hosts to avoid first-connection prompts if host_key_checking is enabled.
-- name: Add github.com to known_hosts for each user
-  become: true
-  become_user: "{{ item.name }}"
-  ansible.builtin.known_hosts:
-    path: "/home/{{ item.name }}/.ssh/known_hosts"
-    name: "github.com"
-    key: "github.com {{ lookup('ansible.builtin.pipe', 'ssh-keyscan -t rsa,ed25519
-      github.com') }}"
-    state: present
-  loop: "{{ users_k8s }}"
-  when: (git_known_hosts_enable | default(true))
-# Preflight: ensure the vaulted deploy key file exists in the role files (if using SSH deploy key workflow).
-- name: "[preflight] Verify vaulted key exists in role files"
-  delegate_to: localhost
-  become: false
-  ansible.builtin.stat:
-    path: "{{ role_path }}/files/id_deploy_nudger"
-  register: vaulted_key_stat
-  run_once: true
-  when:
-    - git_auth_mode == 'ssh'
-- name: "[preflight] Fail early if vaulted key missing"
-  delegate_to: localhost
-  become: false
-  ansible.builtin.fail:
-    msg: "roles/users-config/files/id_deploy_nudger missing. Place the vaulted key
-      there or disable SSH workflow."
-  when:
-    - (git_auth_mode | default('ssh')) == 'ssh'
-    - not vaulted_key_stat.stat.exists
-  run_once: true
-  when:
-    - git_auth_mode == 'ssh'
-    - not vaulted_key_stat.stat.exists
-# Deploy per-user SSH deploy key (vaulted file in role files). Remove if you use PAT instead.
-- name: Install per-user deploy key for GitHub (from vaulted file)
-  become: true
-  ansible.builtin.copy:
-    src: "id_deploy_nudger" # from roles/users-config/files/
-    dest: "/home/{{ item.name }}/.ssh/id_deploy_nudger"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0600"
-    decrypt: true # decrypt vaulted file
-  loop: "{{ users_k8s }}"
-  no_log: true
-  when: 
-    - git_auth_mode == 'ssh'
-    - item.git_repos is defined
-    - item.git_repos | length > 0
-- name: Assert dest path is under user home
-  vars:
-    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
-  ansible.builtin.assert:
-    that:
-      - repo_dest is match('^/home/' ~ item.0.name ~ '/')
-    fail_msg: "dest={{ repo_dest }} n'est pas sous /home/{{ item.0.name }}/"
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  when: git_auth_mode == 'ssh'
-# Ensure clone destinations exist (ownership first, then git will update contents).
-# Dir présent et owned par l'user
-- name: Ensure destination dir for each repo exists
-  become: true
-  vars:
-    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
-  ansible.builtin.file:
-    path: "{{ repo_dest }}"
-    state: directory
-    owner: "{{ item.0.name }}"
-    group: "{{ item.0.name }}"
-    mode: "0755"
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.repo }} to {{ repo_dest }}"
-# Clone/update via SSH key file (deploy key). If you use PAT, swap to HTTPS and remove key_file.
-- name: Clone / update repositories via SSH deploy key
-  become: true
-  become_user: "{{ item.0.name }}"
-  vars:
-    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
-  ansible.builtin.git:
-    repo: "{{ item.1.repo }}"
-    dest: "{{ repo_dest }}"
-    version: "{{ item.1.version | default('main') }}"
-    update: true
-    force: true
-    depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
-    recursive: "{{ item.1.submodules | default(true) }}"
-    track_submodules: "{{ item.1.submodules | default(true) }}"
-    key_file: "/home/{{ item.0.name }}/.ssh/id_deploy_nudger"
-    accept_newhostkey: true
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  when: git_auth_mode == 'ssh'
+- name: 10 | users
+  ansible.builtin.include_tasks: 10_users.yml
+  tags: [users]
 
-# (Sécurité) Variante PAT/HTTPS, au cas où un inventaire switcherait :
-- name: Clone / update repositories via HTTPS (PAT)  # no key_file
-  become: true
-  become_user: "{{ item.0.name }}"
-  ansible.builtin.git:
-    repo: "{{ item.1.repo }}"
-    dest: "{{ item.1.dest }}"
-    version: "{{ item.1.version | default('main') }}"
-    update: true
-    force: false
-    depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
-    recursive: "{{ item.1.submodules | default(true) }}"
-    track_submodules: "{{ item.1.submodules | default(true) }}"
-    accept_newhostkey: true
-  loop: "{{ users_k8s | subelements('git_repos', 'skip_missing=True') }}"
-  loop_control:
-    label: "{{ item.0.name }} <- {{ item.1.repo }}"
-  when:
-    - git_auth_mode != 'ssh'
-# ──────────────────────────────────────────────────────────────────────────────
-# 9) Git identity (user.name, user.email)
-- name: Configure global git identity per user
-  become: true
-  become_user: "{{ item.0.name }}"
-  ansible.builtin.git_config:
-    name: "{{ item.1.key }}"
-    value: "{{ item.1.value }}"
-    scope: global
-  loop: "{{ users_k8s | subelements('git_identity', skip_missing=True) }}"
-  loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.key }}={{ item.1.value }}"
+- name: 20 | sudo
+  ansible.builtin.include_tasks: 20_sudo.yml
+  tags: [sudo]
 
-- name: Assert SSH mode matches SSH repo URLs
-  ansible.builtin.assert:
-    that:
-      - git_auth_mode == 'ssh'
-    fail_msg: "git_auth_mode != ssh alors que repo=git@github.com:... Utilise git_auth_mode=ssh ou passe les repos en HTTPS."
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  loop_control: { label: "{{ item.0.name }} <- {{ item.1.repo }}" }
-  when: item.1.repo is search('^git@github.com:')
+- name: 30 | ssh authorized_keys
+  ansible.builtin.include_tasks: 30_ssh_authorized_keys.yml
+  tags: [ssh, keys]
+
+- name: 40 | kubeconfig
+  ansible.builtin.include_tasks: 40_kube.yml
+  tags: [kube]
+
+- name: 50 | shell aliases & guard
+  ansible.builtin.include_tasks: 50_shell_aliases.yml
+  tags: [shell]
+
+- name: 60 | kubectl completion
+  ansible.builtin.include_tasks: 60_kubectl_completion.yml
+  tags: [kubectl, completion]
+
+- name: 70 | tools in ~/bin
+  ansible.builtin.include_tasks: 70_tools_bin.yml
+  tags: [tools]
+
+- name: 80 | git clone/update
+  ansible.builtin.include_tasks: 80_git_clone.yml
+  tags: [git, clone]
+
+- name: 85 | git post-clone config/fetch
+  ansible.builtin.include_tasks: 85_git_postclone.yml
+  tags: [git, fetch]
+
+- name: 90 | git identity
+  ansible.builtin.include_tasks: 90_git_identity.yml
+  tags: [git, identity]
+
+- name: 95 | profile autoload
+  ansible.builtin.include_tasks: 95_profile_autoload.yml
+  tags: [profile, shell]
+
+- name: 99 | github ssh bootstrap
+  ansible.builtin.include_tasks: 99_github_ssh.yml
+  tags: [github, ssh]
+- import_tasks: 60_starship.yml
+  tags: [starship, shell]
