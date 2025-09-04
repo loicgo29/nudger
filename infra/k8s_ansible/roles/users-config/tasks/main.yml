@@ -255,14 +255,21 @@
     path: "{{ role_path }}/files/id_deploy_nudger"
   register: vaulted_key_stat
   run_once: true
+  when:
+    - git_auth_mode == 'ssh'
 - name: "[preflight] Fail early if vaulted key missing"
   delegate_to: localhost
   become: false
   ansible.builtin.fail:
     msg: "roles/users-config/files/id_deploy_nudger missing. Place the vaulted key
       there or disable SSH workflow."
-  when: not vaulted_key_stat.stat.exists
+  when:
+    - (git_auth_mode | default('ssh')) == 'ssh'
+    - not vaulted_key_stat.stat.exists
   run_once: true
+  when:
+    - git_auth_mode == 'ssh'
+    - not vaulted_key_stat.stat.exists
 # Deploy per-user SSH deploy key (vaulted file in role files). Remove if you use PAT instead.
 - name: Install per-user deploy key for GitHub (from vaulted file)
   become: true
@@ -275,21 +282,56 @@
     decrypt: true # decrypt vaulted file
   loop: "{{ users_k8s }}"
   no_log: true
-  when: item.git_repos is defined and item.git_repos | length > 0
+  when: 
+    - git_auth_mode == 'ssh'
+    - item.git_repos is defined
+    - item.git_repos | length > 0
+- name: Assert dest path is under user home
+  vars:
+    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
+  ansible.builtin.assert:
+    that:
+      - repo_dest is match('^/home/' ~ item.0.name ~ '/')
+    fail_msg: "dest={{ repo_dest }} n'est pas sous /home/{{ item.0.name }}/"
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  when: git_auth_mode == 'ssh'
 # Ensure clone destinations exist (ownership first, then git will update contents).
+# Dir présent et owned par l'user
 - name: Ensure destination dir for each repo exists
   become: true
+  vars:
+    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
   ansible.builtin.file:
-    path: "{{ item.1.dest }}"
+    path: "{{ repo_dest }}"
     state: directory
     owner: "{{ item.0.name }}"
     group: "{{ item.0.name }}"
     mode: "0755"
-  loop: "{{ users_k8s | subelements('git_repos', 'skip_missing=True') }}"
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
   loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.dest }}"
+    label: "{{ item.0.name }} -> {{ item.1.repo }} to {{ repo_dest }}"
 # Clone/update via SSH key file (deploy key). If you use PAT, swap to HTTPS and remove key_file.
 - name: Clone / update repositories via SSH deploy key
+  become: true
+  become_user: "{{ item.0.name }}"
+  vars:
+    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
+  ansible.builtin.git:
+    repo: "{{ item.1.repo }}"
+    dest: "{{ repo_dest }}"
+    version: "{{ item.1.version | default('main') }}"
+    update: true
+    force: true
+    depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
+    recursive: "{{ item.1.submodules | default(true) }}"
+    track_submodules: "{{ item.1.submodules | default(true) }}"
+    key_file: "/home/{{ item.0.name }}/.ssh/id_deploy_nudger"
+    accept_newhostkey: true
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  when: git_auth_mode == 'ssh'
+
+# (Sécurité) Variante PAT/HTTPS, au cas où un inventaire switcherait :
+- name: Clone / update repositories via HTTPS (PAT)  # no key_file
   become: true
   become_user: "{{ item.0.name }}"
   ansible.builtin.git:
@@ -301,11 +343,30 @@
     depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
     recursive: "{{ item.1.submodules | default(true) }}"
     track_submodules: "{{ item.1.submodules | default(true) }}"
-    key_file: "/home/{{ item.0.name }}/.ssh/id_deploy_nudger"
     accept_newhostkey: true
   loop: "{{ users_k8s | subelements('git_repos', 'skip_missing=True') }}"
   loop_control:
     label: "{{ item.0.name }} <- {{ item.1.repo }}"
   when:
-    - item.1.repo is defined
-    - item.1.dest is defined
+    - git_auth_mode != 'ssh'
+# ──────────────────────────────────────────────────────────────────────────────
+# 9) Git identity (user.name, user.email)
+- name: Configure global git identity per user
+  become: true
+  become_user: "{{ item.0.name }}"
+  ansible.builtin.git_config:
+    name: "{{ item.1.key }}"
+    value: "{{ item.1.value }}"
+    scope: global
+  loop: "{{ users_k8s | subelements('git_identity', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.0.name }} -> {{ item.1.key }}={{ item.1.value }}"
+
+- name: Assert SSH mode matches SSH repo URLs
+  ansible.builtin.assert:
+    that:
+      - git_auth_mode == 'ssh'
+    fail_msg: "git_auth_mode != ssh alors que repo=git@github.com:... Utilise git_auth_mode=ssh ou passe les repos en HTTPS."
+  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
+  loop_control: { label: "{{ item.0.name }} <- {{ item.1.repo }}" }
+  when: item.1.repo is search('^git@github.com:')
