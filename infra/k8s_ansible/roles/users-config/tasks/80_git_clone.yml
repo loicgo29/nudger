@@ -1,119 +1,33 @@
 ---
-# 80 | git clone/update
+# 80 | git clone/update for all declared repos
 
-- name: Ensure git is installed
+- name: "80 | git | ensure git is present"
   become: true
   ansible.builtin.package:
     name: git
     state: present
+  tags: [git, repos]
 
-- name: Ensure ~/.ssh exists for each user
-  become: true
-  ansible.builtin.file:
-    path: "/home/{{ item.name }}/.ssh"
-    state: directory
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0700"
-  loop: "{{ users_k8s }}"
-
-# ----- known_hosts: purge + ajout hashé (évite les conflits hashed/plain) -----
-
-- name: Remove any existing github.com known_hosts (handles hashed)
-  become: true
-  become_user: "{{ item.name }}"
-  ansible.builtin.command: >
-    ssh-keygen -R github.com -f /home/{{ item.name }}/.ssh/known_hosts
-  register: rm_known_clone
-  failed_when: false
-  changed_when: "'not found' not in (rm_known_clone.stderr | default(''))"
-  loop: "{{ users_k8s }}"
-
-# ----- known_hosts: purge + ajout hashé, sans le module known_hosts -----
-
-- name: Remove any existing github.com known_hosts (handles hashed)
-  become: true
-  become_user: "{{ item.name }}"
-  ansible.builtin.command: >
-    ssh-keygen -R github.com -f /home/{{ item.name }}/.ssh/known_hosts
-  register: rm_known_gh
-  failed_when: false
-  changed_when: "'not found' not in (rm_known_gh.stderr | default(''))"
-  loop: "{{ users_k8s }}"
-
-- name: Add hashed github.com keys (rsa, ed25519) and dedupe
+# Hashé (-H) pour éviter le warning et matcher la known_hosts existante
+- name: "80 | git | add github.com to known_hosts (hashed)"
   become: true
   become_user: "{{ item.name }}"
   ansible.builtin.shell: |
     set -euo pipefail
-    KN=/home/{{ item.name }}/.ssh/known_hosts
-    tmp="$(mktemp)"
-    # -H = host haché ; on ajoute les 2 types
-    ssh-keyscan -H -t rsa,ed25519 github.com 2>/dev/null > "$tmp"
-    # si KN existe déjà, on concat et on dé-duplique ; sinon on remplace
-    if [ -f "$KN" ]; then
-      cat "$KN" "$tmp" | awk 'NF' | sort -u > "${KN}.new"
-      mv "${KN}.new" "$KN"
-    else
-      mv "$tmp" "$KN"
-    fi
-    chmod 0644 "$KN"
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+    ssh-keyscan -t rsa,ed25519 -H github.com 2>/dev/null >> ~/.ssh/known_hosts
+    sort -u ~/.ssh/known_hosts -o ~/.ssh/known_hosts
+    chmod 644 ~/.ssh/known_hosts
   args:
     executable: /bin/bash
+    creates: "/home/{{ item.name }}/.ssh/known_hosts"
   loop: "{{ users_k8s }}"
-# ----- SSH deploy key workflow (si git_auth_mode == 'ssh') -----
+  loop_control: { label: "{{ item.name }}" }
+  tags: [git, repos]
 
-- name: "[preflight] Verify vaulted key exists in role files"
-  delegate_to: localhost
-  become: false
-  ansible.builtin.stat:
-    path: "{{ role_path }}/files/id_deploy_nudger"
-  register: vaulted_key_stat
-  run_once: true
-  when:
-    - (git_auth_mode | default('ssh')) == 'ssh'
-
-- name: "[preflight] Fail early if vaulted key missing"
-  delegate_to: localhost
-  become: false
-  ansible.builtin.fail:
-    msg: "roles/users-config/files/id_deploy_nudger missing. Place it or disable SSH workflow."
-  when:
-    - (git_auth_mode | default('ssh')) == 'ssh'
-    - not vaulted_key_stat.stat.exists
-  run_once: true
-
-- name: Install per-user deploy key for GitHub (from vaulted file)
-  become: true
-  ansible.builtin.copy:
-    src: "id_deploy_nudger"
-    dest: "/home/{{ item.name }}/.ssh/id_deploy_nudger"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: "0600"
-    decrypt: true
-  loop: "{{ users_k8s }}"
-  no_log: true
-  when:
-    - git_auth_mode == 'ssh'
-    - item.git_repos is defined
-    - item.git_repos | length > 0
-
-# ----- Prépare répertoires de destination -----
-
-- name: Assert dest path is under user home (SSH mode)
-  vars:
-    repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
-  ansible.builtin.assert:
-    that:
-      - repo_dest is match('^/home/' ~ item.0.name ~ '/')
-    fail_msg: "dest={{ repo_dest }} n'est pas sous /home/{{ item.0.name }}/"
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  when: git_auth_mode == 'ssh'
-  loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.repo }}"
-
-- name: Ensure destination dir for each repo exists
+# Crée le répertoire de destination (propre ownership)
+- name: "80 | git | ensure repo dest exists"
   become: true
   vars:
     repo_dest: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
@@ -125,11 +39,11 @@
     mode: "0755"
   loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
   loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.repo }} to {{ repo_dest }}"
+    label: "{{ item.0.name }} → {{ item.1.repo }}"
+  tags: [git, repos]
 
-# ----- Clone/update -----
-
-- name: Clone / update repositories via SSH deploy key
+# Clone / update via SSH (clé utilisateur id_vm_ed25519)
+- name: "80 | git | clone/update repos"
   become: true
   become_user: "{{ item.0.name }}"
   vars:
@@ -139,62 +53,13 @@
     dest: "{{ repo_dest }}"
     version: "{{ item.1.version | default('main') }}"
     update: true
-    force: true
-    depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
-    recursive: "{{ item.1.submodules | default(true) }}"
-    track_submodules: "{{ item.1.submodules | default(true) }}"
-    key_file: "/home/{{ item.0.name }}/.ssh/id_deploy_nudger"
-    accept_newhostkey: true
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  when: git_auth_mode == 'ssh'
-
-- name: Clone / update repositories via HTTPS (PAT)
-  become: true
-  become_user: "{{ item.0.name }}"
-  ansible.builtin.git:
-    repo: "{{ item.1.repo }}"
-    dest: "{{ item.1.dest }}"
-    version: "{{ item.1.version | default('main') }}"
-    update: true
     force: false
-    depth: "{{ 1 if (item.1.shallow | default(true)) else omit }}"
+    depth: 1
+    accept_newhostkey: true
+    key_file: "/home/{{ item.0.name }}/.ssh/id_vm_ed25519"
     recursive: "{{ item.1.submodules | default(true) }}"
     track_submodules: "{{ item.1.submodules | default(true) }}"
-    accept_newhostkey: true
   loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
   loop_control:
-    label: "{{ item.0.name }} <- {{ item.1.repo }}"
-  when:
-    - git_auth_mode != 'ssh'
-# ----- Fetch all branches (avec la bonne clé) -----
-
-# 1) Dans chaque repo, configure SSH pour utiliser la clé deploy (id_deploy_nudger)
-- name: Set core.sshCommand to use deploy key (local repo config)
-  become: true
-  become_user: "{{ item.0.name }}"
-  ansible.builtin.git_config:
-    name: core.sshCommand
-    value: "ssh -i ~/.ssh/id_deploy_nudger -o IdentitiesOnly=yes"
-    scope: local
-    repo: "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  when: git_auth_mode == 'ssh'
-  loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.repo }}"
-
-# 2) Fetch en tant que l'utilisateur (et pas root)
-- name: Fetch all branches (prune) for each repo (git_repos)
-  become: true
-  become_user: "{{ item.0.name }}"
-  ansible.builtin.command:
-    argv:
-      - git
-      - -C
-      - "{{ item.1.dest | default('/home/' ~ item.0.name ~ '/' ~ (item.1.dest_rel | default('repo'))) }}"
-      - fetch
-      - --all
-      - --prune
-  loop: "{{ users_k8s | subelements('git_repos', skip_missing=True) }}"
-  when: git_auth_mode == 'ssh'
-  loop_control:
-    label: "{{ item.0.name }} -> {{ item.1.repo }}"
+    label: "{{ item.0.name }} ← {{ item.1.repo }}"
+  tags: [git, repos]

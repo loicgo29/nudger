@@ -6,6 +6,8 @@ users_k8s:
     kubeconfig: /etc/kubernetes/admin.conf
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
     git_repos:
+      - repo: git@github.com:loicgo29/nudger-gitops.git
+        dest_rel: nudger-gitops
       - repo: git@github.com:loicgo29/nudger.git
         dest_rel: nudger
     git_identity:
@@ -19,6 +21,8 @@ users_k8s:
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
     password: "$6$Dm6zU4AbJZ8PWHer$enpO4r2M3klnPgDr8RsBBUh3kaB4UCgHtjoQfRj2xvis5DOoU/Nn/c9ZFR0RhtOi4Zl69s0l9WVERTZoa5LrQ0"
     git_repos:
+      - repo: git@github.com:loicgo29/nudger-gitops.git
+        dest_rel: nudger-gitops
       - repo: git@github.com:loicgo29/nudger.git
         dest_rel: nudger
     git_identity:
@@ -32,6 +36,8 @@ users_k8s:
     ssh_public_key: "{{ lookup('file', '~/.ssh/id_vm_ed25519.pub') }}"
     password: "$6$Dm6zU4AbJZ8PWHer$enpO4r2M3klnPgDr8RsBBUh3kaB4UCgHtjoQfRj2xvis5DOoU/Nn/c9ZFR0RhtOi4Zl69s0l9WVERTZoa5LrQ0"
     git_repos:
+      - repo: git@github.com:loicgo29/nudger-gitops.git
+        dest_rel: nudger-gitops
       - repo: git@github.com:loicgo29/nudger.git
         dest_rel: nudger
     git_identity:
