@@ -72,12 +72,26 @@ if command -v git >/dev/null 2>&1; then
 fi
 
 # --- Starship (prompt) ---
+# --- Starship (prompt) ---
 if command -v starship >/dev/null 2>&1; then
-  cp  /root/nudger/config-vm/starship.toml ~/.config/starship.toml
-  export STARSHIP_CONFIG="~/.config/starship.toml"
-  eval "$(starship init bash)"
-fi
+  # Ensure config dir exists
+  mkdir -p "$HOME/.config"
 
+  # Si le fichier n'existe pas encore, copie depuis ton repo
+  if [ ! -f "$HOME/.config/starship.toml" ] && [ -f "$HOME/nudger/config-vm/starship.toml" ]; then
+    cp "$HOME/nudger/config-vm/starship.toml" "$HOME/.config/starship.toml"
+  fi
+
+  # Utilise le starship.toml local s’il existe
+  if [ -r "$HOME/.config/starship.toml" ]; then
+    export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+  fi
+
+  # Active starship uniquement en shell interactif
+  case "$-" in
+    *i*) eval "$(starship init bash)";;
+  esac
+fi
 # --- Zoxide (no eval/init): cd wrapper + j/ji + completion
 if command -v zoxide >/dev/null 2>&1; then
   export _ZO_DATA_DIR="$HOME/.local/share/zoxide"
