@@ -65,3 +65,47 @@
     replace: '# \1 swap disabled for Kubernetes'
   register: swap_fstab
   changed_when: swap_fstab.msg is defined
+
+# roles/nodes_longhorn_prereqs/tasks/main.yml
+- name: "Longhorn prereqs | Installer nfs-common"
+  ansible.builtin.package:
+    name: nfs-common
+    state: present
+  when: ansible_os_family in ['Debian', 'Ubuntu']
+  tags: [longhorn, prereqs]
+
+- name: "Longhorn prereqs | Désactiver + masquer multipathd"
+  ansible.builtin.systemd:
+    name: multipathd
+    state: stopped
+    enabled: false
+    masked: true          # évite un redémarrage auto via udev
+  tags: [longhorn, prereqs]
+
+# (Optionnel) désinstaller l'outil si tu veux être radical
+# - name: "Longhorn prereqs | Retirer multipath-tools (optionnel)"
+#   ansible.builtin.package:
+#     name: multipath-tools
+#     state: absent
+#   tags: [longhorn, prereqs]
+
+- name: "Longhorn prereqs | dm_crypt chargé au boot"
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/dm_crypt.conf
+    line: dm_crypt
+    create: true
+    mode: '0644'
+  tags: [longhorn, prereqs]
+
+- name: "Longhorn prereqs | Charger dm_crypt maintenant"
+  community.general.modprobe:
+    name: dm_crypt
+    state: present
+  tags: [longhorn, prereqs]
+
+- name: "Longhorn prereqs | Vérifier dm_crypt"
+  ansible.builtin.shell: "lsmod | grep -q '^dm_crypt'"
+  register: dmcrypt_check
+  changed_when: false
+  failed_when: dmcrypt_check.rc != 0
+  tags: [longhorn, prereqs]
