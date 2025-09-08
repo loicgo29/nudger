@@ -32,6 +32,10 @@
       - make
       - tar
       - gzip
+      - gh
+      - file
+      - zoxide
+      - dos2unix
     state: present
     update_cache: true
   tags: [packages]
