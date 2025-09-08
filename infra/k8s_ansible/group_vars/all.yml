@@ -93,3 +93,7 @@ kubernetes_packages:
   - "kubeadm={{ k8s_version }}"
   - "kubelet={{ k8s_version }}"
   - "kubectl={{ k8s_version }}"
+
+
+egress_nat_pod_cidr: "10.244.0.0/24"
+egress_nat_svc_cidr: "10.96.0.0/12"

@@ -1,0 +1,5 @@
+enable_ingress_dnat: true
+ingress_http_nodeport: 30080
+ingress_https_nodeport: 30443
+manage_firewall: true           # ouvre 80/443 si firewalld est là
+enable_ipv6_redirects: false    # passe à true si tu gardes des AAAA publics
