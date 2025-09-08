@@ -22,6 +22,21 @@
     name: dm_crypt
     state: present
 
+- name: Ensure iscsid running
+  ansible.builtin.service:
+    name: iscsid
+    state: started
+    enabled: true
+
+- name: Ensure iSCSI kernel modules present
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - iscsi_tcp
+    - libiscsi
+    - scsi_transport_iscsi
+
 - name: Persist dm_crypt module across reboots
   copy:
     dest: /etc/modules-load.d/dm_crypt.conf

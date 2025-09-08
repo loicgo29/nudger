@@ -135,3 +135,20 @@
   until: flannel_rollout.rc == 0
   become: true
   when: inventory_hostname == groups['k8s_masters'][0]
+
+- name: Ensure flannel has --ip-masq=true
+  ansible.builtin.shell: |
+    set -euo pipefail
+    if ! kubectl -n kube-flannel get ds kube-flannel-ds -o json \
+      | jq -e '.spec.template.spec.containers[0].args[]? | select(. == "--ip-masq=true")' >/dev/null; then
+      kubectl -n kube-flannel patch ds kube-flannel-ds --type='json' -p='[
+        {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--ip-masq=true"}
+      ]'
+    fi
+  args: { executable: /bin/bash }
+  register: flannel_ipmasq_patch
+  changed_when: flannel_ipmasq_patch.rc == 0
+
+- name: Rollout kube-flannel after ip-masq change
+  ansible.builtin.command: kubectl -n kube-flannel rollout status ds/kube-flannel-ds --timeout={{ flannel_wait_timeout }}
+  when: flannel_ipmasq_patch is changed
