@@ -1,0 +1,37 @@
+---
+- name: Create DNAT unit file
+  when: enable_ingress_dnat
+  copy:
+    dest: /etc/systemd/system/ingress-dnat.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Persist iptables DNAT to map 80/443 to NodePorts
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/bin/sh -c 'iptables -t nat -C PREROUTING -p tcp --dport 80  -j REDIRECT --to-ports {{ ingress_http_nodeport }} || iptables -t nat -A PREROUTING -p tcp --dport 80  -j REDIRECT --to-ports {{ ingress_http_nodeport }}'
+      ExecStart=/bin/sh -c 'iptables -t nat -C PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports {{ ingress_https_nodeport }} || iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports {{ ingress_https_nodeport }}'
+      ExecStop=/bin/sh -c 'iptables -t nat -D PREROUTING -p tcp --dport 80  -j REDIRECT --to-ports {{ ingress_http_nodeport }} || true'
+      ExecStop=/bin/sh -c 'iptables -t nat -D PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports {{ ingress_https_nodeport }} || true'
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable & start DNAT service
+  when: enable_ingress_dnat
+  systemd:
+    name: ingress-dnat.service
+    enabled: true
+    state: started
+
+- name: Disable DNAT service if not wanted
+  when: not enable_ingress_dnat
+  systemd:
+    name: ingress-dnat.service
+    enabled: false
+    state: stopped
+  ignore_errors: true
