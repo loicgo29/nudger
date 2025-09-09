@@ -1,4 +1,12 @@
 ---
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+
 - name: Assurer nftables installé/actif (si disponible)
   package:
     name: nftables

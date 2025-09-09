@@ -1,6 +1,9 @@
 ---
-- name: Create DNAT unit file
-  when: enable_ingress_dnat
+# ========== BACKEND IPTABLES ==========
+- name: Create DNAT unit file (iptables backend)
+  when:
+    - enable_ingress_dnat
+    - ingress_dnat_backend == 'iptables'
   copy:
     dest: /etc/systemd/system/ingress-dnat.service
     mode: '0644'
@@ -30,13 +33,52 @@
       WantedBy=multi-user.target
   notify: systemd-reload
 
-- name: Enable & start DNAT service
-  when: enable_ingress_dnat
+- name: Enable & start DNAT service (iptables)
+  when:
+    - enable_ingress_dnat
+    - ingress_dnat_backend == 'iptables'
   systemd:
     name: ingress-dnat.service
     enabled: true
     state: started
 
+# ========== BACKEND NFTABLES ==========
+- name: Ensure nftables installed (nft backend)
+  when:
+    - enable_ingress_dnat
+    - ingress_dnat_backend == 'nft'
+  package:
+    name: nftables
+    state: present
+
+- name: Install nft DNAT script
+  when:
+    - enable_ingress_dnat
+    - ingress_dnat_backend == 'nft'
+  copy:
+    src: ingress-dnat-nft.sh
+    dest: /usr/local/sbin/ingress-dnat-nft.sh
+    mode: '0755'
+
+- name: Install nft DNAT unit
+  when:
+    - enable_ingress_dnat
+    - ingress_dnat_backend == 'nft'
+  template:
+    src: ingress-dnat-nft.service.j2
+    dest: /etc/systemd/system/ingress-dnat.service
+  notify: systemd-reload
+
+- name: Enable & start DNAT service (nft)
+  when:
+    - enable_ingress_dnat
+    - ingress_dnat_backend == 'nft'
+  systemd:
+    name: ingress-dnat.service
+    enabled: true
+    state: started
+
+# ========== FIREWALLD OPTIONNEL ==========
 - name: Open 80/443 in firewalld (if present)
   when:
     - enable_ingress_dnat
@@ -57,6 +99,7 @@
         state: enabled
       loop: [80, 443]
 
+# ========== DÉSACTIVATION ==========
 - name: Disable DNAT service if not wanted
   when: not enable_ingress_dnat
   systemd:

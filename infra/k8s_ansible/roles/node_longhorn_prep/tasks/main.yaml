@@ -37,6 +37,23 @@
     - libiscsi
     - scsi_transport_iscsi
 
+- name: Persist iSCSI modules across reboots
+  copy:
+    dest: /etc/modules-load.d/iscsi.conf
+    content: |
+      iscsi_tcp
+      libiscsi
+      scsi_transport_iscsi
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable open-iscsi service (in addition to iscsid)
+  ansible.builtin.service:
+    name: open-iscsi
+    state: started
+    enabled: true
+
 - name: Persist dm_crypt module across reboots
   copy:
     dest: /etc/modules-load.d/dm_crypt.conf
