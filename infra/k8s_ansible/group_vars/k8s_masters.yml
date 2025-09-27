@@ -10,6 +10,8 @@ users_k8s:
         dest_rel: nudger-gitops
       - repo: git@github.com:loicgo29/nudger.git
         dest_rel: nudger
+      - repo: git@github.com:loicgo29/nudger-infra.git
+        dest_rel: nudger
     git_identity:
       - { key: "user.name",  value: "LoGo" }
       - { key: "user.email", value: "loicgourmelon@gmail.com" }

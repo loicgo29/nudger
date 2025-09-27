@@ -1,34 +1,6 @@
 ---
-- name: Désactiver un éventuel service ingress-dnat.service
-  systemd:
-    name: ingress-dnat.service
-    enabled: no
-    state: stopped
-  ignore_errors: true
-
-# Supprime toutes les règles nftables PREROUTING qui REDIRECT 80/443 vers 30080/30443
-- name: Récupérer les handles des règles REDIRECT 80/443 (nft)
-  shell: |
-    set -e
-    nft -a list chain ip nat PREROUTING 2>/dev/null \
-    | awk '/tcp dport (80|443).*redirect to :(30080|30443)/{print $NF}' \
-    | awk '{print $2}'
-  register: nft_redirect_handles
-  changed_when: false
-  failed_when: false
-
-- name: Supprimer les règles REDIRECT si présentes
-  shell: "nft delete rule ip nat PREROUTING handle {{ item }}"
-  loop: "{{ nft_redirect_handles.stdout_lines }}"
-  when: nft_redirect_handles.stdout | length > 0
-  register: nft_del
-  changed_when: nft_redirect_handles.stdout | length > 0
-  failed_when: false
-
-- name: Afficher état PREROUTING après nettoyage (debug)
-  shell: "nft list chain ip nat PREROUTING || true"
-  register: nft_prerouting
-  changed_when: false
-
-- debug:
-    var: nft_prerouting.stdout
+- name: Remove ingress DNAT fragment
+  file:
+    path: /etc/nftables.d/ingress-dnat.conf
+    state: absent
+  notify: reload nftables

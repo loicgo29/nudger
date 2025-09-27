@@ -5,3 +5,4 @@ common_dependencies:
   - curl
   - gnupg
   - lsb-release
+  - kube-linter
