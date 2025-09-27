@@ -62,5 +62,6 @@ remote_profile="~/nudger/config-vm/profile_logo.sh"
 # # Force l'allocation d'un TTY (-tt) et ouvre UN seul bash interactif
 ssh_args+=(-t -t)
 
-exec ssh "${ssh_args[@]}" "${user}@${ip}" \
-  '[[ -f ~/nudger/config-vm/profile_logo.sh ]] && source ~/nudger/config-vm/profile_logo.sh&& cd nudger; exec bash -i'
+exec ssh "${ssh_args[@]}" "${user}@${ip}" 
+#\
+#  '[[ -f ~/nudger/config-vm/profile_logo.sh ]] && source ~/nudger/config-vm/profile_logo.sh&& cd nudger; exec bash -i'

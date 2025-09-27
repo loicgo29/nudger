@@ -25,7 +25,7 @@
   shell: |
     tar xvf /tmp/actions-runner-{{ runner_version }}.tar.gz -C {{ runner_install_folder }}
   become: true
-  
+
 - name: Make file permissions ok
   file:
     path: "{{ runner_install_folder }}"
@@ -35,7 +35,7 @@
   become: true
 
 - name: Install dependencies
-  shell: | 
+  shell: |
     cd "{{ runner_install_folder }}"
     "{{ runner_install_folder }}/bin/installdependencies.sh"
-  become: true  
+  become: true

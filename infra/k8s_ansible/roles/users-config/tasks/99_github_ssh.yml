@@ -34,38 +34,21 @@
   changed_when: "'not found' not in (rm_known_gh.stderr | default(''))"
   loop: "{{ users_k8s }}"
 
-# ----- known_hosts: purge + ajout hashé, sans le module known_hosts -----
-
-- name: Remove any existing github.com known_hosts (handles hashed)
+- name: Add github.com keys (hashed, per type)
   become: true
-  become_user: "{{ item.name }}"
-  ansible.builtin.command: >
-    ssh-keygen -R github.com -f /home/{{ item.name }}/.ssh/known_hosts
-  register: rm_known_gh
-  failed_when: false
-  changed_when: "'not found' not in (rm_known_gh.stderr | default(''))"
-  loop: "{{ users_k8s }}"
+  become_user: "{{ item.0.name }}"
+  ansible.builtin.known_hosts:
+    path: "/home/{{ item.0.name }}/.ssh/known_hosts"
+    name: "github.com"
+    key: "{{ lookup('ansible.builtin.pipe',
+            'ssh-keyscan -t ' ~ item.1 ~ ' github.com 2>/dev/null | cut -d\" \" -f2-') }}"
+    hash_host: true
+    state: present
+  loop: "{{ users_k8s | product(['rsa','ed25519']) | list }}"
+  loop_control:
+    label: "{{ item.0.name }} <- {{ item.1 }}"
+  tags: [github, ssh]
 
-- name: Add hashed github.com keys (rsa, ed25519) and dedupe
-  become: true
-  become_user: "{{ item.name }}"
-  ansible.builtin.shell: |
-    set -euo pipefail
-    KN=/home/{{ item.name }}/.ssh/known_hosts
-    tmp="$(mktemp)"
-    # -H = host haché ; on ajoute les 2 types
-    ssh-keyscan -H -t rsa,ed25519 github.com 2>/dev/null > "$tmp"
-    # si KN existe déjà, on concat et on dé-duplique ; sinon on remplace
-    if [ -f "$KN" ]; then
-      cat "$KN" "$tmp" | awk 'NF' | sort -u > "${KN}.new"
-      mv "${KN}.new" "$KN"
-    else
-      mv "$tmp" "$KN"
-    fi
-    chmod 0644 "$KN"
-  args:
-    executable: /bin/bash
-  loop: "{{ users_k8s }}"
 - name: Create ~/.ssh/config entry for GitHub (force IdentityFile)
   become: true
   ansible.builtin.blockinfile:

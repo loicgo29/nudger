@@ -1,5 +1,5 @@
 - debug:
-    msg: Using action {{ runner_action }} with token {{ runner_config_token }} 
+    msg: Using action {{ runner_action }} with token {{ runner_config_token }}
 
 - name: Run whoami to find out the current user
   command: whoami

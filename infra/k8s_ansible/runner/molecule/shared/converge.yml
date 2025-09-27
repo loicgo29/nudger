@@ -5,6 +5,6 @@
     runner_action: "install"
     runner_config_name: my_runner
     runner_config_labels: "linux,x-large"
-    runner_config_token: 
+    runner_config_token:
   roles:
     - role: ansible-github-action-runner

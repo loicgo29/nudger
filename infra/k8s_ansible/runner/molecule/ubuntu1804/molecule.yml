@@ -31,7 +31,7 @@ scenario:
     - converge
     - side_effect
     - verify
-    - destroy      
+    - destroy
 provisioner:
   name: ansible
   playbooks:

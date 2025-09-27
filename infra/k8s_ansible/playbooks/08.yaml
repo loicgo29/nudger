@@ -1,18 +1,10 @@
----
-- name: Apply ARC CRDs (server-side apply)
-  hosts: localhost
-  gather_facts: no
+- name: Example Playbook for Github Action Runner install
+  hosts: all
   vars:
-    crds_local_path: "/tmp/actions-runner-controller-crds.yaml"  # Chemin sans espace superflu
-  tasks:
-    - name: Apply the CRDs
-      kubernetes.core.k8s:
-        kubeconfig: "{{ kubeconfig_path }}"
-        state: present
-        src: "{{ crds_local_path }}"
-        apply: true
-        server_side_apply: true
-        force: true
-        wait: true
-      become: true
-      delegate_to: localhost
+    runner_action: "install,configure"
+    runner_version: 2.267.1
+    runner_config_name: my_runner
+    runner_config_labels: "linux,x-large"
+    runner_config_token: <insert your GitHub Action Runner Registration Token>
+  roles:
+    - role: ansible-github-action-runner
